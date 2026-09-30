@@ -7,7 +7,9 @@ use App\Http\Controllers\ClasseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\DocenteController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GenerazioneController;
+use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
 use App\Http\Controllers\SedeController;
 use App\Http\Controllers\VincoloController;
@@ -58,6 +60,13 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->except(['store', 'update', 'destroy']);
         Route::resource('generazioni', GenerazioneController::class)->parameters($parametriRisorse['generazioni'])->only(['index', 'show']);
         Route::get('/generazioni/{generazione}/stato', [GenerazioneController::class, 'stato'])->name('generazioni.stato');
+
+        Route::get('/orari', [OrarioController::class, 'index'])->name('orari.index');
+        Route::get('/orari/{orario}/classe/{classe}', [OrarioController::class, 'classe'])->name('orari.classe');
+        Route::get('/orari/{orario}/docente/{docente}', [OrarioController::class, 'docente'])->name('orari.docente');
+        Route::get('/orari/{orario}/export/classe/{classe}', [ExportController::class, 'classe'])->name('orari.export.classe');
+        Route::get('/orari/{orario}/export/docente/{docente}', [ExportController::class, 'docente'])->name('orari.export.docente');
+        Route::get('/orari/{orario}/export/generale', [ExportController::class, 'generale'])->name('orari.export.generale');
     });
 
     // Gestione anagrafica generale (sedi, aule, discipline, quadri orari, cattedre).
@@ -70,6 +79,10 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::delete('/quadri-orari/righe/{riga}', [QuadroOrarioController::class, 'destroyRiga'])->name('quadri-orari.righe.destroy');
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
+
+        Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
+        Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');
+        Route::post('/orari/{orario}/annulla-ultima', [OrarioController::class, 'annullaUltima'])->name('orari.annulla-ultima');
     });
 
     // Gestione docenti e classi: anche la segreteria.

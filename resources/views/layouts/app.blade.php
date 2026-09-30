@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('titolo', 'Orario Scuola')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -21,6 +22,7 @@
                         <a href="{{ route('cattedre.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cattedre</a>
                         <a href="{{ route('vincoli.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Vincoli</a>
                         <a href="{{ route('generazioni.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Genera orario</a>
+                        <a href="{{ route('orari.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Orari</a>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <span class="text-gray-500">{{ auth()->user()->name }} · {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</span>
