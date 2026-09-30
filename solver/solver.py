@@ -55,7 +55,9 @@ def risolvi(problema: dict) -> dict:
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = problema.get('time_limit_s', 120)
-    solver.parameters.random_seed = problema.get('seed', 0)
+    # random_seed è un int32 lato OR-Tools: riduco difensivamente qualunque
+    # valore più grande arrivi dal chiamante.
+    solver.parameters.random_seed = problema.get('seed', 0) % 2147483647
     solver.parameters.num_search_workers = 1
 
     stato = solver.Solve(model)

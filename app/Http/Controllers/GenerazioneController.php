@@ -28,7 +28,8 @@ class GenerazioneController extends Controller
     {
         $generazione = Generazione::query()->create([
             'periodo_id' => Periodo::corrente()->id,
-            'seed' => $request->input('seed') ?? random_int(1, PHP_INT_MAX >> 16),
+            // random_seed di OR-Tools è un int32: il seed deve starci dentro.
+            'seed' => $request->input('seed') ?? random_int(1, 2147483647),
             'time_limit_s' => $request->input('time_limit_s'),
             'stato' => 'in_coda',
             'creato_da' => $request->user()->id,

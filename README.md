@@ -52,7 +52,7 @@ Servono **tre processi** in parallelo (tre terminali, o un multiplexer):
 ```bash
 php artisan serve        # applicazione: http://127.0.0.1:8000
 npm run dev              # build Vite con hot reload di CSS/JS
-php artisan queue:work   # worker code: necessario per generare l'orario
+php artisan queue:work --queue=high,default   # worker code: necessario per generare l'orario
 ```
 
 Senza `queue:work` attivo, avviare una generazione dell'orario resta bloccato in stato "in coda" a tempo indeterminato.
