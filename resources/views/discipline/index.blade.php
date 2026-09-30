@@ -10,6 +10,13 @@
         @endcan
     </div>
 
+    <x-guida>
+        Catalogo delle materie insegnate, con la classe di concorso abilitante e l'eventuale tipo di aula richiesto
+        (es. palestra per Scienze motorie). In modalità DADA puoi collegare una disciplina a un'aula specifica
+        direttamente dalla scheda dell'aula. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
+        (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">

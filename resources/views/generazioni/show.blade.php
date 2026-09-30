@@ -5,6 +5,11 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">Generazione #{{ $generazione->id }}</h1>
 
+    <x-guida>
+        Questa pagina si aggiorna da sola ogni due secondi finché la generazione è in corso. Se resta bloccata
+        su "in coda", il worker (<code>php artisan queue:work</code>) non è attivo.
+    </x-guida>
+
     <div id="stato-generazione" data-url="{{ route('generazioni.stato', $generazione) }}" data-stato="{{ $generazione->stato }}"
          class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl space-y-4">
         <div>
@@ -23,6 +28,7 @@
             @if ($generazione->stato === 'completata' && $generazione->orario)
                 <p class="text-green-700 text-sm">
                     Orario generato (punteggio {{ $generazione->orario->punteggio }}).
+                    <a href="{{ route('orari.index') }}" class="underline">Apri gli orari</a>
                 </p>
             @elseif ($generazione->stato === 'infattibile')
                 <div class="text-red-700 text-sm">

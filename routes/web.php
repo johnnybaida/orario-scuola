@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');
         Route::post('/orari/{orario}/annulla-ultima', [OrarioController::class, 'annullaUltima'])->name('orari.annulla-ultima');
+        Route::post('/orari/{orario}/avvisi/azzera', [OrarioController::class, 'azzeraAvvisi'])->name('orari.avvisi.azzera');
     });
 
     // Gestione docenti e classi: anche la segreteria.

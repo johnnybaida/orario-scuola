@@ -17,11 +17,16 @@
 
 <div>
     <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-    <select name="tipo" id="tipo" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
-        @foreach (['classe' => 'Classe', 'laboratorio' => 'Laboratorio', 'palestra' => 'Palestra', 'aula_musica' => 'Aula musica', 'aula_sostegno' => 'Aula sostegno', 'aula_alternativa' => 'Aula alternativa IRC'] as $valore => $etichetta)
-            <option value="{{ $valore }}" @selected(old('tipo', $aula?->tipo) === $valore)>{{ $etichetta }}</option>
+    <input type="text" name="tipo" id="tipo" list="tipi-aula" value="{{ old('tipo', $aula?->tipo ?? 'classe') }}" required
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+    <datalist id="tipi-aula">
+        @foreach ($tipiSuggeriti as $tipo)
+            <option value="{{ $tipo }}">
         @endforeach
-    </select>
+    </datalist>
+    <p class="mt-1 text-xs text-gray-500">
+        Scegli un tipo suggerito o scrivine uno nuovo (es. per un'aula dedicata a una disciplina in modalità DADA).
+    </p>
 </div>
 
 <div>

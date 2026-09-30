@@ -6,6 +6,11 @@
     <h1 class="text-xl font-semibold mb-2">{{ $quadro->nome }}</h1>
     <p class="text-sm text-gray-500 mb-6">Totale: {{ $quadro->ore_totali }} ore settimanali</p>
 
+    <x-guida>
+        Aggiungi qui le discipline e le ore settimanali di questo quadro orario. Il totale deve coincidere con le
+        ore assegnate nelle cattedre di ogni classe che lo usa.
+    </x-guida>
+
     <div class="grid md:grid-cols-2 gap-6">
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <table class="w-full text-sm">

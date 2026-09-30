@@ -5,6 +5,12 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">{{ $classe->nomeCompleto() }}</h1>
 
+    <x-guida>
+        Gli "slot attivi" sono le ore della scansione settimanale che questa classe usa davvero: tutte le classi a
+        tempo normale usano solo il mattino, quelle a tempo prolungato anche i pomeriggi di rientro. Il generatore
+        copre esattamente questi slot (né di più, né di meno).
+    </x-guida>
+
     <div class="grid lg:grid-cols-2 gap-6">
         <form method="POST" action="{{ route('classi.update', $classe) }}" class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             @csrf

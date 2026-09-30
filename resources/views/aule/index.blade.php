@@ -10,6 +10,13 @@
         @endcan
     </div>
 
+    <x-guida>
+        Ogni aula ha un tipo (classe, laboratorio, palestra, ...) e una capienza: quante lezioni con lo stesso
+        tipo di aula richiesto possono coesistere nello stesso slot in tutto l'istituto. Per la didattica DADA
+        (un'aula dedicata a una disciplina) crea un'aula con un tipo a piacere (es. "dada_italiano") e collegalo
+        alla disciplina in "Tipo aula richiesto" nella sua scheda.
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">

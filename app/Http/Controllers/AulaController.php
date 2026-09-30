@@ -19,7 +19,10 @@ class AulaController extends Controller
 
     public function create(): View
     {
-        return view('aule.create', ['sedi' => Sede::query()->orderBy('nome')->get()]);
+        return view('aule.create', [
+            'sedi' => Sede::query()->orderBy('nome')->get(),
+            'tipiSuggeriti' => $this->tipiSuggeriti(),
+        ]);
     }
 
     public function store(AulaRequest $request): RedirectResponse
@@ -34,6 +37,7 @@ class AulaController extends Controller
         return view('aule.edit', [
             'aula' => $aula,
             'sedi' => Sede::query()->orderBy('nome')->get(),
+            'tipiSuggeriti' => $this->tipiSuggeriti(),
         ]);
     }
 
@@ -49,5 +53,13 @@ class AulaController extends Controller
         $aula->delete();
 
         return redirect()->route('aule.index')->with('successo', 'Aula eliminata.');
+    }
+
+    /** Tipi base più quelli già in uso (es. tipi DADA creati da questa scuola). */
+    private function tipiSuggeriti(): array
+    {
+        $usati = Aula::query()->distinct()->orderBy('tipo')->pluck('tipo')->all();
+
+        return array_values(array_unique([...Aula::TIPI_BASE, ...$usati]));
     }
 }

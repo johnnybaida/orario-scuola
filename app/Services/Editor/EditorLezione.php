@@ -4,6 +4,7 @@ namespace App\Services\Editor;
 
 use App\Models\AuditLog;
 use App\Models\Aula;
+use App\Models\AvvisoOrario;
 use App\Models\Cattedra;
 use App\Models\Lezione;
 use App\Models\Orario;
@@ -24,33 +25,35 @@ class EditorLezione
 {
     public function esegui(Lezione $lezione, int $slotDestinazioneId, int $utenteId): array
     {
+        $orarioId = $lezione->orario_id;
+
         if ($lezione->bloccata) {
-            return ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di spostarla.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di spostarla.'], 'avvisi' => []]);
         }
 
         $lezione->load('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina');
         $classe = $lezione->cattedra->classe;
         $lezioneEsistente = Lezione::query()
-            ->where('orario_id', $lezione->orario_id)
+            ->where('orario_id', $orarioId)
             ->where('slot_id', $slotDestinazioneId)
             ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
             ->first();
 
         if ($lezioneEsistente && $lezioneEsistente->bloccata) {
-            return ['ok' => false, 'errori' => ['La lezione nello slot di destinazione è bloccata.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione nello slot di destinazione è bloccata.'], 'avvisi' => []]);
         }
 
         $slotOrigineId = $lezione->slot_id;
         $esclusioni = $lezioneEsistente ? [$lezione->id, $lezioneEsistente->id] : [$lezione->id];
 
-        $errori = $this->verificaPosizionamento($lezione->orario_id, $lezione->cattedra, $slotDestinazioneId, $esclusioni);
+        $errori = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni);
         if ($lezioneEsistente) {
             $lezioneEsistente->load('cattedra');
-            $errori = array_merge($errori, $this->verificaPosizionamento($lezione->orario_id, $lezioneEsistente->cattedra, $slotOrigineId, $esclusioni));
+            $errori = array_merge($errori, $this->verificaPosizionamento($orarioId, $lezioneEsistente->cattedra, $slotOrigineId, $esclusioni));
         }
 
         if ($errori) {
-            return ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []]);
         }
 
         $lezione->update(['slot_id' => $slotDestinazioneId]);
@@ -65,7 +68,7 @@ class EditorLezione
             'dati_dopo' => ['slot_id' => $slotDestinazioneId, 'scambiata_con' => $lezioneEsistente?->id],
         ]);
 
-        return ['ok' => true, 'errori' => [], 'avvisi' => []];
+        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => []]);
     }
 
     /**
@@ -80,35 +83,37 @@ class EditorLezione
      */
     public function cambiaCattedra(Lezione $lezione, int $nuovaCattedraId, int $utenteId): array
     {
+        $orarioId = $lezione->orario_id;
+
         if ($lezione->bloccata) {
-            return ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di modificarla.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di modificarla.'], 'avvisi' => []]);
         }
 
         $lezione->load('cattedra.classe');
         $vecchiaCattedra = $lezione->cattedra;
 
         if ($nuovaCattedraId === $vecchiaCattedra->id) {
-            return ['ok' => false, 'errori' => ['Nessuna modifica: è già la cattedra assegnata.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Nessuna modifica: è già la cattedra assegnata.'], 'avvisi' => []]);
         }
 
         $nuovaCattedra = Cattedra::query()->with('classe', 'docente', 'disciplina')->find($nuovaCattedraId);
         if (! $nuovaCattedra) {
-            return ['ok' => false, 'errori' => ['Cattedra non trovata.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Cattedra non trovata.'], 'avvisi' => []]);
         }
         if ($nuovaCattedra->classe_id !== $vecchiaCattedra->classe_id) {
-            return ['ok' => false, 'errori' => ['Puoi assegnare solo una cattedra della stessa classe.'], 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Puoi assegnare solo una cattedra della stessa classe.'], 'avvisi' => []]);
         }
 
-        $errori = $this->verificaPosizionamento($lezione->orario_id, $nuovaCattedra, $lezione->slot_id, [$lezione->id]);
+        $errori = $this->verificaPosizionamento($orarioId, $nuovaCattedra, $lezione->slot_id, [$lezione->id]);
         if ($errori) {
-            return ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []];
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []]);
         }
 
-        $avvisi = $this->avvisiSbilanciamentoOre($lezione->orario_id, $vecchiaCattedra, $nuovaCattedra, $lezione->id);
+        $avvisi = $this->avvisiSbilanciamentoOre($orarioId, $vecchiaCattedra, $nuovaCattedra, $lezione->id);
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
-            'aula_id' => $this->risolviAula($nuovaCattedra, $lezione->orario_id, $lezione->slot_id, [$lezione->id]),
+            'aula_id' => $this->risolviAula($nuovaCattedra, $orarioId, $lezione->slot_id, [$lezione->id]),
         ]);
 
         AuditLog::query()->create([
@@ -120,7 +125,7 @@ class EditorLezione
             'dati_dopo' => ['cattedra_id' => $nuovaCattedra->id],
         ]);
 
-        return ['ok' => true, 'errori' => [], 'avvisi' => $avvisi];
+        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $avvisi]);
     }
 
     /** Annulla l'ultima modifica (spostamento/scambio/cambio cattedra) registrata per questo orario. */
@@ -165,6 +170,23 @@ class EditorLezione
         $log->delete();
 
         return true;
+    }
+
+    /**
+     * Registra errori/avvisi come AvvisoOrario, così restano leggibili nella
+     * pagina della griglia finché qualcuno non li azzera esplicitamente
+     * (non un alert() che sparisce al primo click).
+     */
+    private function persisti(int $orarioId, array $risultato): array
+    {
+        foreach ($risultato['errori'] as $messaggio) {
+            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'tipo' => 'errore', 'messaggio' => $messaggio]);
+        }
+        foreach ($risultato['avvisi'] as $messaggio) {
+            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'tipo' => 'avviso', 'messaggio' => $messaggio]);
+        }
+
+        return $risultato;
     }
 
     /** @return string[] */

@@ -5,6 +5,11 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">{{ $docente->nomeCompleto() }}</h1>
 
+    <x-guida>
+        La griglia delle indisponibilità blocca gli slot in cui il docente non può avere lezione (es. part-time,
+        servizio in un'altra scuola): il generatore automatico e l'editor manuale li rispettano sempre.
+    </x-guida>
+
     <div class="grid lg:grid-cols-2 gap-6">
         <form method="POST" action="{{ route('docenti.update', $docente) }}" class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             @csrf

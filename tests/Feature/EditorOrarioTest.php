@@ -292,4 +292,44 @@ class EditorOrarioTest extends TestCase
         $response->assertRedirect();
         $this->assertSame($cattedraVecchia->id, $lezione->fresh()->cattedra_id);
     }
+
+    public function test_un_conflitto_di_spostamento_resta_visibile_come_avviso_persistente(): void
+    {
+        [$classeA, $slot1, $slot2] = $this->classeConDueSlot();
+        $classeB = Classe::factory()->create();
+        $classeB->slotAttivi()->sync([$slot1->id, $slot2->id]);
+
+        $docente = Docente::factory()->create();
+        $orario = Orario::factory()->create();
+
+        $cattedraA = Cattedra::factory()->create(['classe_id' => $classeA->id, 'docente_id' => $docente->id]);
+        $cattedraB = Cattedra::factory()->create(['classe_id' => $classeB->id, 'docente_id' => $docente->id]);
+
+        $lezioneA = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraA->id, 'slot_id' => $slot1->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraB->id, 'slot_id' => $slot2->id]);
+
+        $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezioneA->id}/sposta", ['slot_id' => $slot2->id]);
+
+        $this->assertDatabaseHas('avvisi_orario', ['orario_id' => $orario->id, 'tipo' => 'errore']);
+    }
+
+    public function test_azzera_avvisi_svuota_il_pannello(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 5]);
+        $lezione = Lezione::factory()->create([
+            'orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id, 'bloccata' => true,
+        ]);
+
+        $referente = $this->referente();
+        $this->actingAs($referente)->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot1->id]);
+        $this->assertDatabaseCount('avvisi_orario', 1);
+
+        $response = $this->actingAs($referente)->post("/orari/{$orario->id}/avvisi/azzera");
+
+        $response->assertRedirect();
+        $this->assertDatabaseCount('avvisi_orario', 0);
+    }
 }

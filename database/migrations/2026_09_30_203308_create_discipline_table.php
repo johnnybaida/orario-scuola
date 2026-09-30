@@ -13,9 +13,10 @@ return new class extends Migration
             $table->string('codice')->unique();
             $table->string('nome');
             $table->string('classe_concorso')->nullable();
-            $table->enum('tipo_aula_richiesto', [
-                'classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa',
-            ])->nullable();
+            // Stringa libera, deve coincidere con un Aula.tipo esistente (vedi
+            // create_aule_table). Supporta sia i tipi base sia un tipo dedicato
+            // DADA (un'aula specifica per questa disciplina).
+            $table->string('tipo_aula_richiesto', 50)->nullable();
             $table->foreignId('padre_id')->nullable()->constrained('discipline')->nullOnDelete();
             $table->timestamps();
         });

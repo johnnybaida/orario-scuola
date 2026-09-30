@@ -10,6 +10,13 @@
         @endcan
     </div>
 
+    <x-guida>
+        Ogni generazione lancia il solver (OR-Tools) in background per produrre un orario che rispetta i vincoli
+        rigidi e minimizza le violazioni di quelli preferenziali. Il seed determina il risultato in modo
+        riproducibile: stesso seed e stessi dati producono lo stesso orario. Serve un worker di coda attivo
+        (<code>php artisan queue:work</code>).
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">

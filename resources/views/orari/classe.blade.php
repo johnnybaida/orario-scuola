@@ -17,12 +17,35 @@
     </div>
 
     @can('gestisci-anagrafica')
-        <p class="text-xs text-gray-500 mb-4">
+        <x-guida>
             Trascina una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si scambiano.
             Usa il menu nella lezione per cambiarne docente e/o materia. Una lezione bloccata non può essere
-            spostata, scambiata né modificata.
-        </p>
+            spostata, scambiata né modificata: sbloccala prima con il pulsante "Blocca/Sblocca".
+        </x-guida>
     @endcan
+
+    @if ($avvisi->isNotEmpty())
+        <div class="mb-4 rounded-lg border px-4 py-3 text-sm {{ $avvisi->contains('tipo', 'errore') ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200' }}">
+            <div class="flex items-center justify-between mb-2">
+                <p class="font-medium {{ $avvisi->contains('tipo', 'errore') ? 'text-red-800' : 'text-amber-800' }}">
+                    Avvisi sulle modifiche a questo orario
+                </p>
+                <form method="POST" action="{{ route('orari.avvisi.azzera', $orario) }}">
+                    @csrf
+                    <button type="submit" class="text-xs underline text-gray-600">Azzera avvisi</button>
+                </form>
+            </div>
+            <ul class="space-y-1">
+                @foreach ($avvisi as $avviso)
+                    <li class="{{ $avviso->tipo === 'errore' ? 'text-red-700' : 'text-amber-800' }}">
+                        <span class="font-mono text-xs uppercase">[{{ $avviso->tipo }}]</span>
+                        {{ $avviso->messaggio }}
+                        <span class="text-gray-400 text-xs">— {{ $avviso->creato_il->diffForHumans() }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"

@@ -48,6 +48,31 @@ class AnagraficheTest extends TestCase
         $this->assertDatabaseHas('aule', ['nome' => 'Palestra', 'sede_id' => $sede->id]);
     }
 
+    public function test_crea_unaula_dada_con_tipo_libero_e_la_collega_a_una_disciplina(): void
+    {
+        $sede = Sede::factory()->create();
+
+        $rispostaAula = $this->actingAs($this->referente())->post('/aule', [
+            'sede_id' => $sede->id,
+            'nome' => 'Aula Italiano',
+            'tipo' => 'dada_italiano',
+            'capienza' => 1,
+        ]);
+        $rispostaAula->assertRedirect(route('aule.index'));
+        $this->assertDatabaseHas('aule', ['tipo' => 'dada_italiano']);
+
+        $disciplina = Disciplina::factory()->create();
+        $rispostaDisciplina = $this->actingAs($this->referente())
+            ->put("/discipline/{$disciplina->id}", [
+                'codice' => $disciplina->codice,
+                'nome' => $disciplina->nome,
+                'tipo_aula_richiesto' => 'dada_italiano',
+            ]);
+
+        $rispostaDisciplina->assertRedirect(route('discipline.index'));
+        $this->assertDatabaseHas('discipline', ['id' => $disciplina->id, 'tipo_aula_richiesto' => 'dada_italiano']);
+    }
+
     public function test_un_quadro_orario_puo_ricevere_righe_disciplina(): void
     {
         $quadro = QuadroOrario::factory()->create();

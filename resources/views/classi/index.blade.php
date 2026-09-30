@@ -13,6 +13,12 @@
         @endcan
     </div>
 
+    <x-guida>
+        Anagrafica delle classi: anno, sezione, sede, quadro orario e "slot attivi" (le ore della scansione
+        settimanale effettivamente usate, es. anche il pomeriggio per il tempo prolungato). Apri una classe per
+        impostare gli slot attivi e vedere le cattedre assegnate.
+    </x-guida>
+
     @if (session('errori_import'))
         <div class="mb-4 rounded bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
             <ul class="list-disc list-inside space-y-1">

@@ -10,6 +10,12 @@
         @endcan
     </div>
 
+    <x-guida>
+        Un quadro orario è il monte ore settimanale per disciplina di un percorso (es. "Tempo normale 30h").
+        Ogni classe ne usa uno; le cattedre di quella classe devono coprire esattamente queste ore, altrimenti
+        la generazione dell'orario segnala un'incoerenza in fase di pre-validazione.
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">

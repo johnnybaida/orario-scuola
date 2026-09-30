@@ -35,6 +35,7 @@ class OrarioController extends Controller
             'lezioni' => $this->lezioniPerSlot($orario, $classe),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get(),
+            'avvisi' => $orario->avvisi,
         ]);
     }
 
@@ -103,6 +104,13 @@ class OrarioController extends Controller
         return back()->with($annullato ? 'successo' : 'errore', $annullato
             ? 'Ultima modifica annullata.'
             : 'Nessuna modifica da annullare.');
+    }
+
+    public function azzeraAvvisi(Orario $orario): RedirectResponse
+    {
+        $orario->avvisi()->delete();
+
+        return back()->with('successo', 'Avvisi azzerati.');
     }
 
     private function lezioniPerSlot(Orario $orario, Classe $classe)

@@ -18,6 +18,12 @@
         </div>
     </div>
 
+    <x-guida>
+        Anagrafica dei docenti: tipo di posto, regime orario, ore dovute (18h = cattedra intera), classi di
+        concorso e indisponibilità (slot in cui non possono avere lezione). Apri un docente per vedere le sue
+        cattedre e impostare le indisponibilità. Puoi importare più docenti insieme con un file CSV.
+    </x-guida>
+
     @if (session('errori_import'))
         <div class="mb-4 rounded bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
             <ul class="list-disc list-inside space-y-1">

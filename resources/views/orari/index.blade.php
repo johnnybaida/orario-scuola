@@ -5,6 +5,11 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">Orari generati</h1>
 
+    <x-guida>
+        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe (modificabile) o di un
+        docente (sola lettura), oppure esporti il tabellone generale in PDF.
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">

@@ -1,8 +1,9 @@
 // Drag & drop + cambio docente/materia per la griglia orario (vista classe).
 // Nessuna libreria: HTML5 Drag and Drop API nativa. Vedi
 // app/Services/Editor/EditorLezione per la validazione lato server
-// (H1/H2/H5/H6/H7); qui ricarichiamo la pagina dopo ogni modifica riuscita,
-// il server resta l'unica fonte di verità.
+// (H1/H2/H5/H6/H7). Ogni tentativo (riuscito o no) viene registrato come
+// AvvisoOrario lato server e mostrato nel pannello persistente della
+// pagina: qui ricarichiamo sempre, niente alert() che si perdono al click.
 function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]').content;
 }
@@ -45,14 +46,8 @@ function inizializzaGriglia(griglia) {
         const lezioneId = lezioneTrascinataId;
         lezioneTrascinataId = null;
 
-        const { ok, dati } = await chiamaApi(`${urlLezioni}/${lezioneId}/sposta`, 'PATCH', { slot_id: cella.dataset.slotId })
-            .catch(() => ({ ok: false, dati: { errori: ['Errore di rete.'] } }));
-
-        if (ok) {
-            window.location.reload();
-        } else {
-            alert((dati.errori || ['Spostamento non valido.']).join('\n'));
-        }
+        await chiamaApi(`${urlLezioni}/${lezioneId}/sposta`, 'PATCH', { slot_id: cella.dataset.slotId }).catch(() => null);
+        window.location.reload();
     });
 
     griglia.addEventListener('click', async (evento) => {
@@ -68,17 +63,8 @@ function inizializzaGriglia(griglia) {
         const select = evento.target.closest('.js-cambia-cattedra');
         if (!select) return;
 
-        const valorePrecedente = [...select.options].find((o) => o.defaultSelected)?.value;
-        const { ok, dati } = await chiamaApi(`${urlLezioni}/${select.dataset.lezioneId}/cattedra`, 'PATCH', { cattedra_id: select.value })
-            .catch(() => ({ ok: false, dati: { errori: ['Errore di rete.'] } }));
-
-        if (ok) {
-            if (dati.avvisi && dati.avvisi.length) alert(dati.avvisi.join('\n'));
-            window.location.reload();
-        } else {
-            alert((dati.errori || ['Modifica non valida.']).join('\n'));
-            select.value = valorePrecedente;
-        }
+        await chiamaApi(`${urlLezioni}/${select.dataset.lezioneId}/cattedra`, 'PATCH', { cattedra_id: select.value }).catch(() => null);
+        window.location.reload();
     });
 }
 

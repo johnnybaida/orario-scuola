@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DisciplinaRequest;
+use App\Models\Aula;
 use App\Models\Disciplina;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -18,7 +19,10 @@ class DisciplinaController extends Controller
 
     public function create(): View
     {
-        return view('discipline.create', ['discipline' => Disciplina::query()->orderBy('nome')->get()]);
+        return view('discipline.create', [
+            'discipline' => Disciplina::query()->orderBy('nome')->get(),
+            'tipiAula' => $this->tipiAula(),
+        ]);
     }
 
     public function store(DisciplinaRequest $request): RedirectResponse
@@ -33,6 +37,7 @@ class DisciplinaController extends Controller
         return view('discipline.edit', [
             'disciplina' => $disciplina,
             'discipline' => Disciplina::query()->where('id', '!=', $disciplina->id)->orderBy('nome')->get(),
+            'tipiAula' => $this->tipiAula(),
         ]);
     }
 
@@ -48,5 +53,10 @@ class DisciplinaController extends Controller
         $disciplina->delete();
 
         return redirect()->route('discipline.index')->with('successo', 'Disciplina eliminata.');
+    }
+
+    private function tipiAula(): array
+    {
+        return Aula::query()->distinct()->orderBy('tipo')->pluck('tipo')->all();
     }
 }

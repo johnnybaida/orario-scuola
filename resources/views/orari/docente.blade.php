@@ -8,6 +8,10 @@
         <a href="{{ route('orari.export.docente', [$orario, $docente]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
     </div>
 
+    <x-guida>
+        Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.
+    </x-guida>
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table class="w-full text-sm border-collapse">
             <thead class="bg-gray-50 text-gray-500">

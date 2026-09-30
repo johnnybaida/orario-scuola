@@ -12,9 +12,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sede_id')->constrained('sedi')->cascadeOnDelete();
             $table->string('nome');
-            $table->enum('tipo', [
-                'classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa',
-            ])->default('classe');
+            // Stringa libera (non enum): oltre ai tipi base (classe, laboratorio,
+            // palestra, aula_musica, aula_sostegno, aula_alternativa), una scuola
+            // DADA può censire un'aula per ogni disciplina con un tipo a piacere
+            // (es. "dada_italiano"), collegata poi da Disciplina.tipo_aula_richiesto.
+            $table->string('tipo', 50)->default('classe');
             $table->unsignedSmallInteger('capienza')->default(1);
             $table->timestamps();
         });

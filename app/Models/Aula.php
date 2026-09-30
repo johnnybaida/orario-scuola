@@ -15,6 +15,9 @@ class Aula extends Model
 
     protected $table = 'aule';
 
+    /** Tipi suggeriti in UI; il campo resta una stringa libera (vedi DADA in CLAUDE.md). */
+    public const TIPI_BASE = ['classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa'];
+
     public function sede(): BelongsTo
     {
         return $this->belongsTo(Sede::class);

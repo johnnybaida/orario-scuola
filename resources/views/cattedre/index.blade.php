@@ -10,6 +10,12 @@
         @endcan
     </div>
 
+    <x-guida>
+        Una cattedra assegna un docente a una disciplina per una classe, con un numero di ore settimanali. La
+        somma delle cattedre di una classe deve coincidere con il suo quadro orario; la somma delle cattedre di
+        un docente non dovrebbe superare le sue ore dovute.
+    </x-guida>
+
     <form method="GET" class="flex flex-wrap items-end gap-3 mb-4">
         <div>
             <label class="block text-xs text-gray-500">Classe</label>

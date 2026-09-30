@@ -20,12 +20,19 @@
 
 <div>
     <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Tipo aula richiesto</label>
-    <select name="tipo_aula_richiesto" id="tipo_aula_richiesto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
-        <option value="">— Nessuno (aula di classe) —</option>
-        @foreach (['classe' => 'Classe', 'laboratorio' => 'Laboratorio', 'palestra' => 'Palestra', 'aula_musica' => 'Aula musica', 'aula_sostegno' => 'Aula sostegno', 'aula_alternativa' => 'Aula alternativa IRC'] as $valore => $etichetta)
-            <option value="{{ $valore }}" @selected(old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto) === $valore)>{{ $etichetta }}</option>
+    <input type="text" name="tipo_aula_richiesto" id="tipo_aula_richiesto" list="tipi-aula"
+           value="{{ old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto) }}"
+           placeholder="vuoto = aula di classe"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+    <datalist id="tipi-aula">
+        @foreach ($tipiAula as $tipo)
+            <option value="{{ $tipo }}">
         @endforeach
-    </select>
+    </datalist>
+    <p class="mt-1 text-xs text-gray-500">
+        Deve coincidere con il tipo di un'aula censita. Per DADA, crea un'aula dedicata con un tipo a piacere
+        (es. "dada_italiano") e usalo qui.
+    </p>
 </div>
 
 <div>

@@ -29,4 +29,9 @@ class Orario extends Model
     {
         return $this->belongsTo(User::class, 'creato_da');
     }
+
+    public function avvisi(): HasMany
+    {
+        return $this->hasMany(AvvisoOrario::class)->latest('creato_il');
+    }
 }
