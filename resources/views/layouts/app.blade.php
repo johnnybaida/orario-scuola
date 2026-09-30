@@ -19,6 +19,8 @@
                         <a href="{{ route('docenti.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Docenti</a>
                         <a href="{{ route('classi.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Classi</a>
                         <a href="{{ route('cattedre.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cattedre</a>
+                        <a href="{{ route('vincoli.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Vincoli</a>
+                        <a href="{{ route('generazioni.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Genera orario</a>
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <span class="text-gray-500">{{ auth()->user()->name }} · {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</span>
