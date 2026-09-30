@@ -19,7 +19,8 @@
     @can('gestisci-anagrafica')
         <p class="text-xs text-gray-500 mb-4">
             Trascina una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si scambiano.
-            Una lezione bloccata non può essere spostata né ricevere uno scambio.
+            Usa il menu nella lezione per cambiarne docente e/o materia. Una lezione bloccata non può essere
+            spostata, scambiata né modificata.
         </p>
     @endcan
 
@@ -54,7 +55,16 @@
                                             <div class="font-medium">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
                                             @can('gestisci-anagrafica')
-                                                <button type="button" class="js-blocca-lezione text-[10px] underline text-gray-500 mt-1">
+                                                @unless ($lezione->bloccata)
+                                                    <select class="js-cambia-cattedra w-full mt-1 text-[10px] border-gray-300 rounded" data-lezione-id="{{ $lezione->id }}" draggable="false">
+                                                        @foreach ($cattedre as $cattedra)
+                                                            <option value="{{ $cattedra->id }}" @selected($cattedra->id === $lezione->cattedra_id)>
+                                                                {{ $cattedra->disciplina->nome }} - {{ $cattedra->docente->cognome }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @endunless
+                                                <button type="button" class="js-blocca-lezione text-[10px] underline text-gray-500 mt-1" draggable="false">
                                                     {{ $lezione->bloccata ? 'Sblocca' : 'Blocca' }}
                                                 </button>
                                             @endcan

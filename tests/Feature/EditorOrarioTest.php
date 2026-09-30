@@ -188,4 +188,108 @@ class EditorOrarioTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_cambia_docente_e_materia_di_una_lezione(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 1]);
+        $cattedraNuova = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 1]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id]);
+
+        $response = $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraNuova->id]);
+
+        $response->assertOk()->assertJson(['ok' => true]);
+        $this->assertSame($cattedraNuova->id, $lezione->fresh()->cattedra_id);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'cambio_cattedra']);
+    }
+
+    public function test_rifiuta_il_cambio_cattedra_se_il_nuovo_docente_e_gia_occupato(): void
+    {
+        [$classeA, $slot1, $slot2] = $this->classeConDueSlot();
+        $classeB = Classe::factory()->create();
+        $classeB->slotAttivi()->sync([$slot1->id, $slot2->id]);
+
+        $docenteOccupato = Docente::factory()->create();
+        $orario = Orario::factory()->create();
+
+        $cattedraOccupata = Cattedra::factory()->create(['classe_id' => $classeB->id, 'docente_id' => $docenteOccupato->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraOccupata->id, 'slot_id' => $slot1->id]);
+
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classeA->id]);
+        $cattedraNuova = Cattedra::factory()->create(['classe_id' => $classeA->id, 'docente_id' => $docenteOccupato->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id]);
+
+        $response = $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraNuova->id]);
+
+        $response->assertStatus(422);
+        $this->assertSame($cattedraVecchia->id, $lezione->fresh()->cattedra_id);
+    }
+
+    public function test_rifiuta_il_cambio_cattedra_verso_unaltra_classe(): void
+    {
+        [$classeA, $slot1] = $this->classeConDueSlot();
+        $classeB = Classe::factory()->create();
+
+        $orario = Orario::factory()->create();
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classeA->id]);
+        $cattedraAltraClasse = Cattedra::factory()->create(['classe_id' => $classeB->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id]);
+
+        $response = $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraAltraClasse->id]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_una_lezione_bloccata_non_cambia_cattedra(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $cattedraNuova = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $lezione = Lezione::factory()->create([
+            'orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id, 'bloccata' => true,
+        ]);
+
+        $response = $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraNuova->id]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_il_cambio_cattedra_segnala_uno_sbilanciamento_delle_ore_senza_bloccare(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 3]);
+        $cattedraNuova = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 2]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id]);
+
+        $response = $this->actingAs($this->referente())
+            ->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraNuova->id]);
+
+        $response->assertOk();
+        $this->assertNotEmpty($response->json('avvisi'));
+    }
+
+    public function test_annulla_ultima_modifica_ripristina_anche_un_cambio_cattedra(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedraVecchia = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $cattedraNuova = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraVecchia->id, 'slot_id' => $slot1->id]);
+
+        $referente = $this->referente();
+        $this->actingAs($referente)->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedraNuova->id]);
+        $this->assertSame($cattedraNuova->id, $lezione->fresh()->cattedra_id);
+
+        $response = $this->actingAs($referente)->post("/orari/{$orario->id}/annulla-ultima");
+
+        $response->assertRedirect();
+        $this->assertSame($cattedraVecchia->id, $lezione->fresh()->cattedra_id);
+    }
 }

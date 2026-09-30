@@ -1,7 +1,8 @@
-// Drag & drop per la griglia orario (vista classe). Nessuna libreria: HTML5
-// Drag and Drop API nativa. Vedi app/Services/Editor/SpostaLezione per la
-// validazione lato server (H1/H2/H5/H6/H7); qui ricarichiamo la pagina dopo
-// ogni modifica riuscita, il server resta l'unica fonte di verità.
+// Drag & drop + cambio docente/materia per la griglia orario (vista classe).
+// Nessuna libreria: HTML5 Drag and Drop API nativa. Vedi
+// app/Services/Editor/EditorLezione per la validazione lato server
+// (H1/H2/H5/H6/H7); qui ricarichiamo la pagina dopo ogni modifica riuscita,
+// il server resta l'unica fonte di verità.
 function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]').content;
 }
@@ -61,6 +62,23 @@ function inizializzaGriglia(griglia) {
         const carta = bottone.closest('[data-lezione-id]');
         const { ok } = await chiamaApi(`${urlLezioni}/${carta.dataset.lezioneId}/blocca`, 'POST');
         if (ok) window.location.reload();
+    });
+
+    griglia.addEventListener('change', async (evento) => {
+        const select = evento.target.closest('.js-cambia-cattedra');
+        if (!select) return;
+
+        const valorePrecedente = [...select.options].find((o) => o.defaultSelected)?.value;
+        const { ok, dati } = await chiamaApi(`${urlLezioni}/${select.dataset.lezioneId}/cattedra`, 'PATCH', { cattedra_id: select.value })
+            .catch(() => ({ ok: false, dati: { errori: ['Errore di rete.'] } }));
+
+        if (ok) {
+            if (dati.avvisi && dati.avvisi.length) alert(dati.avvisi.join('\n'));
+            window.location.reload();
+        } else {
+            alert((dati.errori || ['Modifica non valida.']).join('\n'));
+            select.value = valorePrecedente;
+        }
     });
 }
 
