@@ -30,7 +30,7 @@ Non aggiungere dipendenze (Composer, npm, pip) senza chiedere. Per PDF/Excel pro
 composer install && npm install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed
-python3 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt
+python3.11 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt
 
 # sviluppo
 php artisan serve
