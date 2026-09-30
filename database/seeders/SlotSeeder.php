@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Slot;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 /**
@@ -18,7 +19,7 @@ class SlotSeeder extends Seeder
         $giorniRientro = [2, 4]; // martedì, giovedì
 
         for ($giorno = 1; $giorno <= 5; $giorno++) {
-            $inizio = \Carbon\Carbon::createFromTime(8, 0);
+            $inizio = Carbon::createFromTime(8, 0);
 
             for ($ordine = 1; $ordine <= 6; $ordine++) {
                 $fine = $inizio->copy()->addMinutes($durataMinuti);
@@ -36,7 +37,7 @@ class SlotSeeder extends Seeder
             }
 
             if (in_array($giorno, $giorniRientro, true)) {
-                $inizio = \Carbon\Carbon::createFromTime(14, 0);
+                $inizio = Carbon::createFromTime(14, 0);
 
                 for ($ordine = 7; $ordine <= 9; $ordine++) {
                     $fine = $inizio->copy()->addMinutes($durataMinuti);

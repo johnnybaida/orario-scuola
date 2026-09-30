@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Support\Ruoli;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define('gestisci-anagrafica', fn (User $user) => in_array($user->ruolo, Ruoli::GESTIONE_ANAGRAFICA, true));
+        Gate::define('gestisci-docenti-classi', fn (User $user) => in_array($user->ruolo, Ruoli::GESTIONE_DOCENTI_CLASSI, true));
     }
 }

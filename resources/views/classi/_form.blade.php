@@ -1,0 +1,61 @@
+@php($classe = $classe ?? null)
+
+<div class="grid sm:grid-cols-2 gap-4">
+    <div>
+        <label for="anno_corso" class="block text-sm font-medium text-gray-700">Anno di corso</label>
+        <select name="anno_corso" id="anno_corso" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            @foreach ([1, 2, 3] as $anno)
+                <option value="{{ $anno }}" @selected(old('anno_corso', $classe?->anno_corso) == $anno)>{{ $anno }}ª</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label for="sezione" class="block text-sm font-medium text-gray-700">Sezione</label>
+        <input type="text" name="sezione" id="sezione" value="{{ old('sezione', $classe?->sezione) }}" required maxlength="10"
+               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+    </div>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-4">
+    <div>
+        <label for="sede_id" class="block text-sm font-medium text-gray-700">Sede</label>
+        <select name="sede_id" id="sede_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            @foreach ($sedi as $sede)
+                <option value="{{ $sede->id }}" @selected(old('sede_id', $classe?->sede_id) == $sede->id)>{{ $sede->nome }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label for="aula_base_id" class="block text-sm font-medium text-gray-700">Aula base</label>
+        <select name="aula_base_id" id="aula_base_id" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            <option value="">— Nessuna —</option>
+            @foreach ($aule as $aula)
+                <option value="{{ $aula->id }}" @selected(old('aula_base_id', $classe?->aula_base_id) == $aula->id)>{{ $aula->nome }}</option>
+            @endforeach
+        </select>
+    </div>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-4">
+    <div>
+        <label for="quadro_orario_id" class="block text-sm font-medium text-gray-700">Quadro orario</label>
+        <select name="quadro_orario_id" id="quadro_orario_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            @foreach ($quadri as $quadro)
+                <option value="{{ $quadro->id }}" @selected(old('quadro_orario_id', $classe?->quadro_orario_id) == $quadro->id)>{{ $quadro->nome }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label for="tempo_scuola" class="block text-sm font-medium text-gray-700">Tempo scuola</label>
+        <select name="tempo_scuola" id="tempo_scuola" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+            <option value="normale" @selected(old('tempo_scuola', $classe?->tempo_scuola) === 'normale')>Normale</option>
+            <option value="prolungato" @selected(old('tempo_scuola', $classe?->tempo_scuola) === 'prolungato')>Prolungato</option>
+        </select>
+    </div>
+</div>
+
+<div>
+    <label for="n_alunni" class="block text-sm font-medium text-gray-700">Numero alunni</label>
+    <input type="number" name="n_alunni" id="n_alunni" min="0" max="35" value="{{ old('n_alunni', $classe?->n_alunni ?? 0) }}" required
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+</div>

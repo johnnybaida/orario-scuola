@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Docente;
 use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Corpo docente realistico (~40 persone) per una scuola di 15 classi con
@@ -40,7 +41,7 @@ class DocenteSeeder extends Seeder
         $creaDocente = function (?string $classeConcorso, array $override = []) use ($faker, &$usateEmail): Docente {
             $nome = $faker->firstName();
             $cognome = $faker->lastName();
-            $slug = \Illuminate\Support\Str::slug("{$nome}.{$cognome}", '.');
+            $slug = Str::slug("{$nome}.{$cognome}", '.');
             $email = "{$slug}@scuola.test";
             $i = 1;
             while (in_array($email, $usateEmail, true)) {
