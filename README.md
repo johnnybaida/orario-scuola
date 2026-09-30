@@ -1,58 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Orario Scuola Media
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Applicativo web per generare e gestire l'orario settimanale di una scuola secondaria di I grado: anagrafiche, cattedre, vincoli configurabili, generazione automatica (OR-Tools CP-SAT), editor a griglia con drag&drop ed export PDF.
 
-## About Laravel
+La specifica funzionale completa è in [`docs/analisi-orario-scuola-media.md`](docs/analisi-orario-scuola-media.md); le convenzioni di sviluppo sono in [`CLAUDE.md`](CLAUDE.md).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requisiti
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Componente | Versione | Note |
+|---|---|---|
+| PHP | ≥ 8.3 | con estensioni `pdo_mysql`, `mbstring`, `xml`, `bcmath` (incluse in una installazione PHP standard) |
+| Composer | 2.x | |
+| Node.js | ≥ 20 | per Vite/Tailwind |
+| MariaDB / MySQL | 10.x / 8.x | un database vuoto, es. `orario_scuola` |
+| Python | 3.11 | per il solver OR-Tools (CP-SAT) |
 
-## Learning Laravel
+Il progetto non richiede Apache/Nginx: `php artisan serve` basta per lo sviluppo. Se usi MAMP/MAMP PRO per il database, assicurati che PHP CLI (quello usato per i comandi sotto) abbia l'estensione `pdo_mysql` — non è necessario che sia lo stesso PHP imacchettato con MAMP.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup iniziale
 
 ```bash
-composer require laravel/boost --dev
+# dipendenze PHP e JS
+composer install
+npm install
 
-php artisan boost:install
+# configurazione
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Apri `.env` e imposta le credenziali del database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) prima di continuare.
 
-## Contributing
+```bash
+# schema + dati di esempio (15 classi, 40 docenti, quadro a 30 ore)
+php artisan migrate --seed
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# ambiente del solver Python (OR-Tools CP-SAT)
+python3.11 -m venv solver/.venv
+solver/.venv/bin/pip install -r solver/requirements.txt
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Sviluppo
 
-## Security Vulnerabilities
+Servono **tre processi** in parallelo (tre terminali, o un multiplexer):
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan serve        # applicazione: http://127.0.0.1:8000
+npm run dev              # build Vite con hot reload di CSS/JS
+php artisan queue:work   # worker code: necessario per generare l'orario
+```
 
-## License
+Senza `queue:work` attivo, avviare una generazione dell'orario resta bloccato in stato "in coda" a tempo indeterminato.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Accessi di prova (seed)
+
+Password per tutti: `password`.
+
+| Email | Ruolo |
+|---|---|
+| `amministratore@scuola.test` | Amministratore |
+| `referente_orario@scuola.test` | Referente Orario (gestisce anagrafiche, vincoli, generazione) |
+| `referente_sostituzioni@scuola.test` | Referente Sostituzioni |
+| `segreteria@scuola.test` | Segreteria (gestisce docenti/classi) |
+| `docente@scuola.test` | Docente |
+| `ds@scuola.test` | Dirigente Scolastico |
+
+---
+
+## Test
+
+```bash
+php artisan test                    # test PHP (Feature + Unit)
+solver/.venv/bin/pytest solver/tests   # test del solver Python
+```
+
+---
+
+## Struttura del progetto
+
+```
+app/
+  Models/                 # entità di dominio (nomi in italiano)
+  Http/Controllers/
+  Constraints/            # catalogo vincoli configurabili (D1, D3, D6, T2, T3)
+  Services/
+    Solver/               # ProblemBuilder, SolverRunner, ResultImporter
+    Validation/           # pre-validazione prima del solving
+    Editor/               # spostamento/scambio lezioni nella griglia
+    Export/               # export PDF
+  Jobs/GenerateTimetable.php
+resources/
+  views/
+  js/                     # moduli ES vanilla (nessun framework JS)
+solver/
+  solver.py               # entrypoint CP-SAT: JSON stdin -> JSON stdout
+  constraints/            # un modulo per tipo di vincolo
+  tests/
+docs/
+  analisi-orario-scuola-media.md
+```
+
+Per le convenzioni di codice, il contratto PHP↔solver e la roadmap delle fasi successive, vedi [`CLAUDE.md`](CLAUDE.md).
