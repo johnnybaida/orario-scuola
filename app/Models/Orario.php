@@ -34,4 +34,9 @@ class Orario extends Model
     {
         return $this->hasMany(AvvisoOrario::class)->latest('creato_il');
     }
+
+    public function compresenzeSostegno(): HasMany
+    {
+        return $this->hasMany(CompresenzaSostegno::class);
+    }
 }

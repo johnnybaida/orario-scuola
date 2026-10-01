@@ -58,6 +58,16 @@ def aggiungi_lezioni(problema, disciplina, ore, docente_id=1, classe_id=1, durat
     return problema
 
 
+def aggiungi_sostegno(problema, classe_id, fabbisogni, docenti, conteggio='per_alunno'):
+    problema['sostegno'].append({
+        'classe': classe_id,
+        'fabbisogni': fabbisogni,
+        'docenti': docenti,
+        'conteggio': conteggio,
+    })
+    return problema
+
+
 def completa_slot_rimanenti(problema, disciplina_riempimento='RIEMPI'):
     """Aggiunge lezioni di riempimento così che ogni slot attivo della classe
     sia coperto esattamente una volta (richiesto da H1+H5)."""

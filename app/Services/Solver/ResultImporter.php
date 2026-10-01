@@ -2,6 +2,7 @@
 
 namespace App\Services\Solver;
 
+use App\Models\CompresenzaSostegno;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Periodo;
@@ -33,6 +34,16 @@ class ResultImporter
                 'durata_slot' => 1,
                 'aula_id' => $assegnazione['aula'],
                 'bloccata' => false,
+            ]);
+        }
+
+        foreach ($risultato['compresenze_sostegno'] as $compresenza) {
+            CompresenzaSostegno::query()->create([
+                'orario_id' => $orario->id,
+                'docente_id' => $compresenza['docente'],
+                'classe_id' => $compresenza['classe'],
+                'slot_id' => $compresenza['slot'],
+                'codice_anonimo' => $compresenza['codice'],
             ]);
         }
 

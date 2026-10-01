@@ -12,6 +12,7 @@ class ImpostazioniSeeder extends Seeder
         Impostazioni::query()->firstOrCreate([], [
             'durata_ora_minuti' => 50,
             'giorni_settimana' => 5,
+            'conteggio_sostegno' => 'per_alunno',
         ]);
     }
 }

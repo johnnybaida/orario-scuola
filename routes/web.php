@@ -12,6 +12,7 @@ use App\Http\Controllers\GenerazioneController;
 use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
 use App\Http\Controllers\SedeController;
+use App\Http\Controllers\SostegnoController;
 use App\Http\Controllers\VincoloController;
 use App\Support\Ruoli;
 use Illuminate\Support\Facades\Route;
@@ -98,5 +99,11 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::get('/classi-import', [ClasseController::class, 'importForm'])->name('classi.import.form');
         Route::post('/classi-import', [ClasseController::class, 'import'])->name('classi.import');
         Route::put('/classi/{classe}/slot-attivi', [ClasseController::class, 'updateSlotAttivi'])->name('classi.slot-attivi.update');
+
+        Route::post('/classi/{classe}/sostegno/fabbisogni', [SostegnoController::class, 'storeFabbisogno'])->name('sostegno.fabbisogni.store');
+        Route::delete('/classi/{classe}/sostegno/fabbisogni/{fabbisogno}', [SostegnoController::class, 'destroyFabbisogno'])->name('sostegno.fabbisogni.destroy');
+        Route::post('/classi/{classe}/sostegno/assegnazioni', [SostegnoController::class, 'storeAssegnazione'])->name('sostegno.assegnazioni.store');
+        Route::delete('/classi/{classe}/sostegno/assegnazioni/{assegnazione}', [SostegnoController::class, 'destroyAssegnazione'])->name('sostegno.assegnazioni.destroy');
+        Route::put('/classi/{classe}/sostegno/conteggio', [SostegnoController::class, 'updateConteggio'])->name('sostegno.conteggio.update');
     });
 });

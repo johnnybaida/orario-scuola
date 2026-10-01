@@ -81,6 +81,8 @@ docs/
 - Logica di dominio nei Service, non nei controller.
 - JavaScript: moduli ES, niente variabili globali, `fetch` verso endpoint JSON.
 - Ogni modifica a orario, vincoli e sostituzioni va nell'audit log.
+- Ogni pagina principale ha una mini guida con il componente `<x-guida>` (vedi `resources/views/components/guida.blade.php`).
+- Gli esiti (errori/avvisi) delle modifiche manuali all'orario restano visibili in un pannello persistente (tabella `avvisi_orario`) finché non vengono azzerati esplicitamente: non usare `alert()` JS per questo.
 
 ---
 
@@ -88,7 +90,8 @@ docs/
 
 ### Dati
 - **Alunni non censiti.** Per classe solo `n_alunni`; per gruppo solo `n_partecipanti`.
-- **Sostegno**: per classe, fabbisogni anonimi (`codice_anonimo`, es. `1B-S1`, + ore settimanali). Le ore possono essere coperte da più docenti di sostegno, salvo vincolo S4. Conteggio configurabile: `per_alunno` o `per_classe`; default di istituto con override per classe. Le ore di sostegno sono **compresenze**.
+- **Sostegno** (implementato, anticipato rispetto alla Fase 3 originale su richiesta esplicita): per classe, fabbisogni anonimi in `fabbisogni_sostegno` (`codice_anonimo`, es. `1B-S1`, + ore settimanali + `docente_unico` = S4). Docenti assegnati in `assegnazioni_sostegno` (docente + classe + ore). Conteggio in `Impostazioni.conteggio_sostegno` (default istituto) con override opzionale per classe (`Classe.conteggio_sostegno`, nullable = eredita il default). Le ore di sostegno sono **compresenze**, modellate nel solver (`solver/sostegno.py`) e persistite in `compresenze_sostegno` dopo la generazione. **Non implementati**: S1 (discipline preferite), S2 (discipline escluse), S3 (distribuzione minima su più giorni) come vincoli configurabili dedicati.
+- **DADA** (implementato, non nella specifica originale): `aule.tipo` e `discipline.tipo_aula_richiesto` sono stringhe libere, non enum. Oltre ai tipi base, una scuola può censire un'aula dedicata a una disciplina con un tipo a piacere (es. `dada_italiano`) e collegarla dalla scheda della disciplina; riusa il meccanismo esistente di capienza/scelta aula (nessuna modifica al solver necessaria).
 - **Scansione oraria unica di istituto**, ereditata da tutte le classi. La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare.
 - **Docenti**: tipo posto (comune, sostegno, potenziamento, IRC, strumento), regime (tempo pieno/part-time), ore dovute (cattedra intera = 18), indisponibilità. Per i COE si gestiscono solo le indisponibilità.
 - **Gruppi interclasse** per seconda lingua articolata, alternativa IRC, LEL (latino opzionale), strumento: le classi coinvolte devono essere compatibili nello stesso slot.
@@ -152,10 +155,11 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 
 | Fase | Contenuto |
 |---|---|
-| **MVP** | Anagrafiche + import CSV, scansione oraria di istituto, quadri orari, cattedre manuali e proposta automatica, vincoli H1–H10 + D1, D3, D6, T1, T2, T3, generazione con seed, editor griglia, export PDF |
+| **MVP** | Anagrafiche + import CSV, scansione oraria di istituto, quadri orari, cattedre manuali e proposta automatica, vincoli H1–H10 + D1, D3, D6, T1, T2, T3, generazione con seed, editor griglia, export PDF — **completo** |
+| Anticipato | Sostegno (fabbisogni, assegnazioni, compresenze, S4 docente unico) e DADA (aula per disciplina), su richiesta esplicita |
 | Fase 2 | Assenze e sostituzioni con proposta automatica, recupero permessi, versioni e diff |
-| Fase 3 | Gruppi interclasse, sostegno con S1–S4, multi-sede e indisponibilità COE |
-| Fase 4 | Varianti multiple e confronto, rilassamento guidato dei vincoli |
+| Fase 3 | Gruppi interclasse, S1–S3 (vincoli sostegno su discipline/distribuzione), multi-sede e indisponibilità COE |
+| Fase 4 | Varianti multiple e confronto, rilassamento guidato dei vincoli, export Excel |
 
 Non anticipare funzionalità di fasi successive; se servono predisposizioni nel modello dati, segnalale.
 

@@ -86,4 +86,23 @@ class GenerazioneOrarioTest extends TestCase
         $this->assertSame('infattibile', $generazione->stato);
         $this->assertNotEmpty($generazione->diagnostica);
     }
+
+    public function test_genera_un_orario_con_compresenze_di_sostegno(): void
+    {
+        $classe = $this->scuolaMinima();
+        $docenteSostegno = Docente::factory()->create(['tipo_posto' => 'sostegno']);
+        $classe->fabbisogniSostegno()->create(['codice_anonimo' => '1B-S1', 'ore_settimanali' => 2]);
+        $classe->assegnazioniSostegno()->create(['docente_id' => $docenteSostegno->id, 'ore' => 2]);
+
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+
+        $this->actingAs($referente)->post('/generazioni', ['time_limit_s' => 30, 'seed' => 7]);
+
+        $generazione = Generazione::query()->latest('id')->first();
+        $this->assertSame('completata', $generazione->stato);
+
+        $compresenze = $generazione->orario->compresenzeSostegno;
+        $this->assertCount(2, $compresenze);
+        $this->assertTrue($compresenze->every(fn ($c) => $c->docente_id === $docenteSostegno->id && $c->codice_anonimo === '1B-S1'));
+    }
 }

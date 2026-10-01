@@ -9,6 +9,7 @@ import sys
 
 from ortools.sat.python import cp_model
 
+import sostegno as sostegno_modulo
 from contesto import Contesto
 from constraints import d1, d3, d6, t2, t3
 
@@ -36,6 +37,17 @@ def risolvi(problema: dict) -> dict:
         }
 
     ctx.applica_vincoli_sistema()
+
+    assegnazioni_sostegno, diagnostica_sostegno = sostegno_modulo.applica(ctx, problema.get('sostegno', []))
+    if diagnostica_sostegno:
+        return {
+            'stato': 'infattibile',
+            'punteggio': None,
+            'assegnazioni': [],
+            'compresenze_sostegno': [],
+            'violazioni_soft': [],
+            'diagnostica': diagnostica_sostegno,
+        }
 
     penalita_totali = []
     violazioni_soft = []
@@ -91,6 +103,12 @@ def risolvi(problema: dict) -> dict:
             aula_scelta = next(a for a, v in ctx.aula_scelta[lid].items() if solver.Value(v))
         assegnazioni.append({'lezione': lid, 'slot': slot_scelto, 'aula': aula_scelta})
 
+    compresenze_sostegno = [
+        {'docente': docente_id, 'classe': classe_id, 'slot': slot_id, 'codice': codice}
+        for docente_id, classe_id, slot_id, codice, v in assegnazioni_sostegno
+        if solver.Value(v)
+    ]
+
     violazioni_output = []
     for vincolo, penalita in violazioni_soft:
         conteggio = sum(solver.Value(p) for p in penalita)
@@ -105,7 +123,7 @@ def risolvi(problema: dict) -> dict:
         'stato': 'ottimo' if stato == cp_model.OPTIMAL else 'fattibile',
         'punteggio': int(solver.ObjectiveValue()) if penalita_totali else 0,
         'assegnazioni': assegnazioni,
-        'compresenze_sostegno': [],
+        'compresenze_sostegno': compresenze_sostegno,
         'violazioni_soft': violazioni_output,
         'diagnostica': [],
     }

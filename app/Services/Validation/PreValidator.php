@@ -23,6 +23,7 @@ class PreValidator
             ...$this->oreDocenteVsSlotDisponibili(),
             ...$this->capacitaAuleTipo(),
             ...$this->vincoliContraddittori(),
+            ...$this->oreSostegno(),
         ];
     }
 
@@ -87,6 +88,32 @@ class PreValidator
             } elseif ($oreTotali > $capacitaSettimanale) {
                 $problemi[] = "Aule di tipo '{$tipo}': servono {$oreTotali}h settimanali ma la capacità "
                     ."massima teorica è {$capacitaSettimanale}h.";
+            }
+        }
+
+        return $problemi;
+    }
+
+    private function oreSostegno(): array
+    {
+        $problemi = [];
+
+        foreach (Classe::query()->whereHas('fabbisogniSostegno')->with('fabbisogniSostegno', 'assegnazioniSostegno')->get() as $classe) {
+            $oreAssegnate = $classe->assegnazioniSostegno->sum('ore');
+            $oreRichieste = $classe->conteggioSostegnoEffettivo() === 'per_classe'
+                ? $classe->fabbisogniSostegno->max('ore_settimanali')
+                : $classe->fabbisogniSostegno->sum('ore_settimanali');
+
+            if ($oreAssegnate < $oreRichieste) {
+                $problemi[] = "Sostegno classe {$classe->nomeCompleto()}: servono {$oreRichieste}h "
+                    ."({$classe->conteggioSostegnoEffettivo()}) ma i docenti assegnati coprono solo {$oreAssegnate}h.";
+            }
+
+            foreach ($classe->fabbisogniSostegno as $fabbisogno) {
+                if ($fabbisogno->docente_unico && $classe->assegnazioniSostegno->isEmpty()) {
+                    $problemi[] = "Sostegno classe {$classe->nomeCompleto()}: il fabbisogno {$fabbisogno->codice_anonimo} "
+                        .'richiede un docente unico ma nessun docente di sostegno è assegnato.';
+                }
             }
         }
 

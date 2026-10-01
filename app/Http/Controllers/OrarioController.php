@@ -28,6 +28,12 @@ class OrarioController extends Controller
 
     public function classe(Orario $orario, Classe $classe): View
     {
+        $compresenze = $orario->compresenzeSostegno()
+            ->where('classe_id', $classe->id)
+            ->with('docente')
+            ->get()
+            ->groupBy('slot_id');
+
         return view('orari.classe', [
             'orario' => $orario,
             'classe' => $classe,
@@ -36,6 +42,7 @@ class OrarioController extends Controller
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get(),
             'avvisi' => $orario->avvisi,
+            'compresenze' => $compresenze,
         ]);
     }
 

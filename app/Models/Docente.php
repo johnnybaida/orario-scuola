@@ -44,6 +44,11 @@ class Docente extends Model
         return $this->hasMany(Cattedra::class);
     }
 
+    public function assegnazioniSostegno(): HasMany
+    {
+        return $this->hasMany(AssegnazioneSostegno::class);
+    }
+
     public function utente(): HasMany
     {
         return $this->hasMany(User::class);

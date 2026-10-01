@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ClasseRequest;
 use App\Models\Aula;
 use App\Models\Classe;
+use App\Models\Docente;
 use App\Models\QuadroOrario;
 use App\Models\Sede;
 use App\Models\Slot;
@@ -42,6 +43,9 @@ class ClasseController extends Controller
             'classe' => $classe,
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
+            'fabbisogniSostegno' => $classe->fabbisogniSostegno()->orderBy('codice_anonimo')->get(),
+            'assegnazioniSostegno' => $classe->assegnazioniSostegno()->with('docente')->get(),
+            'docentiSostegno' => Docente::query()->where('tipo_posto', 'sostegno')->orderBy('cognome')->get(),
         ]));
     }
 

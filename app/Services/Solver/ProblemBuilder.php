@@ -34,7 +34,7 @@ class ProblemBuilder
             'docenti' => $this->docenti(),
             'classi' => $this->classi(),
             'lezioni' => $this->lezioni(),
-            'sostegno' => [],
+            'sostegno' => $this->sostegno(),
             'vincoli' => $this->vincoli(),
         ];
     }
@@ -99,6 +99,27 @@ class ProblemBuilder
         }
 
         return $lezioni;
+    }
+
+    private function sostegno(): array
+    {
+        return Classe::query()
+            ->whereHas('fabbisogniSostegno')
+            ->with('fabbisogniSostegno', 'assegnazioniSostegno')
+            ->get()
+            ->map(fn (Classe $c) => [
+                'classe' => $c->id,
+                'fabbisogni' => $c->fabbisogniSostegno->map(fn ($f) => [
+                    'codice' => $f->codice_anonimo,
+                    'ore' => $f->ore_settimanali,
+                    'docente_unico' => $f->docente_unico,
+                ])->all(),
+                'docenti' => $c->assegnazioniSostegno->map(fn ($a) => [
+                    'id' => $a->docente_id,
+                    'ore' => $a->ore,
+                ])->all(),
+                'conteggio' => $c->conteggioSostegnoEffettivo(),
+            ])->all();
     }
 
     private function vincoli(): array
