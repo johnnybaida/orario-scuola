@@ -9,6 +9,6 @@
         @csrf
         @method('PUT')
         @include('sedi._form')
-        <button type="submit" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva</button>
+        <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
     </form>
 @endsection

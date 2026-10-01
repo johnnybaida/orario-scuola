@@ -12,7 +12,7 @@
     </x-guida>
 
     <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-gray-500 text-left">
                     <tr>
@@ -47,7 +47,7 @@
                     @csrf
                     <div>
                         <label for="disciplina_id" class="block text-sm font-medium text-gray-700">Disciplina</label>
-                        <select name="disciplina_id" id="disciplina_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <select name="disciplina_id" id="disciplina_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                             @foreach ($discipline as $disciplina)
                                 <option value="{{ $disciplina->id }}">{{ $disciplina->nome }}</option>
                             @endforeach
@@ -56,9 +56,9 @@
                     <div>
                         <label for="ore_settimanali" class="block text-sm font-medium text-gray-700">Ore settimanali</label>
                         <input type="number" name="ore_settimanali" id="ore_settimanali" min="1" max="40" required
-                               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     </div>
-                    <button type="submit" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva riga</button>
+                    <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva riga</button>
                 </form>
 
                 <hr class="border-gray-100">
@@ -69,7 +69,7 @@
                     <div>
                         <label for="nome" class="block text-sm font-medium text-gray-700">Nome quadro</label>
                         <input type="text" name="nome" id="nome" value="{{ old('nome', $quadro->nome) }}" required
-                               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     </div>
                     <button type="submit" class="text-sm underline text-gray-600">Rinomina quadro</button>
                 </form>

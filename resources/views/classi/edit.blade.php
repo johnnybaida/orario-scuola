@@ -16,7 +16,7 @@
             @csrf
             @method('PUT')
             @include('classi._form')
-            <button type="submit" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva</button>
+            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
         </form>
 
         <div class="space-y-6">
@@ -60,7 +60,7 @@
                         </table>
                     </div>
 
-                    <button type="submit" class="mt-4 bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva slot attivi</button>
+                    <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva slot attivi</button>
                 </form>
             </div>
 
@@ -107,7 +107,7 @@
                     @method('PUT')
                     <label for="conteggio_sostegno" class="text-sm text-gray-700">Conteggio ore</label>
                     <select name="conteggio_sostegno" id="conteggio_sostegno" onchange="this.form.submit()"
-                            class="text-sm rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                            class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                         <option value="" @selected(is_null($classe->conteggio_sostegno))>Default istituto ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
                         <option value="per_alunno" @selected($classe->conteggio_sostegno === 'per_alunno')>Per alunno</option>
                         <option value="per_classe" @selected($classe->conteggio_sostegno === 'per_classe')>Per classe</option>
@@ -144,16 +144,16 @@
                     @csrf
                     <div>
                         <label class="block text-xs text-gray-500">Codice anonimo</label>
-                        <input type="text" name="codice_anonimo" placeholder="es. 1B-S1" required class="text-sm rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <input type="text" name="codice_anonimo" placeholder="es. 1B-S1" required class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500">Ore/sett.</label>
-                        <input type="number" name="ore_settimanali" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <input type="number" name="ore_settimanali" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     </div>
                     <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
                         <input type="checkbox" name="docente_unico" value="1"> Docente unico
                     </label>
-                    <button type="submit" class="bg-gray-900 text-white rounded px-3 py-1.5 text-xs">Aggiungi</button>
+                    <button type="submit" class="bg-primary text-white rounded px-3 py-1.5 text-xs hover:bg-primary/90 transition-colors cursor-pointer">Aggiungi</button>
                 </form>
 
                 <h3 class="text-sm font-medium text-gray-700 mb-2">Docenti di sostegno assegnati</h3>
@@ -191,7 +191,7 @@
                     @csrf
                     <div>
                         <label class="block text-xs text-gray-500">Docente</label>
-                        <select name="docente_id" required class="text-sm rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <select name="docente_id" required class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                             @foreach ($docentiSostegno as $docente)
                                 <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
                             @endforeach
@@ -199,9 +199,9 @@
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500">Ore/sett.</label>
-                        <input type="number" name="ore" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                        <input type="number" name="ore" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     </div>
-                    <button type="submit" class="bg-gray-900 text-white rounded px-3 py-1.5 text-xs">Aggiungi</button>
+                    <button type="submit" class="bg-primary text-white rounded px-3 py-1.5 text-xs hover:bg-primary/90 transition-colors cursor-pointer">Aggiungi</button>
                 </form>
             </div>
         </div>

@@ -12,20 +12,20 @@
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                 <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus
-                       class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             </div>
 
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                 <input type="password" name="password" id="password" required
-                       class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             </div>
 
             <label class="flex items-center gap-2 text-sm text-gray-600">
                 <input type="checkbox" name="ricordami"> Ricordami
             </label>
 
-            <button type="submit" class="w-full bg-gray-900 text-white rounded py-2 text-sm font-medium hover:bg-gray-800">
+            <button type="submit" class="w-full bg-primary text-white rounded py-2 text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer">
                 Accedi
             </button>
         </form>

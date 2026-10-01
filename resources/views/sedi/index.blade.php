@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">Sedi</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('sedi.create') }}" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Nuova sede</a>
+            <a href="{{ route('sedi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova sede</a>
         @endcan
     </div>
 
@@ -15,7 +15,7 @@
         Ogni aula appartiene a una sede. Se l'istituto ha un solo plesso basta una sede.
     </x-guida>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>

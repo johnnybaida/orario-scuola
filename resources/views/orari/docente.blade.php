@@ -12,7 +12,7 @@
         Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.
     </x-guida>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm border-collapse">
             <thead class="bg-gray-50 text-gray-500">
                 <tr>

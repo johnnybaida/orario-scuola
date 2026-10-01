@@ -47,7 +47,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
                data-editabile="{{ auth()->user()->can('gestisci-anagrafica') ? '1' : '0' }}">
             <thead class="bg-gray-50 text-gray-500">

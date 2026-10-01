@@ -10,7 +10,7 @@
         docente (sola lettura), oppure esporti il tabellone generale in PDF.
     </x-guida>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>

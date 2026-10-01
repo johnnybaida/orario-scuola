@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-xl font-semibold">Cattedre</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('cattedre.create') }}" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Nuova cattedra</a>
+            <a href="{{ route('cattedre.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova cattedra</a>
         @endcan
     </div>
 
@@ -19,7 +19,7 @@
     <form method="GET" class="flex flex-wrap items-end gap-3 mb-4">
         <div>
             <label class="block text-xs text-gray-500">Classe</label>
-            <select name="classe_id" class="rounded border-gray-300 shadow-sm text-sm focus:border-gray-500 focus:ring-gray-500" onchange="this.form.submit()">
+            <select name="classe_id" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">
                 <option value="">Tutte</option>
                 @foreach ($classi as $classe)
                     <option value="{{ $classe->id }}" @selected($filtroClasse == $classe->id)>{{ $classe->nomeCompleto() }}</option>
@@ -28,7 +28,7 @@
         </div>
         <div>
             <label class="block text-xs text-gray-500">Docente</label>
-            <select name="docente_id" class="rounded border-gray-300 shadow-sm text-sm focus:border-gray-500 focus:ring-gray-500" onchange="this.form.submit()">
+            <select name="docente_id" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">
                 <option value="">Tutti</option>
                 @foreach ($docenti as $docente)
                     <option value="{{ $docente->id }}" @selected($filtroDocente == $docente->id)>{{ $docente->nomeCompleto() }}</option>
@@ -37,7 +37,7 @@
         </div>
     </form>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
@@ -71,4 +71,6 @@
             </tbody>
         </table>
     </div>
+
+    <div class="mt-4">{{ $cattedre->links() }}</div>
 @endsection

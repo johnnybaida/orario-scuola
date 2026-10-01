@@ -8,7 +8,7 @@
         @can('gestisci-docenti-classi')
             <div class="flex gap-3">
                 <a href="{{ route('classi.import.form') }}" class="text-sm underline text-gray-600 self-center">Importa CSV</a>
-                <a href="{{ route('classi.create') }}" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Nuova classe</a>
+                <a href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
             </div>
         @endcan
     </div>
@@ -29,7 +29,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>

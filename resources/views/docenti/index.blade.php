@@ -8,12 +8,12 @@
         <div class="flex items-center gap-3">
             <form method="GET" class="flex items-center gap-2">
                 <input type="text" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome"
-                       class="rounded border-gray-300 shadow-sm text-sm focus:border-gray-500 focus:ring-gray-500">
+                       class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary">
                 <button type="submit" class="text-sm underline text-gray-600">Cerca</button>
             </form>
             @can('gestisci-docenti-classi')
                 <a href="{{ route('docenti.import.form') }}" class="text-sm underline text-gray-600">Importa CSV</a>
-                <a href="{{ route('docenti.create') }}" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Nuovo docente</a>
+                <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
             @endcan
         </div>
     </div>
@@ -34,7 +34,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>

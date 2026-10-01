@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">Discipline</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('discipline.create') }}" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Nuova disciplina</a>
+            <a href="{{ route('discipline.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova disciplina</a>
         @endcan
     </div>
 
@@ -17,7 +17,7 @@
         (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
     </x-guida>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>

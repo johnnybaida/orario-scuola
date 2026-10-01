@@ -15,7 +15,7 @@
             @csrf
             @method('PUT')
             @include('docenti._form')
-            <button type="submit" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva</button>
+            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
         </form>
 
         <div class="space-y-6">
@@ -59,7 +59,7 @@
                         </table>
                     </div>
 
-                    <button type="submit" class="mt-4 bg-gray-900 text-white rounded px-4 py-2 text-sm">Salva indisponibilità</button>
+                    <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva indisponibilità</button>
                 </form>
             </div>
 

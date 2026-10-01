@@ -20,7 +20,8 @@ class CattedraController extends Controller
             ->when($request->integer('classe_id'), fn ($q, $v) => $q->where('classe_id', $v))
             ->when($request->integer('docente_id'), fn ($q, $v) => $q->where('docente_id', $v))
             ->orderBy('classe_id')
-            ->get();
+            ->paginate(50)
+            ->withQueryString();
 
         return view('cattedre.index', [
             'cattedre' => $cattedre,

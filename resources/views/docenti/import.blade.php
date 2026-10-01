@@ -14,7 +14,7 @@
         <form method="POST" action="{{ route('docenti.import') }}" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="file" name="file" accept=".csv,text/csv" required class="block w-full text-sm">
-            <button type="submit" class="bg-gray-900 text-white rounded px-4 py-2 text-sm">Importa</button>
+            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Importa</button>
         </form>
     </div>
 @endsection

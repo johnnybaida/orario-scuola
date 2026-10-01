@@ -20,7 +20,7 @@
         <div>
             <span class="text-sm text-gray-500">Avanzamento</span>
             <div class="w-full bg-gray-100 rounded h-2 mt-1">
-                <div class="bg-gray-900 h-2 rounded" style="width: {{ $generazione->progresso }}%" data-campo="barra"></div>
+                <div class="bg-primary h-2 rounded" style="width: {{ $generazione->progresso }}%" data-campo="barra"></div>
             </div>
         </div>
 
