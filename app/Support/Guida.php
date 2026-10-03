@@ -20,7 +20,7 @@ class Guida
         'vincoli.*' => 'vincoli',
         'generazioni.*' => 'genera-orario',
         'orari.*' => 'orari-e-modifica-manuale',
-        'utenze.*' => 'utenze-e-ruoli',
+        'utenze.*' => 'utenze',
     ];
 
     public static function sezionePer(?string $nomeRotta): ?string

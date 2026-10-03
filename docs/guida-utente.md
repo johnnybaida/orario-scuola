@@ -2,9 +2,12 @@
 
 Questa guida è il manuale dell'applicazione. Apri il pannello con il pulsante **Aiuto** in alto a destra o con il tasto **F1**: si apre già sull'argomento della pagina in cui ti trovi. Cambia argomento dal menu oppure scrivi nel campo **Cerca nella guida**: l'elenco mostra le sezioni che contengono le parole cercate e, aprendone una, le evidenzia. Per chiudere il pannello usa la **×**, **Esc** o di nuovo **F1**.
 
+Stai usando l'applicazione come **{ruolo}**: la guida mostra solo ciò che puoi vedere e fare con questo ruolo.
+
 In fondo trovi il **Glossario** (cosa significano i termini scolastici usati) e i **Problemi frequenti**.
 
 ## Per iniziare
+<!-- sezione: consulta -->
 
 L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine:
 
@@ -34,6 +37,7 @@ La **Dashboard** ti dice a che punto sei:
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
 ## Sedi e aule
+<!-- sezione: consulta -->
 
 ### Sedi
 
@@ -53,6 +57,7 @@ Ogni aula appartiene a una sede.
 
 La colonna **Usata da** mostra quali discipline richiedono quel tipo di aula.
 
+<!-- permesso: gestisci-anagrafica -->
 ### Didattica DADA
 
 Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spostarsi** nell'aula della disciplina.
@@ -61,8 +66,11 @@ Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spo
 2. Come tipo scegli **"DADA · nome della disciplina"**.
 3. La disciplina viene collegata automaticamente a quell'aula.
 4. Nelle classi lascia vuoto il campo **Aula base**.
+<!-- /permesso -->
+
 
 ## Discipline
+<!-- sezione: consulta -->
 
 Il catalogo delle materie insegnate.
 
@@ -73,16 +81,21 @@ Il catalogo delle materie insegnate.
 - **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
 
 ## Quadri orari
+<!-- sezione: consulta -->
 
 Un quadro orario è il monte ore settimanale per disciplina (es. "Tempo normale 30h"). Ogni classe ne usa uno.
 
 - **Nome**: es. "Tempo normale 30h" o "Tempo prolungato 36h".
 - **Discipline**: ogni riga è una disciplina con le sue **ore settimanali** (1–40). Una disciplina può comparire una sola volta: quelle già inserite sono disattivate nelle altre righe.
 - Il **totale** si aggiorna mentre scrivi.
+<!-- permesso: gestisci-anagrafica -->
 - Aggiungi e togli le righe con i pulsanti della sezione e salva una volta sola, anche alla creazione.
 - Un quadro usato da qualche classe **non si può eliminare**.
+<!-- /permesso -->
+
 
 ## Docenti
+<!-- sezione: consulta -->
 
 Per ogni docente puoi indicare:
 
@@ -110,14 +123,18 @@ Per ogni docente puoi indicare:
 
 Importante: **contratto, regime, COE e classi di concorso sono dati anagrafici**: il generatore non li usa da soli. Per far rispettare un part-time o un impegno in un'altra scuola devi segnare le **indisponibilità**.
 
+<!-- permesso: gestisci-docenti-classi -->
 Nella pagina del docente puoi anche:
 
 - impostare le **indisponibilità**: la griglia degli slot in cui il docente non può avere lezione (part-time, servizio in altre scuole, permessi). Il generatore e l'editor le rispettano sempre;
 - gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa ambra se non coincide.
 
 Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per tutta la pagina. Puoi importare più docenti insieme da un file **CSV** (colonne: nome, cognome, email, tipo_contratto, tipo_posto, regime, ore_dovute).
+<!-- /permesso -->
+
 
 ## Classi
+<!-- sezione: consulta -->
 
 Ogni classe ha:
 
@@ -139,9 +156,11 @@ Con il **tempo prolungato** puoi scegliere i **giorni di rientro**, ognuno in mo
 
 La griglia degli **slot attivi** indica le ore della settimana che la classe usa davvero: le righe sono le ore (1ª–9ª), le colonne i giorni. Il generatore riempie esattamente quegli slot, né di più né di meno, quindi **il numero di slot attivi deve coincidere con le ore del quadro orario**. Puoi modificare le singole ore a mano, per casi particolari: in modifica la griglia prevale sui giorni di rientro.
 
+<!-- permesso: gestisci-anagrafica -->
 ### Cattedre
 
 Nella pagina della classe aggiungi o togli le cattedre (disciplina, docente, ore, compresenza). Il totale mostra le ore assegnate rispetto al quadro orario.
+<!-- /permesso -->
 
 ### Sostegno
 
@@ -155,6 +174,7 @@ Gli alunni con sostegno non sono censiti: ogni **fabbisogno** ha solo un codice 
 - Il generatore programma le **compresenze** di sostegno. Il totale "assegnate / richieste" ti dice se le ore bastano.
 
 ## Cattedre
+<!-- sezione: consulta -->
 
 Una cattedra assegna un docente a una disciplina per una classe. La pagina **Cattedre** è l'elenco completo, filtrabile per classe e per docente. Puoi anche modificarle dalle pagine di docente e classe.
 
@@ -165,6 +185,7 @@ Una cattedra assegna un docente a una disciplina per una classe. La pagina **Cat
 La stessa combinazione docente + classe + disciplina può comparire una sola volta. La somma delle cattedre di una classe deve coincidere col suo quadro orario; quella di un docente non dovrebbe superare le sue ore dovute.
 
 ## Vincoli
+<!-- sezione: consulta -->
 
 I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema sempre attive (un docente non può essere in due posti insieme, una classe ha una sola lezione per slot, le indisponibilità sono rispettate, ecc.).
 
@@ -183,6 +204,7 @@ Tipi disponibili:
 - **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
 - **Max ore buche (T3)**: limite alle *buche* (ore vuote tra due lezioni dello stesso docente nello stesso giorno). Campi: *max buche/giorno*, *max buche/settimana*.
 
+<!-- permesso: gestisci-anagrafica -->
 ### Esempi di utilizzo
 
 Ogni esempio indica come compilare il form di **Nuovo vincolo**. I pesi sono indicativi: 1–30 = desiderio lieve, 40–70 = importante, 80–100 = quasi obbligatorio.
@@ -219,16 +241,22 @@ Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso gio
 - Parti con vincoli **preferenziali**: usa il **Rigido** solo per ciò che non si può mai violare. Troppi vincoli rigidi, o in contrasto tra loro, rendono l'orario infattibile.
 - Se un vincolo ti crea problemi, togli la spunta **Attivo** invece di eliminarlo: resta salvato e puoi riattivarlo.
 - Dopo aver aggiunto o cambiato dei vincoli, rigenera l'orario: quelli già generati non cambiano.
+<!-- /permesso -->
+
 
 ## Genera orario
+<!-- sezione: consulta -->
 
 La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento nella pagina.
 
+<!-- permesso: gestisci-anagrafica -->
 1. Controlla in alto lo stato del **worker di coda**, il programma che esegue i calcoli. Se è "fermo", premi **Avvia**: senza worker le generazioni restano in coda. Quando premi **Avvia generazione** il worker, se è fermo, parte da solo (compare un messaggio); se non riesce a partire vedi il motivo. Per fermarlo usa **Ferma**: termina prima il job in corso. Se lo vedi "in arresto" puoi già riavviarlo.
 2. Premi **Nuova generazione** e compila:
    - **Tempo limite** (10–900 secondi): per quanto tempo il generatore può cercare un orario migliore. Più tempo, orari generalmente migliori.
    - **Seed** (facoltativo): un numero che rende il risultato riproducibile. Stessi dati e stesso seed producono lo stesso orario. Vuoto = casuale; il seed usato viene sempre registrato.
-3. Segui lo **stato** della generazione:
+<!-- /permesso -->
+
+Lo **stato** di una generazione:
    - *In coda*: aspetta che il worker la prenda in carico (se non parte, il worker è fermo).
    - *In corso*: il calcolo è in esecuzione; la barra mostra l'avanzamento.
    - *Completata*: l'orario è pronto e compare tra gli **Orari**.
@@ -240,13 +268,17 @@ Il **punteggio** di un orario somma le penalità dei vincoli preferenziali viola
 Prima del calcolo l'applicazione controlla i dati: ore delle cattedre contro quadro orario, slot attivi contro quadro orario, ore dei docenti contro slot disponibili, capacità delle aule e ore di sostegno. I problemi trovati vengono mostrati senza avviare il calcolo.
 
 ## Orari e modifica manuale
+<!-- sezione: consulta -->
 
 La pagina **Orari** elenca gli orari prodotti, con **periodo**, **versione**, **stato** (oggi gli orari nascono in *bozza*) e **punteggio**. Da lì puoi:
 
 - aprire la griglia di una classe (modificabile) o di un docente (sola lettura), con le **select di ricerca**: scrivi parte del nome per trovare la voce;
 - scaricare il **tabellone generale in PDF**;
+<!-- permesso: gestisci-anagrafica -->
 - eliminare un orario selezionandolo con la casella a sinistra (la generazione resta nello storico).
+<!-- /permesso -->
 
+<!-- permesso: gestisci-anagrafica -->
 ### Griglia della classe
 
 - **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**.
@@ -254,13 +286,30 @@ La pagina **Orari** elenca gli orari prodotti, con **periodo**, **versione**, **
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
 - **Annulla ultima modifica** ripristina l'ultima operazione.
 - L'esito delle modifiche resta nel **pannello degli avvisi** sopra la griglia finché non lo azzeri. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
+<!-- /permesso -->
 
 ### Esportare in PDF
 
 - **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Le righe delle ore dopo l'ultima usata non compaiono.
 - **Tabellone generale**: un solo foglio A3, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
-## Utenze e ruoli
+## Ruoli e permessi
+
+Stai usando l'applicazione come **{ruolo}**. Il ruolo decide quali voci del menu vedi e cosa puoi modificare.
+
+| Ruolo | Cosa può fare |
+| --- | --- |
+| Amministratore | Tutto, comprese le utenze |
+| Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
+| Segreteria | Consulta tutto; gestisce docenti e classi |
+| Dirigente Scolastico | Consulta tutto |
+| Referente Sostituzioni | Consulta tutto |
+| Docente | Accesso base, collegato alla propria anagrafica |
+
+Le voci del menu e i pulsanti che non vedi dipendono dal ruolo: chiedi all'amministratore se ti serve un ruolo diverso.
+
+## Utenze
+<!-- sezione: gestisci-utenze -->
 
 Le utenze sono account locali. Solo l'**amministratore** vede la voce **Utenze**, dove crea, modifica ed elimina gli accessi.
 
@@ -272,18 +321,10 @@ Campi di un'utenza:
 - **Docente collegato**: solo per il ruolo Docente, collega l'accesso alla sua scheda.
 - **Password**: almeno 8 caratteri. In modifica, lasciandola vuota, quella esistente non cambia.
 
-| Ruolo | Cosa può fare |
-| --- | --- |
-| Amministratore | Tutto, comprese le utenze |
-| Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
-| Segreteria | Consulta tutto; gestisce docenti e classi |
-| Dirigente Scolastico | Consulta tutto |
-| Referente Sostituzioni | Consulta tutto |
-| Docente | Accesso base, collegato alla propria anagrafica |
-
 Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
 ## Consigli d'uso
+<!-- sezione: gestisci-docenti-classi -->
 
 - **Modali**: le schede di creazione e modifica semplici si aprono in una finestra. Si chiude con **×**, **Annulla** o **Esc**; un click fuori non la chiude, così non perdi i dati. Salvando la finestra si chiude. **Salva** è sempre in basso a destra. Docenti e classi si modificano su pagina intera.
 - **Eliminare**: nelle tabelle spunta le righe e premi **Elimina selezionati**. Il pulsante è disabilitato finché non selezioni almeno una riga. Gli elementi ancora in uso non vengono eliminati e ti viene detto quanti.
@@ -322,11 +363,25 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
 ## Problemi frequenti
 
+<!-- permesso: gestisci-anagrafica -->
 - **La generazione resta "in coda".** Il worker di coda è fermo (di solito parte da solo con **Avvia generazione**): in **Genera orario** premi **Avvia**.
+<!-- /permesso -->
+<!-- permesso: consulta -->
 - **La generazione è "infattibile".** Leggi i messaggi nella pagina della generazione. Le cause più comuni: le ore delle cattedre di una classe non coincidono con il quadro orario; gli slot attivi della classe non coincidono con le ore del quadro; a un docente sono state assegnate più ore degli slot in cui è disponibile; non ci sono abbastanza aule di un tipo; due vincoli rigidi si contraddicono; le ore di sostegno assegnate non coprono il fabbisogno.
+<!-- /permesso -->
+<!-- permesso: gestisci-docenti-classi -->
 - **Non riesco a eliminare un elemento.** È ancora in uso: ad esempio un quadro orario usato da classi. Il messaggio dopo l'eliminazione dice quanti elementi non sono stati eliminati.
+<!-- /permesso -->
+<!-- permesso: gestisci-docenti-classi -->
 - **Ho eliminato un docente o una classe per errore.** Con loro vengono eliminate anche le cattedre collegate e le lezioni degli orari già generati che le usavano. Controlla sempre la conferma prima di eliminare.
+<!-- /permesso -->
 - **Non vedo un pulsante o una voce del menu.** Dipendono dal tuo ruolo: chiedi all'amministratore se ti serve un ruolo diverso.
+<!-- permesso: gestisci-docenti-classi -->
 - **Un campo è grigio e non posso modificarlo.** Passa il mouse sull'icona **i** accanto: dice cosa impostare per attivarlo (per esempio il peso di un vincolo richiede Severità = Preferenziale).
+<!-- /permesso -->
+<!-- permesso: gestisci-anagrafica -->
 - **Una modifica all'orario ha prodotto un errore o un avviso.** Leggi il pannello sopra la griglia: un errore vuol dire che la modifica non è stata fatta, un avviso che è stata fatta ma va controllata. Restano lì finché non li azzeri.
+<!-- /permesso -->
+<!-- permesso: consulta -->
 - **Il PDF non mostra le ore del pomeriggio.** Le ore senza lezioni non compaiono: se nessuna classe ha lezione il pomeriggio, le colonne sono nascoste.
+<!-- /permesso -->
