@@ -5,7 +5,7 @@ let dialog;
 
 function creaDialog() {
     dialog = document.createElement('dialog');
-    dialog.className = 'm-auto w-full max-w-5xl max-h-[90vh] rounded-lg p-0 backdrop:bg-black/40';
+    dialog.className = 'm-auto w-full max-w-5xl max-h-[90vh] rounded-lg p-0 backdrop:bg-black/50';
     dialog.innerHTML = `<div class="flex justify-end px-4 pt-3">
         <button type="button" data-chiudi aria-label="Chiudi" class="text-gray-500 hover:text-gray-900 text-xl leading-none cursor-pointer">&times;</button>
     </div><div data-corpo class="px-6 pb-6"></div>`;

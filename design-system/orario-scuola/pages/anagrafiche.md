@@ -19,5 +19,6 @@
 ## Azioni riga tabella
 
 - "Modifica": link testuale `text-gray-600 hover:text-gray-900 underline`
-- "Elimina": link testuale `text-red-600 hover:text-red-800 underline` con `onsubmit="return confirm(...)"`
+- Eliminazione: solo da selezione multipla (checkbox `.js-sel` per riga + `<x-barra-selezione>`), niente pulsante per riga
+- Creazione/modifica: in modale (`data-modale`), form a due colonne con "Salva" in basso a destra
 - Niente icone senza testo (coerente con la regola icon-only-senza-label del checklist UX)

@@ -15,6 +15,83 @@
     --color-accent: #059669;
     --color-on-accent: #0f172a;
     --color-destructive: #dc2626;
+    --color-background: #f8fafc;
+    --color-foreground: #0f172a;
+}
+
+/* Base: Tailwind 4 non include il plugin forms, quindi i controlli non hanno bordo né padding di default. */
+@layer base {
+    input:not([type='checkbox'], [type='radio'], [type='hidden'], [type='file']),
+    select,
+    textarea {
+        border: 1px solid var(--color-gray-300);
+        border-radius: 0.5rem;
+        background-color: #fff;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        transition: border-color 200ms, box-shadow 200ms;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+        accent-color: var(--color-primary);
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+    }
+}
+
+/* Tabelle: intestazione compatta in maiuscoletto, riga evidenziata al passaggio. */
+main thead th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+main tbody tr {
+    transition: background-color 150ms;
+}
+
+main tbody tr:hover {
+    background-color: var(--color-gray-50);
+}
+
+/* Modale: angoli morbidi, ombra, sfondo sfocato, ingresso breve (disattivato con reduced-motion). */
+dialog {
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px rgb(0 0 0 / 0.15);
+}
+
+dialog::backdrop {
+    backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    dialog[open] {
+        animation: modale-ingresso 200ms ease-out;
+    }
+}
+
+@keyframes modale-ingresso {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
 }
 
 /* Form nelle modali (resources/js/modale.js): a due colonne a tutta larghezza, salva sempre in basso a destra.
