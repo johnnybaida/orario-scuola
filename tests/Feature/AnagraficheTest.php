@@ -336,4 +336,11 @@ class AnagraficheTest extends TestCase
         // Nessuna disciplina censita: "aggiungi" è disabilitato e spiega perché.
         $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina censita');
     }
+
+    public function test_il_menu_porta_sia_alle_sedi_sia_alle_aule(): void
+    {
+        $this->actingAs($this->referente())->get('/dashboard')
+            ->assertSee('href="'.route('sedi.index').'"', false)
+            ->assertSee('href="'.route('aule.index').'"', false);
+    }
 }

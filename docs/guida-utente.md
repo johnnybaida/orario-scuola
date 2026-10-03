@@ -6,7 +6,7 @@ Questa guida è il manuale dell'applicazione. Apri il pannello con il pulsante *
 
 L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine:
 
-1. **Sedi/Aule**: i plessi dell'istituto e le loro aule.
+1. **Sedi** e **Aule**: i plessi dell'istituto e le loro aule (due voci separate del menu).
 2. **Discipline**: le materie, con classe di concorso e aula richiesta.
 3. **Quadri orari**: quante ore settimanali di ogni disciplina fa una classe.
 4. **Docenti** e **Classi**: le anagrafiche.
@@ -28,7 +28,7 @@ Le **sedi** sono i plessi: se l'istituto ne ha uno solo, basta una sede. Ogni **
 
 Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spostarsi** nell'aula della disciplina.
 
-1. Vai in **Sedi/Aule** e crea un'aula.
+1. Vai in **Aule** e crea un'aula.
 2. Come tipo scegli **"DADA · nome della disciplina"**.
 3. La disciplina viene collegata automaticamente a quell'aula. Nella colonna "Usata da" vedi quali discipline si svolgono in ciascuna aula.
 4. Nelle classi lascia vuoto il campo **Aula base**.

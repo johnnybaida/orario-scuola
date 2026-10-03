@@ -31,7 +31,7 @@
         @endif
     </select>
     <p class="mt-1 text-xs text-gray-500">
-        Elenco dei tipi di aula censiti in "Sedi/Aule". Per DADA: crea l'aula con tipo "DADA · questa disciplina"
+        Elenco dei tipi di aula censiti in "Aule". Per DADA: crea l'aula con tipo "DADA · questa disciplina"
         e il collegamento avviene da solo; qui puoi comunque sceglierlo a mano.
     </p>
 </div>

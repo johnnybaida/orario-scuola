@@ -13,7 +13,7 @@
     <x-guida>
         Catalogo delle materie insegnate, con la classe di concorso abilitante e l'eventuale tipo di aula richiesto
         (es. palestra per Scienze motorie). In modalità DADA la disciplina si svolge in un'aula dedicata dove si
-        spostano gli alunni: crea l'aula in "Sedi/Aule" scegliendo "DADA · disciplina" e il collegamento è automatico. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
+        spostano gli alunni: crea l'aula in "Aule" scegliendo "DADA · disciplina" e il collegamento è automatico. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
         (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
     </x-guida>
 
