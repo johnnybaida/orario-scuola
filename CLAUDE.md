@@ -17,6 +17,7 @@ La specifica funzionale completa è in `docs/analisi-orario-scuola-media.md`: è
 | Solver | Python 3 + OR-Tools CP-SAT, script locale in `solver/` invocato da un job |
 | Auth | Solo account locali (niente SSO) |
 | Export | PDF ed Excel |
+| Deploy | Docker Compose: `app` (FrankenPHP: PHP + web server, assets compilati, solver Python) e `db` (MariaDB); vedi `compose.yaml` e `Dockerfile` |
 | Test | Test runner di default di Laravel; `pytest` per il solver |
 
 Non aggiungere dipendenze (Composer, npm, pip) senza chiedere. Per PDF/Excel proponi il pacchetto e verificane la compatibilità con Laravel 13 prima di installarlo.
@@ -35,7 +36,11 @@ python3.11 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requir
 # sviluppo
 php artisan serve
 npm run dev
-php artisan queue:work          # necessario per la generazione dell'orario (avviabile/fermabile anche da "Genera orario")
+php artisan queue:work          # necessario per la generazione; l'app lo avvia/ferma da "Genera orario" e lo avvia da sola con "Avvia generazione"
+
+# tutto su Docker (app + database + worker, con la scuola di esempio): http://localhost:8080
+docker compose up -d --build
+docker compose down -v          # ferma e cancella i dati
 
 # test
 php artisan test
@@ -52,22 +57,32 @@ Se un comando non esiste ancora o cambia, aggiorna questa sezione.
 app/
   Models/                 # entità di dominio (nomi in italiano, vedi Convenzioni)
   Http/Controllers/
+  Http/Requests/          # validazione dei form
+  Support/                # Ruoli (ruoli e gruppi di permessi), Guida (mappa pagina → sezione della guida)
   Services/
     Solver/               # ProblemBuilder (DB → JSON), SolverRunner (Process), ResultImporter (JSON → DB)
-    Validation/           # pre-validazione prima del solving
-    Substitution/         # proposta sostituzioni
-    Export/               # PDF, Excel
+    Validation/           # PreValidator: problemi() con link per correggerli, esegui() solo i messaggi
+    Editor/               # spostamento/scambio lezioni nella griglia
+    Export/               # PDF (griglie classe/docente, tabellone generale); Excel in Fase 4
+    Substitution/         # proposta sostituzioni (Fase 2)
+    QueueWorker.php       # avvia/ferma il worker di coda dall'interfaccia (PID file in storage/app)
+    SincronizzaRighe.php  # salva le righe ripetibili dei form (id = aggiorna, senza id = crea, assenti = elimina)
   Jobs/GenerateTimetable.php
   Constraints/            # catalogo tipi di vincolo: definizione, validazione parametri, descrizione testuale
 resources/
-  views/
-  js/                     # moduli ES vanilla, uno per pagina/componente (es. timetable-editor.js)
+  views/                  # una cartella per risorsa; components/: guida, info, barra-tabella, barra-selezione,
+                          #   barra-salvataggio, righe-ripetibili
+  js/                     # moduli ES vanilla, uno per componente: modale, toast, selezione-multipla, form-modifica,
+                          #   condizioni, select-ricerca, guida-pannello, editor-griglia, ...
 solver/
   solver.py               # entrypoint: legge JSON da stdin, scrive JSON su stdout
   constraints/            # un modulo per tipo di vincolo
   tests/
 docs/
-  analisi-orario-scuola-media.md
+  analisi-orario-scuola-media.md   # specifica funzionale (fonte di verità)
+  guida-utente.md                  # manuale mostrato nel pannello Aiuto (dipende dal ruolo)
+design-system/            # design system dell'interfaccia (MASTER.md + regole per tipo di pagina)
+docker/                   # entrypoint, Caddyfile e script di avvio del container; vedi anche Dockerfile e compose.yaml
 ```
 
 ---
@@ -81,16 +96,21 @@ docs/
 - Logica di dominio nei Service, non nei controller.
 - JavaScript: moduli ES, niente variabili globali, `fetch` verso endpoint JSON.
 - Ogni modifica a orario, vincoli e sostituzioni va nell'audit log.
+
+### Interfaccia
+
 - Docenti e classi si creano e si modificano su pagina intera (troppe informazioni per una modale); le altre anagrafiche in modale.
 - Creazione/modifica in modale: link `data-modale` (`resources/js/modale.js`); con `X-Requested-With` il layout rende solo `@yield('contenuto')`. L'eliminazione è solo a selezione multipla (`.js-sel` + `<x-barra-selezione>`), non per riga. Niente campi liberi per valori censiti altrove: usa select.
 - I form prendono sempre tutta la larghezza disponibile (modale o pagina), con i campi su due colonne: classe `.form-colonne` sulla scheda (nelle modali è automatico). Niente `max-w-*` sui form.
 - Pagine e modali di modifica: un solo form con un solo Salva/Annulla fisso in basso a destra (`<x-barra-salvataggio>` nelle pagine, piè di pagina nelle modali). Le liste ripetibili (cattedre, righe del quadro, fabbisogni/assegnazioni di sostegno) si gestiscono in JS con `<x-righe-ripetibili>` (`resources/js/form-modifica.js`) e si salvano con `App\Services\SincronizzaRighe` (id = aggiorna, senza id = crea, assenti = elimina).
 - Controlli che dipendono da un altro campo o da dati mancanti non si nascondono: si disabilitano (`data-attiva-se="#campo=valore"`, `<x-righe-ripetibili :blocca="…">`, `disabled`) con accanto `<x-info testo="…">` che spiega come attivarli.
-- Guida utente: unico file `docs/guida-utente.md`, mostrato nel pannello di aiuto (pulsante Aiuto o F1, `GuidaController` + `resources/js/guida-pannello.js`); una sezione `##` = una voce del menu. Aggiornalo quando cambia una funzione visibile all'utente. La guida dipende dal ruolo: `<!-- sezione: GATE -->` sotto un `##` limita l'intera sezione, `<!-- permesso: GATE -->…<!-- /permesso -->` un blocco (GATE = consulta, gestisci-anagrafica, gestisci-docenti-classi, gestisci-utenze); `{ruolo}` diventa il ruolo dell'utente.
-- Utenze (solo amministratore) in `/utenze`.
-- Ogni pagina principale ha una mini guida con il componente `<x-guida>` (vedi `resources/views/components/guida.blade.php`).
 - Le notifiche all'utente (conferme, errori di validazione, esiti) sono toast che spariscono dopo 10 secondi: il server le espone con `<div data-flash="successo|errore|avviso" hidden>` nel layout, il JS con `mostraToast()` da `resources/js/toast.js`. Restano fuori i pannelli persistenti (avvisi dell'orario, errori di import CSV).
 - Gli esiti (errori/avvisi) delle modifiche manuali all'orario restano visibili in un pannello persistente (tabella `avvisi_orario`) finché non vengono azzerati esplicitamente: non usare `alert()` JS per questo.
+- Ogni pagina principale ha una mini guida con il componente `<x-guida>` (vedi `resources/views/components/guida.blade.php`).
+- Guida utente: unico file `docs/guida-utente.md`, mostrato nel pannello di aiuto (pulsante Aiuto o F1, `GuidaController` + `resources/js/guida-pannello.js`); una sezione `##` = una voce del menu. Aggiornalo quando cambia una funzione visibile all'utente. La guida dipende dal ruolo: `<!-- sezione: GATE -->` sotto un `##` limita l'intera sezione, `<!-- permesso: GATE -->…<!-- /permesso -->` un blocco (GATE = consulta, gestisci-anagrafica, gestisci-docenti-classi, gestisci-utenze); `{ruolo}` diventa il ruolo dell'utente.
+- Le voci del menu si mostrano solo a chi ha il permesso giusto (gate `consulta`, `gestisci-utenze`, …, vedi `layouts/app.blade.php`): menu, pulsanti e guida seguono sempre il ruolo.
+- I campi obbligatori hanno l'attributo `required` (anche impostato via JS): l'asterisco rosso compare da solo sull'etichetta (`label:has(+ [required])` in `app.css`).
+- La dashboard (`DashboardController`) mostra i controlli prima di generare (`PreValidator::problemi()`), worker e ultima generazione, ultimo orario, carico dei docenti e percorso di avvio; il ruolo `docente` vede solo il benvenuto.
 
 ---
 
@@ -100,10 +120,29 @@ docs/
 - **Alunni non censiti.** Per classe solo `n_alunni`; per gruppo solo `n_partecipanti`.
 - **Sostegno** (implementato, anticipato rispetto alla Fase 3 originale su richiesta esplicita): per classe, fabbisogni anonimi in `fabbisogni_sostegno` (`codice_anonimo`, es. `1B-S1`, + ore settimanali + `docente_unico` = S4). Docenti assegnati in `assegnazioni_sostegno` (docente + classe + ore). Conteggio in `Impostazioni.conteggio_sostegno` (default istituto) con override opzionale per classe (`Classe.conteggio_sostegno`, nullable = eredita il default). Le ore di sostegno sono **compresenze**, modellate nel solver (`solver/sostegno.py`) e persistite in `compresenze_sostegno` dopo la generazione. **Non implementati**: S1 (discipline preferite), S2 (discipline escluse), S3 (distribuzione minima su più giorni) come vincoli configurabili dedicati.
 - **DADA** (implementato, non nella specifica originale): `aule.tipo` e `discipline.tipo_aula_richiesto` sono stringhe libere, non enum. Oltre ai tipi base, una scuola può censire un'aula dedicata a una disciplina con un tipo a piacere (es. `dada_italiano`) e collegarla dalla scheda della disciplina; riusa il meccanismo esistente di capienza/scelta aula (nessuna modifica al solver necessaria). In UI il tipo aula si sceglie da select: "DADA · disciplina" crea il tipo `dada_{codice}` e lo collega alla disciplina; in DADA le classi non hanno aula base (si spostano gli alunni).
-- **Scansione oraria unica di istituto**, ereditata da tutte le classi. La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare.
-- **Docenti**: tipo posto (comune, sostegno, potenziamento, IRC, strumento), regime (tempo pieno/part-time), ore dovute (cattedra intera = 18), indisponibilità. Per i COE si gestiscono solo le indisponibilità.
+- **Scansione oraria unica di istituto**, ereditata da tutte le classi: da lunedì a venerdì, ore 1ª–6ª al mattino e 7ª–9ª al pomeriggio **ogni giorno** (migrazione e `SlotSeeder`); ciascuna classe attiva solo i propri slot (`classe_slot`, il numero deve coincidere con le ore del quadro orario). La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare. Le ore dopo l'ultima usata non si mostrano nelle griglie e nei PDF.
+- **Docenti**: tipo posto (comune, sostegno, potenziamento, IRC, strumento), regime (tempo pieno, part-time orizzontale/verticale/misto), contratto, ore dovute (cattedra intera = 18), indisponibilità. Per i COE si gestiscono solo le indisponibilità. **Contratto, regime, COE, classi di concorso, `n_alunni` e il flag `compresenza` delle cattedre sono oggi dati informativi: il solver non li usa**; i giorni/ore di assenza si impongono con le indisponibilità.
+- **Rientri pomeridiani** (tempo prolungato): scelti per giorno e per classe nel form della classe (spuntano le ore 7ª–9ª del giorno negli slot attivi); in modifica la griglia degli slot prevale.
 - **Gruppi interclasse** per seconda lingua articolata, alternativa IRC, LEL (latino opzionale), strumento: le classi coinvolte devono essere compatibili nello stesso slot.
 - Fuori perimetro: registro elettronico, valutazioni, stipendi, educatori/OSA, notifiche, SSO, multi-scuola.
+
+### Accessi e permessi
+Account locali (`/utenze`, solo amministratore); ruolo e docente collegato (solo per `docente`). Ruoli (`App\Support\Ruoli`) e gate (`AppServiceProvider`):
+
+| Ruolo | Gate |
+|---|---|
+| `amministratore` | `consulta`, `gestisci-anagrafica`, `gestisci-docenti-classi`, `gestisci-utenze` |
+| `referente_orario` | `consulta`, `gestisci-anagrafica`, `gestisci-docenti-classi` |
+| `segreteria` | `consulta`, `gestisci-docenti-classi` (docenti e classi) |
+| `ds`, `referente_sostituzioni` | `consulta` (sola lettura) |
+| `docente` | nessuno: vede solo dashboard e guida |
+
+Non si elimina la propria utenza né si toglie a se stessi il ruolo di amministratore.
+
+### Worker di coda e orari
+- Il worker (`queue:work`) lo gestisce `App\Services\QueueWorker` (processo figlio con PID file): "Avvia/Ferma" in **Genera orario** e dashboard; l'arresto è graceful (`queue:restart`, stato "in arresto"); **Avvia generazione** lo avvia da solo se è fermo (non con coda `sync`). Su Docker parte al boot del container.
+- Un orario nasce in stato `bozza`; la tabella **Orari** permette di consultarlo, esportare i PDF (griglia classe/docente, tabellone generale su un foglio A3: classi in riga, giorni a larghezza uguale, sostegno visibile) ed eliminarlo (audit log; le generazioni restano come storico).
+- L'orario dipende ancora dai censimenti (cattedre, docenti, ...): eliminarli elimina a cascata le lezioni. Valutata e **rimandata** l'idea di orario come snapshot con approvazione (vedi Roadmap).
 
 ### Vincoli rigidi di sistema (sempre attivi)
 H1 classe max una lezione per slot (salvo compresenze/gruppi paralleli) · H2 docente in un solo posto per slot · H3 capienza aula · H4 ore per disciplina esatte · H5 tutti gli slot del tempo scuola coperti · H6 indisponibilità docente · H7 tipo aula richiesto · H8 tempi di spostamento tra sedi · H9 compatibilità gruppi interclasse · H10 lezioni bloccate non si spostano.
@@ -164,12 +203,14 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 | Fase | Contenuto |
 |---|---|
 | **MVP** | Anagrafiche + import CSV, scansione oraria di istituto, quadri orari, cattedre manuali e proposta automatica, vincoli H1–H10 + D1, D3, D6, T1, T2, T3, generazione con seed, editor griglia, export PDF — **completo** |
-| Anticipato | Sostegno (fabbisogni, assegnazioni, compresenze, S4 docente unico) e DADA (aula per disciplina), su richiesta esplicita |
+| Anticipato | Su richiesta esplicita: sostegno (fabbisogni, assegnazioni, compresenze, S4 docente unico), DADA (aula per disciplina), utenze e ruoli, dashboard operativa, guida utente in-app (F1, per ruolo), gestione del worker da interfaccia, Docker Compose |
 | Fase 2 | Assenze e sostituzioni con proposta automatica, recupero permessi, versioni e diff |
 | Fase 3 | Gruppi interclasse, S1–S3 (vincoli sostegno su discipline/distribuzione), multi-sede e indisponibilità COE |
 | Fase 4 | Varianti multiple e confronto, rilassamento guidato dei vincoli, export Excel |
 
 Non anticipare funzionalità di fasi successive; se servono predisposizioni nel modello dati, segnalale.
+
+**Idee valutate e rimandate**: orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata), con pulsante di approvazione (`bozza` → `approvato`) che blocca modifica ed eliminazione e con impronta dei dati per segnalare che i censimenti sono cambiati. Tocca versioni e stati della Fase 2: riprenderla solo su richiesta.
 
 ---
 
@@ -180,4 +221,5 @@ Non anticipare funzionalità di fasi successive; se servono predisposizioni nel 
 - Ogni nuovo tipo di vincolo si implementa su entrambi i lati (definizione in `app/Constraints/` + modulo in `solver/constraints/`), con un test PHP di validazione e un test pytest con un caso fattibile e uno infattibile.
 - Scrivi i test per pre-validazione, solver e proposta sostituzioni; usa i casi limite del §16 dell'analisi come fixture.
 - Migrazioni sempre reversibili; seeder con una scuola di esempio realistica (circa 15 classi, 40 docenti, quadro a 30 ore).
+- Dopo ogni modifica visibile all'utente aggiorna `docs/guida-utente.md` (con i marcatori di ruolo) e, se cambiano struttura o convenzioni, questo file e `README.md`.
 - Non modificare `docs/analisi-orario-scuola-media.md` senza chiedere; se una decisione la cambia, proponi l'aggiornamento.

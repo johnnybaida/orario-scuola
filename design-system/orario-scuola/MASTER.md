@@ -22,6 +22,20 @@
 
 ---
 
+## Interfaccia dell'applicazione (stato attuale)
+
+Regole entrate dopo la prima stesura, valide ovunque (dettagli per tipo di pagina in `pages/`):
+
+- **Navigazione**: sidebar a sinistra navy (`bg-primary`, testo bianco) con icone SVG; info utente e "Esci" ancorati in fondo; voce attiva evidenziata; le voci si vedono solo con il permesso giusto. Su schermi stretti diventa una barra orizzontale scorrevole.
+- **Barra in alto a destra**: solo il pulsante **Aiuto** (F1), che apre il pannello di guida a destra, in funzione del ruolo.
+- **Notifiche**: toast in alto a destra, 10 secondi, impilati (il più recente in cima), bordo sinistro verde/rosso/ambra.
+- **Modali**: `<dialog>`, angoli `rounded-2xl`, sfondo sfocato, ingresso breve (disattivato con reduced-motion); si chiudono solo con ×, Annulla o Esc.
+- **Form**: tutta la larghezza, due colonne, un solo Salva/Annulla fisso in basso a destra, asterisco rosso sui campi obbligatori, controlli condizionati disabilitati con icona "i".
+- **Tabelle**: intestazione in maiuscoletto, riga evidenziata al passaggio; checkbox per l'eliminazione multipla.
+- **Dashboard**: contatori su griglia a 12 colonne (3 ciascuno), poi percorso di avvio, ultimo orario e carico docenti, controlli prima di generare.
+
+---
+
 ## Global Rules
 
 ### Color Palette

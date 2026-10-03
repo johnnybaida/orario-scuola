@@ -1,0 +1,60 @@
+# Orario Scuola su Docker: `docker compose up -d --build` e apri http://localhost:8080
+# Variabili facoltative (file .env accanto a questo, o ambiente): APP_PORT, APP_URL, APP_KEY, DB_PASSWORD,
+# DB_ROOT_PASSWORD, ADMIN_PASSWORD, SEED_ESEMPIO (1 = carica la scuola di esempio al primo avvio, 0 = no).
+name: orario-scuola
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: orario_scuola
+      MARIADB_USER: orario
+      MARIADB_PASSWORD: ${DB_PASSWORD:-orario}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build: .
+    init: true # reaper dei processi: il worker di coda è un processo figlio avviato dall'applicazione
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_NAME: Orario Scuola
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_KEY: ${APP_KEY:-}
+      APP_TIMEZONE: Europe/Rome
+      APP_LOCALE: it
+      APP_FALLBACK_LOCALE: en
+      APP_FAKER_LOCALE: it_IT
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: orario_scuola
+      DB_USERNAME: orario
+      DB_PASSWORD: ${DB_PASSWORD:-orario}
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+      MAIL_MAILER: log
+      SEED_ESEMPIO: ${SEED_ESEMPIO:-1}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - storage:/app/storage
+
+volumes:
+  dbdata:
+  storage:
