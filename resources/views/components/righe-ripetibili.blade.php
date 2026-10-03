@@ -1,6 +1,6 @@
 {{-- Righe aggiunte/rimosse via JS (resources/js/form-modifica.js); salvate con il form che le contiene.
      $partial riceve $i (indice o "__I__" nel modello) e $riga (array o null) più $dati. --}}
-@props(['righe', 'partial', 'dati' => [], 'etichetta' => 'Aggiungi', 'blocca' => null])
+@props(['righe', 'partial', 'dati' => [], 'etichetta' => 'Aggiungi', 'blocca' => null, 'esaurito' => null])
 
 <div data-ripetibile class="space-y-2">
     <div data-righe class="space-y-2">
@@ -12,9 +12,13 @@
         @include($partial, ['i' => '__I__', 'riga' => null] + $dati)
     </template>
     <div class="flex items-center gap-2">
-        <button type="button" data-aggiungi @disabled($blocca) class="text-sm text-primary hover:underline cursor-pointer disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed">+ {{ $etichetta }}</button>
+        <button type="button" data-aggiungi @if ($blocca) data-bloccato @endif @disabled($blocca) class="text-sm text-primary hover:underline cursor-pointer disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed">+ {{ $etichetta }}</button>
         @if ($blocca)
             <x-info :testo="$blocca" />
+        @endif
+        @if ($esaurito)
+            {{-- Compare quando tutte le opzioni di una select [data-univoca] sono già usate nelle altre righe. --}}
+            <x-info :testo="$esaurito" hidden data-esaurito />
         @endif
     </div>
 </div>

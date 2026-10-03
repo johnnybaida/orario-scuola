@@ -1,7 +1,7 @@
 <div data-riga class="flex flex-wrap items-end gap-2">
     <div class="flex-1 min-w-48">
         <label class="block text-xs text-gray-500">Disciplina</label>
-        <select name="righe[{{ $i }}][disciplina_id]" required class="w-full">
+        <select name="righe[{{ $i }}][disciplina_id]" required data-univoca class="w-full">
             @foreach ($discipline as $disciplina)
                 <option value="{{ $disciplina->id }}" @selected(($riga['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
             @endforeach

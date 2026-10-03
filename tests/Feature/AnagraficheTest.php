@@ -292,7 +292,7 @@ class AnagraficheTest extends TestCase
         $utente = $this->actingAs($this->referente());
 
         $utente->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-totale="cattedre"', false)->assertSee('Salva');
-        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('data-totale="quadro"', false)->assertSee('Salva');
+        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('data-totale="quadro"', false)->assertSee('data-univoca', false)->assertSee('Tutte le discipline sono già nel quadro orario.')->assertSee('Salva');
         // Nella modale il Salva/Annulla è quello della modale, non la barra della pagina.
         $utente->get("/quadri-orari/{$quadro->id}/edit", ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('fixed bottom-0', false);
     }
