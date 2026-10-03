@@ -56,7 +56,7 @@
                         <td class="px-4 py-2">{{ $classe->n_alunni }}</td>
                         <td class="px-4 py-2">{{ $classe->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
-                            <a data-modale href="{{ route('classi.edit', $classe) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
+                            <a href="{{ route('classi.edit', $classe) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                         </td>
                     </tr>
                 @endforeach
