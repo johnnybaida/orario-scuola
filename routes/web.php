@@ -15,6 +15,7 @@ use App\Http\Controllers\SedeController;
 use App\Http\Controllers\SostegnoController;
 use App\Http\Controllers\UtenzaController;
 use App\Http\Controllers\VincoloController;
+use App\Http\Controllers\WorkerController;
 use App\Support\Ruoli;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +82,9 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::delete('/quadri-orari/righe/{riga}', [QuadroOrarioController::class, 'destroyRiga'])->name('quadri-orari.righe.destroy');
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
+
+        Route::post('/worker/avvia', [WorkerController::class, 'avvia'])->name('worker.avvia');
+        Route::post('/worker/ferma', [WorkerController::class, 'ferma'])->name('worker.ferma');
 
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');

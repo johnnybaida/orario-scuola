@@ -13,9 +13,23 @@
     <x-guida>
         Ogni generazione lancia il solver (OR-Tools) in background per produrre un orario che rispetta i vincoli
         rigidi e minimizza le violazioni di quelli preferenziali. Il seed determina il risultato in modo
-        riproducibile: stesso seed e stessi dati producono lo stesso orario. Serve un worker di coda attivo
-        (<code>php artisan queue:work</code>).
+        riproducibile: stesso seed e stessi dati producono lo stesso orario. Serve un worker di coda attivo:
+        puoi avviarlo e fermarlo da qui sotto. L'arresto è sicuro, il worker termina prima il job in corso.
     </x-guida>
+
+    <div class="mb-4 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm {{ $workerAttivo ? 'bg-green-50 border-green-200 text-green-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
+        <span class="font-medium">Worker di coda: {{ $workerAttivo ? 'attivo' : 'fermo' }}</span>
+        @can('gestisci-anagrafica')
+            <form method="POST" action="{{ route($workerAttivo ? 'worker.ferma' : 'worker.avvia') }}"
+                  @if ($workerAttivo) onsubmit="return confirm('Fermare il worker? Termina prima il job in corso.');" @endif>
+                @csrf
+                <button type="submit" class="underline cursor-pointer">{{ $workerAttivo ? 'Ferma' : 'Avvia' }}</button>
+            </form>
+        @endcan
+        @unless ($workerAttivo)
+            <span>Le generazioni restano in coda finché non viene avviato.</span>
+        @endunless
+    </div>
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">

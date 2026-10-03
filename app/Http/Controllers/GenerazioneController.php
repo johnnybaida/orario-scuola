@@ -16,6 +16,7 @@ class GenerazioneController extends Controller
     {
         return view('generazioni.index', [
             'generazioni' => Generazione::query()->with('orario')->orderByDesc('id')->get(),
+            'workerAttivo' => app(\App\Services\QueueWorker::class)->attivo(),
         ]);
     }
 

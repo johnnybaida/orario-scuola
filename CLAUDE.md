@@ -35,7 +35,7 @@ python3.11 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requir
 # sviluppo
 php artisan serve
 npm run dev
-php artisan queue:work          # necessario per la generazione dell'orario
+php artisan queue:work          # necessario per la generazione dell'orario (avviabile/fermabile anche da "Genera orario")
 
 # test
 php artisan test
