@@ -47,8 +47,8 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table class="w-full text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
+    <div class="bg-white border border-gray-200 rounded-lg">
+        <table class="w-full table-fixed text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
                data-editabile="{{ auth()->user()->can('gestisci-anagrafica') ? '1' : '0' }}">
             <thead class="bg-gray-50 text-gray-500">
                 <tr>
@@ -67,7 +67,7 @@
                         <td class="p-2 border border-gray-200 text-center text-gray-500 font-medium">{{ $ordine }}ª</td>
                         @foreach ($slotPerGiorno as $giorno => $slotGiorno)
                             @php($slot = $slotGiorno->firstWhere('ordine', $ordine))
-                            <td class="p-1 border border-gray-200 align-top {{ $slot && !$slotAttiviIds->contains($slot->id) ? 'bg-gray-50' : '' }}"
+                            <td class="p-1 border border-gray-200 align-top break-words min-w-0 {{ $slot && !$slotAttiviIds->contains($slot->id) ? 'bg-gray-50' : '' }}"
                                 @if ($slot) data-slot-id="{{ $slot->id }}" @endif>
                                 @if ($slot && $slotAttiviIds->contains($slot->id))
                                     @php($lezione = $lezioni->get($slot->id))

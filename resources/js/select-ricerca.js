@@ -20,12 +20,12 @@ function migliora(select) {
     bottone.draggable = false;
     bottone.setAttribute('aria-haspopup', 'listbox');
     bottone.setAttribute('aria-expanded', 'false');
-    bottone.className = `${select.className.replace(/\bjs-\S+/g, '')} flex items-center justify-between gap-2 border border-gray-300 rounded-lg bg-white text-left cursor-pointer ${compatta ? 'px-1.5 py-1' : 'px-3 py-2 text-sm'}`;
+    bottone.className = `${select.className.replace(/\bjs-\S+/g, '')} min-w-0 flex items-center justify-between gap-2 border border-gray-300 rounded-lg bg-white text-left cursor-pointer ${compatta ? 'px-1.5 py-1' : 'px-3 py-2 text-sm'}`;
     select.hidden = true;
     select.after(bottone);
 
     const aggiornaEtichetta = () => {
-        bottone.innerHTML = `<span class="truncate">${select.selectedOptions[0]?.textContent.trim() ?? ''}</span>${CHEVRON}`;
+        bottone.innerHTML = `<span class="min-w-0 truncate">${select.selectedOptions[0]?.textContent.trim() ?? ''}</span>${CHEVRON}`;
     };
     aggiornaEtichetta();
 
@@ -66,9 +66,11 @@ function apri(select, bottone, aggiornaEtichetta) {
         pannello.remove();
         bottone.setAttribute('aria-expanded', 'false');
         document.removeEventListener('mousedown', fuori, true);
-        window.removeEventListener('scroll', chiudi, true);
+        window.removeEventListener('scroll', alScroll, true);
         pannelloAperto = null;
     };
+    // Scorre la pagina sotto il pannello (fixed): chiudi; scorre la lista del pannello: no.
+    const alScroll = (e) => { if (!pannello.contains(e.target)) chiudi(); };
     const fuori = (e) => { if (!pannello.contains(e.target) && !bottone.contains(e.target)) chiudi(); };
     const scegli = (opzione) => {
         select.value = opzione.value;
@@ -99,7 +101,7 @@ function apri(select, bottone, aggiornaEtichetta) {
 
     bottone.setAttribute('aria-expanded', 'true');
     document.addEventListener('mousedown', fuori, true);
-    window.addEventListener('scroll', chiudi, true);
+    window.addEventListener('scroll', alScroll, true);
     pannelloAperto = { chiudi };
     disegna();
     campo.focus();

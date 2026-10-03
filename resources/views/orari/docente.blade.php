@@ -12,8 +12,8 @@
         Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.
     </x-guida>
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+    <div class="bg-white border border-gray-200 rounded-lg">
+        <table class="w-full table-fixed text-sm border-collapse">
             <thead class="bg-gray-50 text-gray-500">
                 <tr>
                     <th class="p-2 border border-gray-200 w-16">Ora</th>
@@ -31,7 +31,7 @@
                         <td class="p-2 border border-gray-200 text-center text-gray-500 font-medium">{{ $ordine }}ª</td>
                         @foreach ($slotPerGiorno as $giorno => $slotGiorno)
                             @php($slot = $slotGiorno->firstWhere('ordine', $ordine))
-                            <td class="p-1 border border-gray-200 align-top">
+                            <td class="p-1 border border-gray-200 align-top break-words min-w-0">
                                 @if ($slot)
                                     @php($lezione = $lezioni->get($slot->id))
                                     @if ($lezione)
