@@ -332,4 +332,18 @@ class EditorOrarioTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseCount('avvisi_orario', 0);
     }
+
+    public function test_la_select_della_cattedra_e_ricercabile_e_mostra_nome_e_cognome_del_docente(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $docente = Docente::factory()->create(['nome' => 'Giulia', 'cognome' => 'Bianchi']);
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $docente->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+
+        $this->actingAs($this->referente())->get("/orari/{$orario->id}/classe/{$classe->id}")
+            ->assertOk()
+            ->assertSee('data-ricerca="compatta"', false)
+            ->assertSee('Bianchi Giulia');
+    }
 }

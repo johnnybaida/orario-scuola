@@ -34,13 +34,13 @@
                         <td class="px-4 py-2">{{ $orario->punteggio }}</td>
                         <td class="px-4 py-2 text-right space-x-3">
                             <a href="{{ route('orari.export.generale', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Tabellone PDF</a>
-                            <select class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/classe">
+                            <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/classe">
                                 <option value="">Vista classe…</option>
                                 @foreach ($classi as $classe)
                                     <option value="{{ $classe->id }}">{{ $classe->nomeCompleto() }}</option>
                                 @endforeach
                             </select>
-                            <select class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/docente">
+                            <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/docente">
                                 <option value="">Vista docente…</option>
                                 @foreach ($docenti as $docente)
                                     <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>

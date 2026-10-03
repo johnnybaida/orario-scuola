@@ -79,10 +79,10 @@
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
                                             @can('gestisci-anagrafica')
                                                 @unless ($lezione->bloccata)
-                                                    <select class="js-cambia-cattedra w-full mt-1 text-[10px] border-gray-300 rounded" data-lezione-id="{{ $lezione->id }}" draggable="false">
+                                                    <select data-ricerca="compatta" class="js-cambia-cattedra w-full mt-1 text-[10px] border-gray-300 rounded" data-lezione-id="{{ $lezione->id }}" draggable="false">
                                                         @foreach ($cattedre as $cattedra)
                                                             <option value="{{ $cattedra->id }}" @selected($cattedra->id === $lezione->cattedra_id)>
-                                                                {{ $cattedra->disciplina->nome }} - {{ $cattedra->docente->cognome }}
+                                                                {{ $cattedra->disciplina->nome }} - {{ $cattedra->docente->nomeCompleto() }}
                                                             </option>
                                                         @endforeach
                                                     </select>
