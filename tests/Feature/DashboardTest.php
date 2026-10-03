@@ -51,4 +51,24 @@ class DashboardTest extends TestCase
             ->assertSee('Benvenuto')
             ->assertDontSee('Sei pronto a generare?');
     }
+
+    public function test_il_menu_mostra_solo_le_voci_permesse_dal_ruolo(): void
+    {
+        $voce = fn (string $rotta) => 'href="'.route($rotta).'"';
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'docente']))->get('/dashboard')
+            ->assertSee($voce('dashboard'), false)
+            ->assertDontSee($voce('sedi.index'), false)
+            ->assertDontSee($voce('docenti.index'), false)
+            ->assertDontSee($voce('generazioni.index'), false)
+            ->assertDontSee($voce('utenze.index'), false);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'segreteria']))->get('/dashboard')
+            ->assertSee($voce('docenti.index'), false)
+            ->assertSee($voce('orari.index'), false)
+            ->assertDontSee($voce('utenze.index'), false);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'amministratore']))->get('/dashboard')
+            ->assertSee($voce('utenze.index'), false);
+    }
 }
