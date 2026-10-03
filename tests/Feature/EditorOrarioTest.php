@@ -346,4 +346,17 @@ class EditorOrarioTest extends TestCase
             ->assertSee('data-ricerca="compatta"', false)
             ->assertSee('Bianchi Giulia');
     }
+
+    public function test_le_cattedre_nella_select_sono_in_ordine_alfabetico_di_materia(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $scienze = Cattedra::factory()->create(['classe_id' => $classe->id, 'disciplina_id' => Disciplina::factory()->create(['nome' => 'Scienze'])->id]);
+        Cattedra::factory()->create(['classe_id' => $classe->id, 'disciplina_id' => Disciplina::factory()->create(['nome' => 'Arte'])->id]);
+        Cattedra::factory()->create(['classe_id' => $classe->id, 'disciplina_id' => Disciplina::factory()->create(['nome' => 'Italiano'])->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $scienze->id, 'slot_id' => $slot1->id]);
+
+        $this->actingAs($this->referente())->get("/orari/{$orario->id}/classe/{$classe->id}")
+            ->assertOk()->assertSeeInOrder(['Arte - ', 'Italiano - ', 'Scienze - ']);
+    }
 }

@@ -8,7 +8,7 @@
         @can('gestisci-docenti-classi')
             <div class="flex gap-3">
                 <a href="{{ route('classi.import.form') }}" class="text-sm underline text-gray-600 self-center">Importa CSV</a>
-                <a data-modale href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
+                <a href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
             </div>
         @endcan
     </div>

@@ -41,7 +41,9 @@ class OrarioController extends Controller
             'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
             'lezioni' => $this->lezioniPerSlot($orario, $classe),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
-            'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get(),
+            // In ordine alfabetico per materia (poi docente): più facili da trovare nella select.
+            'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()
+                ->sortBy(fn (Cattedra $c) => mb_strtolower($c->disciplina->nome.'|'.$c->docente->nomeCompleto()), SORT_NATURAL)->values(),
             'avvisi' => $orario->avvisi,
             'compresenze' => $compresenze,
         ]);

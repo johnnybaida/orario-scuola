@@ -20,7 +20,9 @@ function migliora(select) {
     bottone.draggable = false;
     bottone.setAttribute('aria-haspopup', 'listbox');
     bottone.setAttribute('aria-expanded', 'false');
-    bottone.className = `${select.className.replace(/\bjs-\S+/g, '')} min-w-0 flex items-center justify-between gap-2 border border-gray-300 rounded-lg bg-white text-left cursor-pointer ${compatta ? 'px-1.5 py-1' : 'px-3 py-2 text-sm'}`;
+    // inline-flex: nelle celle con più controlli affiancati (es. elenco orari) non devono andare a tutta riga.
+    const larghezza = /\bw-/.test(select.className) ? '' : 'w-48';
+    bottone.className = `${select.className.replace(/\bjs-\S+/g, '')} ${larghezza} align-middle min-w-0 inline-flex items-center justify-between gap-2 border border-gray-300 rounded-lg bg-white text-left cursor-pointer ${compatta ? 'px-1.5 py-1' : 'px-3 py-2 text-sm'}`;
     select.hidden = true;
     select.after(bottone);
 

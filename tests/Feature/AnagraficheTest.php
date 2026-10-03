@@ -310,4 +310,15 @@ class AnagraficheTest extends TestCase
         $this->assertSame('14:00:00', Slot::query()->where(['giorno' => 1, 'ordine' => 7])->value('inizio'));
         $this->assertSame(1, Slot::query()->where(['giorno' => 1, 'ordine' => 1])->count());
     }
+
+    public function test_docenti_e_classi_si_creano_e_modificano_su_pagina_non_in_modale(): void
+    {
+        $this->actingAs($this->referente());
+
+        foreach (['/docenti', '/classi'] as $indice) {
+            $this->get($indice)->assertOk()->assertDontSee('data-modale', false);
+        }
+        $this->get('/docenti/create')->assertOk()->assertSee('sticky bottom-0', false);
+        $this->get('/classi/create')->assertOk()->assertSee('sticky bottom-0', false);
+    }
 }

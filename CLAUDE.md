@@ -81,6 +81,7 @@ docs/
 - Logica di dominio nei Service, non nei controller.
 - JavaScript: moduli ES, niente variabili globali, `fetch` verso endpoint JSON.
 - Ogni modifica a orario, vincoli e sostituzioni va nell'audit log.
+- Docenti e classi si creano e si modificano su pagina intera (troppe informazioni per una modale); le altre anagrafiche in modale.
 - Creazione/modifica in modale: link `data-modale` (`resources/js/modale.js`); con `X-Requested-With` il layout rende solo `@yield('contenuto')`. L'eliminazione è solo a selezione multipla (`.js-sel` + `<x-barra-selezione>`), non per riga. Niente campi liberi per valori censiti altrove: usa select.
 - Pagine e modali di modifica: un solo form con un solo Salva/Annulla fisso in basso a destra (`<x-barra-salvataggio>` nelle pagine, piè di pagina nelle modali). Le liste ripetibili (cattedre, righe del quadro, fabbisogni/assegnazioni di sostegno) si gestiscono in JS con `<x-righe-ripetibili>` (`resources/js/form-modifica.js`) e si salvano con `App\Services\SincronizzaRighe` (id = aggiorna, senza id = crea, assenti = elimina).
 - Utenze (solo amministratore) in `/utenze`.

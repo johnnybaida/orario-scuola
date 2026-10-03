@@ -13,7 +13,7 @@
             </form>
             @can('gestisci-docenti-classi')
                 <a href="{{ route('docenti.import.form') }}" class="text-sm underline text-gray-600">Importa CSV</a>
-                <a data-modale href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
+                <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
             @endcan
         </div>
     </div>
@@ -61,7 +61,7 @@
                         <td class="px-4 py-2">{{ $docente->ore_dovute }}</td>
                         <td class="px-4 py-2">{{ $docente->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
-                            <a data-modale href="{{ route('docenti.edit', $docente) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
+                            <a href="{{ route('docenti.edit', $docente) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                         </td>
                     </tr>
                 @endforeach
