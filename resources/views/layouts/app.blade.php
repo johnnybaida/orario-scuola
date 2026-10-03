@@ -29,8 +29,9 @@
                 ['utenze.index', 'Utenze', 'utenze.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>', 'gestisci-utenze'],
             ])
             @php($classeVoce = fn ($attiva) => 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 '.($attiva ? 'bg-white/15 text-white font-medium' : 'text-white/75 hover:bg-white/10 hover:text-white'))
-            <aside class="bg-primary text-white md:w-60 md:shrink-0 md:min-h-screen">
-                <nav class="p-3 md:p-4 flex md:flex-col gap-1 overflow-x-auto md:sticky md:top-0 md:overflow-visible" aria-label="Menu principale">
+            {{-- Su desktop la sidebar è alta quanto la viewport e resta ferma: le info utente e "Esci" stanno sempre in fondo. --}}
+            <aside class="bg-primary text-white md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:self-start">
+                <nav class="p-3 md:p-4 flex md:flex-col gap-1 overflow-x-auto md:h-full md:overflow-y-auto md:overflow-x-hidden" aria-label="Menu principale">
                     <a href="{{ route('dashboard') }}" class="hidden md:block font-semibold text-lg px-3 pb-4 text-white">Orario Scuola</a>
                     @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
                         {{-- Le voci si vedono solo con il permesso giusto (null = tutti): 'consulta' per le anagrafiche, 'gestisci-utenze' per le utenze. --}}
@@ -39,7 +40,7 @@
                         <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="{{ $classeVoce($attiva) }}">{!! $icona !!}{{ $etichetta }}</a>
                     @endforeach
                     
-                    <div class="shrink-0 flex items-center gap-3 md:block md:mt-4 md:pt-4 md:border-t md:border-white/15 text-sm px-3 md:px-0">
+                    <div class="shrink-0 ml-auto md:ml-0 flex items-center gap-3 md:block md:mt-auto md:pt-4 md:border-t md:border-white/15 text-sm px-3 md:px-0">
                         <p class="text-white/70 whitespace-nowrap"><span class="text-white font-medium">{{ auth()->user()->name }}</span><br class="hidden md:inline"> {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</p>
                         <form method="POST" action="{{ route('logout') }}" class="md:mt-2">
                             @csrf
