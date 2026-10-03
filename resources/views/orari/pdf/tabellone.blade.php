@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; font-size: 8px; }
-        h1 { font-size: 16px; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #999; padding: 2px; text-align: center; vertical-align: top; }
+        @page { margin: 8mm; }
+        body { font-family: sans-serif; font-size: {{ $fontPx }}px; }
+        h1 { font-size: 16px; margin: 0 0 8px 0; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid #999; padding: {{ (int) round($fontPx / 2.5) }}px 1px; text-align: center; vertical-align: middle; overflow: hidden; }
         th { background: #eee; }
-        .intestazione { width: 60px; background: #f5f5f5; font-weight: bold; }
-        .cella { white-space: pre-line; }
+        .classe { width: 34px; background: #f5f5f5; font-weight: bold; }
+        .inizio-giorno { border-left: 2px solid #333; }
+        .materia { font-weight: bold; }
+        .sostegno { color: #047857; }
+        .legenda { margin-top: 8px; font-size: {{ max(7, $fontPx - 1) }}px; color: #444; }
     </style>
 </head>
 <body>
@@ -18,29 +22,49 @@
     <table>
         <thead>
             <tr>
-                <th class="intestazione">Giorno / Ora</th>
-                @foreach ($classi as $classe)
-                    <th>{{ $classe->nomeCompleto() }}</th>
+                <th class="classe" rowspan="2">Classe</th>
+                @foreach ($giorni as $giorno)
+                    <th class="inizio-giorno" colspan="{{ count($ore) }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
+                @endforeach
+            </tr>
+            <tr>
+                @foreach ($giorni as $giorno)
+                    @foreach ($ore as $ora)
+                        <th @class(['inizio-giorno' => $loop->first])>{{ $ora }}ª</th>
+                    @endforeach
                 @endforeach
             </tr>
         </thead>
         <tbody>
-            @foreach ($slot as $s)
+            @foreach ($classi as $classe)
                 <tr>
-                    <td class="intestazione">G{{ $s->giorno }} - {{ $s->ordine }}ª</td>
-                    @foreach ($classi as $classe)
-                        @php($gruppo = $lezioni->get($s->id.'-'.$classe->id))
-                        @php($lezione = $gruppo?->first())
-                        <td>
-                            @if ($lezione)
-                                <span class="cella">{{ $lezione->cattedra->disciplina->nome }}
-{{ $lezione->cattedra->docente->cognome }}</span>
-                            @endif
-                        </td>
+                    <td class="classe">{{ $classe->nomeCompleto() }}</td>
+                    @foreach ($giorni as $giorno)
+                        @foreach ($ore as $ora)
+                            @php($s = $slot->get($giorno.'-'.$ora))
+                            @php($lezione = $s ? $lezioni->get($s->id.'-'.$classe->id)?->first() : null)
+                            @php($supporti = $s ? ($sostegni->get($s->id.'-'.$classe->id)?->unique('docente_id') ?? collect()) : collect())
+                            <td @class(['inizio-giorno' => $loop->first])>
+                                @if ($lezione)
+                                    <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
+                                    <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
+                                @endif
+                                @foreach ($supporti as $supporto)
+                                    <div class="sostegno">S {{ \Illuminate\Support\Str::limit($supporto->docente->cognome, max($limite - 2, 3), '…') }}</div>
+                                @endforeach
+                            </td>
+                        @endforeach
                     @endforeach
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+    <p class="legenda">
+        @foreach ($discipline as $disciplina)
+            <strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}@unless ($loop->last) &middot; @endunless
+        @endforeach
+        &nbsp;|&nbsp; <span class="sostegno"><strong>S</strong> = docente di sostegno in compresenza</span>
+    </p>
 </body>
 </html>

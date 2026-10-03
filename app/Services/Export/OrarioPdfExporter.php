@@ -46,22 +46,41 @@ class OrarioPdfExporter
         ])->setPaper('a4', 'landscape');
     }
 
+    /**
+     * Tabellone su un solo foglio: una riga per classe, colonne raggruppate per giorno con la stessa larghezza
+     * per tutte le ore. Le ore vuote non compaiono; i docenti di sostegno in compresenza sono visibili in cella.
+     */
     public function generale(Orario $orario): PdfDocument
     {
         $classi = Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
-        $tutte = Lezione::query()
+        $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
-            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente')
+            ->with('cattedra.disciplina', 'cattedra.docente')
             ->get();
-        // Solo le ore in cui almeno una classe ha lezione (niente righe vuote, es. pomeriggi senza rientri).
-        $slot = Slot::query()->whereIn('id', $tutte->pluck('slot_id'))->orderBy('giorno')->orderBy('ordine')->get();
-        $lezioni = $tutte->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
+        $compresenze = $orario->compresenzeSostegno()->with('docente')->get();
+
+        // Giorni e ore realmente usati; ogni giorno ha tante colonne quante l'ora più alta usata in qualunque giorno.
+        $usati = Slot::query()->whereIn('id', $lezioni->pluck('slot_id')->merge($compresenze->pluck('slot_id')))->get();
+        $giorni = $usati->pluck('giorno')->unique()->sort()->values();
+        $oreMax = (int) $usati->max('ordine');
+
+        // Carattere il più grande possibile (6-10px) perché ~9 caratteri stiano in una colonna dell'A3 orizzontale;
+        // materie e cognomi più lunghi vengono comunque troncati con "…".
+        $larghezzaColonna = 1050 / max(1, $giorni->count() * $oreMax);
+        $fontPx = max(6, min(10, (int) floor(($larghezzaColonna - 3) / 3.6)));
+        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.4 * $fontPx)));
 
         return Pdf::loadView('orari.pdf.tabellone', [
             'titolo' => 'Quadro generale orario',
             'classi' => $classi,
-            'slot' => $slot,
-            'lezioni' => $lezioni,
+            'giorni' => $giorni,
+            'ore' => $oreMax ? range(1, $oreMax) : [],
+            'slot' => Slot::query()->get()->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
+            'lezioni' => $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id),
+            'sostegni' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->classe_id),
+            'discipline' => $lezioni->pluck('cattedra.disciplina')->unique('id')->sortBy('codice'),
+            'limite' => $limite,
+            'fontPx' => $fontPx,
         ])->setPaper('a3', 'landscape');
     }
 }
