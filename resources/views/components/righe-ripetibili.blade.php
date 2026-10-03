@@ -1,6 +1,6 @@
 {{-- Righe aggiunte/rimosse via JS (resources/js/form-modifica.js); salvate con il form che le contiene.
      $partial riceve $i (indice o "__I__" nel modello) e $riga (array o null) più $dati. --}}
-@props(['righe', 'partial', 'dati' => [], 'etichetta' => 'Aggiungi'])
+@props(['righe', 'partial', 'dati' => [], 'etichetta' => 'Aggiungi', 'blocca' => null])
 
 <div data-ripetibile class="space-y-2">
     <div data-righe class="space-y-2">
@@ -11,5 +11,10 @@
     <template data-modello>
         @include($partial, ['i' => '__I__', 'riga' => null] + $dati)
     </template>
-    <button type="button" data-aggiungi class="text-sm text-primary hover:underline cursor-pointer">+ {{ $etichetta }}</button>
+    <div class="flex items-center gap-2">
+        <button type="button" data-aggiungi @disabled($blocca) class="text-sm text-primary hover:underline cursor-pointer disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed">+ {{ $etichetta }}</button>
+        @if ($blocca)
+            <x-info :testo="$blocca" />
+        @endif
+    </div>
 </div>

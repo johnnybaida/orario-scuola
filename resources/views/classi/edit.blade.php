@@ -67,8 +67,12 @@
                 </div>
 
                 <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
-                    <h2 class="font-medium mb-3">Cattedre</h2>
-                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <h2 class="font-medium mb-3">Cattedre
+                        @unless ($puoCattedre)
+                            <x-info testo="Solo amministratore e referente orario possono modificare le cattedre." />
+                        @endunless
+                    </h2>
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :blocca="$docenti->isEmpty() || $discipline->isEmpty() ? 'Servono almeno un docente e una disciplina: censiscili prima nelle rispettive sezioni.' : null" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
                     <span id="ore-quadro" hidden>{{ $classe->quadroOrario->ore_totali }}</span>
                     <p class="mt-3 text-sm font-medium">Totale ore / quadro orario:
                         <span data-totale="cattedre" data-riferimento="#ore-quadro"></span>
@@ -97,7 +101,7 @@
                     <x-righe-ripetibili :righe="old('fabbisogni', $fabbisogni)" partial="classi._riga-fabbisogno" etichetta="Aggiungi fabbisogno" />
 
                     <h3 class="text-sm font-medium text-gray-700 mt-6 mb-2">Docenti di sostegno assegnati</h3>
-                    <x-righe-ripetibili :righe="old('assegnazioni', $assegnazioni)" partial="classi._riga-assegnazione" :dati="['docentiSostegno' => $docentiSostegno]" etichetta="Aggiungi docente di sostegno" />
+                    <x-righe-ripetibili :righe="old('assegnazioni', $assegnazioni)" partial="classi._riga-assegnazione" :blocca="$docentiSostegno->isEmpty() ? 'Nessun docente di sostegno: in Docenti imposta Tipo posto = Sostegno.' : null" :dati="['docentiSostegno' => $docentiSostegno]" etichetta="Aggiungi docente di sostegno" />
                     <p class="mt-3 text-sm font-medium">Totale ore assegnate / richieste:
                         <span data-totale="assegnate" data-riferimento="somma:richieste"></span>
                     </p>

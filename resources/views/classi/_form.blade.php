@@ -55,8 +55,10 @@
     </div>
 </div>
 
-<div>
-    <span class="block text-sm font-medium text-gray-700 mb-1">Rientri pomeridiani</span>
+<div data-attiva-se="#tempo_scuola=prolungato">
+    <span class="block text-sm font-medium text-gray-700 mb-1">Rientri pomeridiani
+        <x-info testo="I rientri valgono per il tempo prolungato: imposta Tempo scuola = Prolungato." />
+    </span>
     @php($rientri = old('rientri', $rientriAttivi ?? []))
     <div class="flex flex-wrap gap-4">
         @forelse ($giorniRientro as $giorno)

@@ -6,10 +6,13 @@ function aggiorna() {
     const barra = document.querySelector('[data-barra-selezione]');
     if (!barra) return;
     const n = selezionate().length;
-    barra.hidden = n === 0 && !barra.querySelector('[data-esito]').textContent;
-    barra.querySelector('[data-conteggio]').textContent = n ? `${n} selezionat${n === 1 ? 'o' : 'i'}` : '';
-    barra.querySelector('[data-azione]').hidden = n === 0;
+    barra.hidden = !document.querySelector('.js-sel'); // nessuna riga eliminabile: niente barra
+    barra.querySelector('[data-conteggio]').textContent = n ? `${n} selezionat${n === 1 ? 'a' : 'e'}` : 'Nessuna riga selezionata';
+    barra.querySelector('[data-azione]').disabled = n === 0;
+    barra.querySelector('[data-info]').hidden = n > 0;
 }
+
+document.addEventListener('DOMContentLoaded', aggiorna);
 
 document.addEventListener('change', (e) => {
     if (e.target.matches('.js-sel-tutti')) {

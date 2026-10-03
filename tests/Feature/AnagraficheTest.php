@@ -321,4 +321,19 @@ class AnagraficheTest extends TestCase
         $this->get('/docenti/create')->assertOk()->assertSee('sticky bottom-0', false);
         $this->get('/classi/create')->assertOk()->assertSee('sticky bottom-0', false);
     }
+
+    public function test_i_controlli_condizionati_hanno_la_condizione_e_il_tooltip_che_spiega_come_attivarli(): void
+    {
+        $quadro = QuadroOrario::factory()->create();
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/vincoli/create')->assertOk()
+            ->assertSee('data-attiva-se="#ambito_livello=classe"', false)
+            ->assertSee('Per scegliere le classi imposta Ambito = Classe.')
+            ->assertSee('data-attiva-se="#severita=preferenziale"', false);
+        $utente->get('/classi/create')->assertOk()->assertSee('data-attiva-se="#tempo_scuola=prolungato"', false);
+
+        // Nessuna disciplina censita: "aggiungi" è disabilitato e spiega perché.
+        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina censita');
+    }
 }

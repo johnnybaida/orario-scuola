@@ -1,5 +1,5 @@
 // Apre in una <dialog> le pagine di creazione/modifica (link con `data-modale`).
-// Piè di pagina fisso con un solo "Annulla" e un solo "Salva": Salva invia il form della modale o, se
+// Si chiude con × (in alto a destra), "Annulla" o Esc, non con un click fuori. Piè di pagina fisso con un solo "Annulla" e un solo "Salva": Salva invia il form della modale o, se
 // la pagina ne contiene più d'uno (es. dati + indisponibilità), tutti quelli modificati, in sequenza.
 // Errori di validazione nella modale; successo = reload della pagina (il flash resta in sessione).
 // Con `data-modale="resta"` la modale resta aperta dopo ogni salvataggio (si ricarica il suo contenuto,
@@ -15,14 +15,16 @@ const eEliminazione = (form) => form.querySelector('[name="_method"][value="DELE
 
 function creaDialog() {
     dialog = document.createElement('dialog');
-    dialog.className = 'm-auto w-full max-w-5xl max-h-[90vh] rounded-lg p-0 open:flex flex-col backdrop:bg-black/50';
-    dialog.innerHTML = `<div data-corpo class="px-6 py-6 overflow-y-auto flex-1"></div>
+    dialog.className = 'relative m-auto w-full max-w-5xl max-h-[90vh] rounded-lg p-0 open:flex flex-col backdrop:bg-black/50';
+    dialog.innerHTML = `<button type="button" data-chiudi aria-label="Chiudi" class="absolute right-4 top-3 z-10 text-2xl leading-none text-gray-500 hover:text-gray-900 transition-colors cursor-pointer">&times;</button>
+        <div data-corpo class="px-6 py-6 overflow-y-auto flex-1"></div>
         <div class="flex justify-end gap-3 border-t border-gray-200 px-6 py-3">
             <button type="button" data-chiudi class="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">Annulla</button>
             <button type="button" data-salva class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60">Salva</button>
         </div>`;
     dialog.addEventListener('click', (e) => {
-        if (e.target === dialog || e.target.closest('[data-chiudi]')) dialog.close();
+        // Si chiude solo con ×, Annulla o Esc: un click fuori dalla modale non fa perdere i dati inseriti.
+        if (e.target.closest('[data-chiudi]')) dialog.close();
         if (e.target.closest('[data-salva]')) salva();
     });
     dialog.addEventListener('close', () => {

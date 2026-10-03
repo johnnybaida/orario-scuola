@@ -20,8 +20,10 @@
     </div>
 </div>
 
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Classi (solo se ambito = classe)</label>
+<div data-attiva-se="#ambito_livello=classe">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Classi
+        <x-info testo="Per scegliere le classi imposta Ambito = Classe." />
+    </label>
     <div class="flex flex-wrap gap-3">
         @foreach ($classi as $classe)
             <label class="flex items-center gap-2 text-sm text-gray-700">
@@ -33,8 +35,10 @@
     </div>
 </div>
 
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Docenti (solo se ambito = docente)</label>
+<div data-attiva-se="#ambito_livello=docente">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Docenti
+        <x-info testo="Per scegliere i docenti imposta Ambito = Docente." />
+    </label>
     <div class="flex flex-wrap gap-3 max-h-32 overflow-y-auto">
         @foreach ($docenti as $docente)
             <label class="flex items-center gap-2 text-sm text-gray-700">
@@ -146,8 +150,10 @@
             <option value="preferenziale" @selected(old('severita', $vincolo?->severita) === 'preferenziale')>Preferenziale</option>
         </select>
     </div>
-    <div>
-        <label for="peso" class="block text-sm font-medium text-gray-700">Peso (1-100, se preferenziale)</label>
+    <div data-attiva-se="#severita=preferenziale">
+        <label for="peso" class="block text-sm font-medium text-gray-700">Peso (1-100)
+            <x-info testo="Il peso serve solo ai vincoli preferenziali: imposta Severità = Preferenziale." />
+        </label>
         <input type="number" name="peso" id="peso" min="1" max="100" value="{{ old('peso', $vincolo?->peso) }}"
                class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     </div>

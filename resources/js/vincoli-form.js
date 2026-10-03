@@ -6,6 +6,7 @@ function aggiornaCampiParametri() {
 
     document.querySelectorAll('[data-parametri-per]').forEach((gruppo) => {
         gruppo.hidden = gruppo.dataset.parametriPer !== select.value;
+        gruppo.querySelectorAll('input, select, textarea').forEach((c) => { c.disabled = gruppo.hidden; });
     });
 }
 

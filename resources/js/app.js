@@ -6,3 +6,4 @@ import './modale.js';
 import './selezione-multipla.js';
 import './form-modifica.js';
 import './select-ricerca.js';
+import './condizioni.js';

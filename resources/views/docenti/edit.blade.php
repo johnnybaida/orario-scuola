@@ -65,8 +65,12 @@
                 </div>
 
                 <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
-                    <h2 class="font-medium mb-3">Cattedre</h2>
-                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <h2 class="font-medium mb-3">Cattedre
+                        @unless ($puoCattedre)
+                            <x-info testo="Solo amministratore e referente orario possono modificare le cattedre." />
+                        @endunless
+                    </h2>
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Servono almeno una classe e una disciplina: censiscile prima nelle rispettive sezioni.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
                     <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute:
                         <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
                     </p>
