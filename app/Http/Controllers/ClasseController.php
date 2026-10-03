@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ClasseRequest;
 use App\Models\Aula;
 use App\Models\Classe;
+use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\QuadroOrario;
 use App\Models\Sede;
 use App\Models\Slot;
+use App\Services\SincronizzaRighe;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class ClasseController extends Controller
@@ -45,16 +48,41 @@ class ClasseController extends Controller
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             'rientriAttivi' => $classe->slotAttivi()->where('ordine', '>', Slot::ULTIMA_ORA_MATTINA)->pluck('giorno')->unique()->values()->all(),
-            'fabbisogniSostegno' => $classe->fabbisogniSostegno()->orderBy('codice_anonimo')->get(),
-            'assegnazioniSostegno' => $classe->assegnazioniSostegno()->with('docente')->get(),
+            'fabbisogni' => $classe->fabbisogniSostegno()->orderBy('codice_anonimo')->get()
+                ->map(fn ($f) => $f->only(['id', 'codice_anonimo', 'ore_settimanali', 'docente_unico']))->all(),
+            'assegnazioni' => $classe->assegnazioniSostegno()->get()->map(fn ($a) => $a->only(['id', 'docente_id', 'ore']))->all(),
+            'cattedre' => $classe->cattedre()->with('disciplina')->get()->sortBy('disciplina.nome')
+                ->map(fn ($c) => $c->only(['id', 'docente_id', 'disciplina_id', 'ore', 'compresenza']))->all(),
+            'docenti' => Docente::query()->orderBy('cognome')->orderBy('nome')->get(),
+            'discipline' => Disciplina::query()->orderBy('nome')->get(),
             'docentiSostegno' => Docente::query()->where('tipo_posto', 'sostegno')->orderBy('cognome')->get(),
         ]));
     }
 
     public function update(ClasseRequest $request, Classe $classe): RedirectResponse
     {
-        $classe->update($request->safe()->except('rientri'));
-        $this->sincronizzaRientri($classe, $request->input('rientri', []));
+        $cattedre = $request->input('cattedre', []);
+        if ($request->boolean('cattedre_inviate')) {
+            Gate::authorize('gestisci-anagrafica');
+            SincronizzaRighe::controllaUnivoche($cattedre, ['docente_id', 'disciplina_id'], 'cattedre', 'Cattedra duplicata: stesso docente e disciplina.');
+        }
+
+        DB::transaction(function () use ($request, $classe, $cattedre) {
+            $classe->update($request->safe()->only(['anno_corso', 'sezione', 'sede_id', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni']));
+
+            if ($request->boolean('sezioni_extra')) {
+                // La griglia degli slot è completa e prevale sui giorni di rientro (che servono solo a spuntarla).
+                $classe->slotAttivi()->sync($request->input('slot_ids', []));
+                $classe->update(['conteggio_sostegno' => $request->input('conteggio_sostegno') ?: null]);
+                SincronizzaRighe::applica($classe->fabbisogniSostegno(), $request->input('fabbisogni', []), ['codice_anonimo', 'ore_settimanali', 'docente_unico']);
+                SincronizzaRighe::applica($classe->assegnazioniSostegno(), $request->input('assegnazioni', []), ['docente_id', 'ore']);
+            } else {
+                $this->sincronizzaRientri($classe, $request->input('rientri', []));
+            }
+            if ($request->boolean('cattedre_inviate')) {
+                SincronizzaRighe::applica($classe->cattedre(), $cattedre, ['docente_id', 'disciplina_id', 'ore', 'compresenza']);
+            }
+        });
 
         return redirect()->route('classi.edit', $classe)->with('successo', 'Classe aggiornata.');
     }
@@ -64,13 +92,6 @@ class ClasseController extends Controller
         $classe->delete();
 
         return redirect()->route('classi.index')->with('successo', 'Classe eliminata.');
-    }
-
-    public function updateSlotAttivi(Request $request, Classe $classe): RedirectResponse
-    {
-        $classe->slotAttivi()->sync($request->input('slot_ids', []));
-
-        return redirect()->route('classi.edit', $classe)->with('successo', 'Slot attivi aggiornati.');
     }
 
     private function opzioniForm(): array

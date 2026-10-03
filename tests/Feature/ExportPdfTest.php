@@ -74,4 +74,21 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('G1 - 1&ordf;', $html);
         $this->assertStringNotContainsString('G1 - 2&ordf;', $html);
     }
+
+    public function test_la_griglia_della_classe_si_ferma_allultima_ora_attiva(): void
+    {
+        $classe = Classe::factory()->create();
+        foreach ([1, 2, 7] as $ordine) {
+            $slot = Slot::factory()->create(['giorno' => 1, 'ordine' => $ordine]);
+            if ($ordine <= 2) {
+                $classe->slotAttivi()->attach($slot->id);
+            }
+        }
+        $orario = Orario::factory()->create();
+
+        $html = app(\App\Services\Export\OrarioPdfExporter::class)->classe($orario, $classe)->getDomPDF()->outputHtml();
+
+        $this->assertStringContainsString('2&ordf;', $html);
+        $this->assertStringNotContainsString('7&ordf;', $html);
+    }
 }

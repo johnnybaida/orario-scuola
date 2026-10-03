@@ -61,7 +61,7 @@
     <div class="flex flex-wrap gap-4">
         @forelse ($giorniRientro as $giorno)
             <label class="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" name="rientri[]" value="{{ $giorno }}" @checked(in_array($giorno, $rientri))>
+                <input type="checkbox" name="rientri[]" data-rientro value="{{ $giorno }}" @checked(in_array($giorno, $rientri))>
                 {{ \App\Models\Slot::GIORNI[$giorno] }}
             </label>
         @empty

@@ -89,24 +89,39 @@ class AnagraficheTest extends TestCase
         $this->assertDatabaseHas('discipline', ['id' => $disciplina->id, 'tipo_aula_richiesto' => 'dada_italiano']);
     }
 
-    public function test_un_quadro_orario_puo_ricevere_righe_disciplina(): void
+    public function test_il_quadro_orario_salva_le_righe_dal_form_e_ricalcola_il_totale(): void
     {
         $quadro = QuadroOrario::factory()->create();
+        $italiano = Disciplina::factory()->create();
+        $storia = Disciplina::factory()->create();
+        $vecchia = $quadro->righe()->create(['disciplina_id' => $storia->id, 'ore_settimanali' => 2]);
+
+        $this->actingAs($this->referente())->put("/quadri-orari/{$quadro->id}", [
+            'nome' => $quadro->nome, 'sezioni_extra' => 1,
+            'righe' => [['disciplina_id' => $italiano->id, 'ore_settimanali' => 6]],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('quadro_orario_righe', ['quadro_orario_id' => $quadro->id, 'disciplina_id' => $italiano->id, 'ore_settimanali' => 6]);
+        $this->assertModelMissing($vecchia);
+        $this->assertSame(6, $quadro->fresh()->ore_totali);
+    }
+
+    public function test_il_form_docente_salva_indisponibilita_e_cattedre_insieme(): void
+    {
+        $docente = Docente::factory()->create();
+        $slot = Slot::factory()->create();
+        $classe = Classe::factory()->create();
         $disciplina = Disciplina::factory()->create();
 
-        $response = $this->actingAs($this->referente())
-            ->post("/quadri-orari/{$quadro->id}/righe", [
-                'disciplina_id' => $disciplina->id,
-                'ore_settimanali' => 6,
-            ]);
+        $this->actingAs($this->referente())->put("/docenti/{$docente->id}", [
+            'nome' => $docente->nome, 'cognome' => $docente->cognome, 'tipo_contratto' => $docente->tipo_contratto,
+            'tipo_posto' => $docente->tipo_posto, 'regime' => $docente->regime, 'ore_dovute' => 18,
+            'sezioni_extra' => 1, 'cattedre_inviate' => 1, 'slot_ids' => [$slot->id],
+            'cattedre' => [['classe_id' => $classe->id, 'disciplina_id' => $disciplina->id, 'ore' => 4, 'compresenza' => '1']],
+        ])->assertRedirect();
 
-        $response->assertRedirect();
-        $this->assertDatabaseHas('quadro_orario_righe', [
-            'quadro_orario_id' => $quadro->id,
-            'disciplina_id' => $disciplina->id,
-            'ore_settimanali' => 6,
-        ]);
-        $this->assertSame(6, $quadro->fresh()->ore_totali);
+        $this->assertTrue($docente->indisponibilita()->whereKey($slot->id)->exists());
+        $this->assertDatabaseHas('cattedre', ['docente_id' => $docente->id, 'classe_id' => $classe->id, 'ore' => 4, 'compresenza' => true]);
     }
 
     public function test_crea_un_docente_con_classi_di_concorso_e_sedi(): void
@@ -267,5 +282,32 @@ class AnagraficheTest extends TestCase
             [$mattina->id, $martedi->id],
             $classe->slotAttivi()->pluck('slot.id')->all(),
         );
+    }
+
+    public function test_le_pagine_di_modifica_si_aprono_con_righe_e_barra_di_salvataggio(): void
+    {
+        $docente = Docente::factory()->create();
+        $quadro = QuadroOrario::factory()->create();
+        $quadro->righe()->create(['disciplina_id' => Disciplina::factory()->create()->id, 'ore_settimanali' => 3]);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-totale="cattedre"', false)->assertSee('Salva');
+        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('data-totale="quadro"', false)->assertSee('Salva');
+        // Nella modale il Salva/Annulla è quello della modale, non la barra della pagina.
+        $utente->get("/quadri-orari/{$quadro->id}/edit", ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('sticky bottom-0', false);
+    }
+
+    public function test_la_migrazione_porta_tutti_i_giorni_fino_alla_nona_ora(): void
+    {
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        Slot::factory()->create(['giorno' => 2, 'ordine' => 7, 'inizio' => '14:00:00', 'fine' => '14:50:00']);
+
+        (require database_path('migrations/2026_10_03_160000_add_ore_pomeridiane_a_tutti_i_giorni.php'))->up();
+
+        foreach ([1, 2] as $giorno) {
+            $this->assertSame([7, 8, 9], Slot::query()->where('giorno', $giorno)->where('ordine', '>', 6)->orderBy('ordine')->pluck('ordine')->all());
+        }
+        $this->assertSame('14:00:00', Slot::query()->where(['giorno' => 1, 'ordine' => 7])->value('inizio'));
+        $this->assertSame(1, Slot::query()->where(['giorno' => 1, 'ordine' => 1])->count());
     }
 }

@@ -29,6 +29,15 @@ class DocenteRequest extends FormRequest
             'classi_concorso.*' => ['string', 'max:20'],
             'sedi' => ['nullable', 'array'],
             'sedi.*' => ['exists:sedi,id'],
+            // Sezioni della pagina di modifica (assenti alla creazione).
+            'slot_ids' => ['nullable', 'array'],
+            'slot_ids.*' => ['exists:slot,id'],
+            'cattedre' => ['nullable', 'array'],
+            'cattedre.*.id' => ['nullable', 'integer'],
+            'cattedre.*.classe_id' => ['required', 'exists:classi,id'],
+            'cattedre.*.disciplina_id' => ['required', 'exists:discipline,id'],
+            'cattedre.*.ore' => ['required', 'integer', 'min:1', 'max:20'],
+            'cattedre.*.compresenza' => ['nullable', 'boolean'],
         ];
     }
 }

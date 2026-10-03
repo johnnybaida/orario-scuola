@@ -8,15 +8,14 @@ use Illuminate\Database\Seeder;
 
 /**
  * Scansione oraria unica di istituto: settimana corta lun-ven, 6 ore
- * mattutine (50') per tutte le classi; martedì e giovedì aggiungono 3 ore
- * pomeridiane per le classi a tempo prolungato.
+ * mattutine (50') per tutte le classi; ogni giorno offre anche le ore 7-9
+ * pomeridiane, che le classi a tempo prolungato attivano nei giorni di rientro.
  */
 class SlotSeeder extends Seeder
 {
     public function run(): void
     {
         $durataMinuti = 50;
-        $giorniRientro = [2, 4]; // martedì, giovedì
 
         for ($giorno = 1; $giorno <= 5; $giorno++) {
             $inizio = Carbon::createFromTime(8, 0);
@@ -36,22 +35,20 @@ class SlotSeeder extends Seeder
                 $inizio = $fine->copy()->addMinutes($intervalloDopo ? 10 : 0);
             }
 
-            if (in_array($giorno, $giorniRientro, true)) {
-                $inizio = Carbon::createFromTime(14, 0);
+            $inizio = Carbon::createFromTime(14, 0);
 
-                for ($ordine = 7; $ordine <= 9; $ordine++) {
-                    $fine = $inizio->copy()->addMinutes($durataMinuti);
+            for ($ordine = 7; $ordine <= 9; $ordine++) {
+                $fine = $inizio->copy()->addMinutes($durataMinuti);
 
-                    Slot::query()->create([
-                        'giorno' => $giorno,
-                        'ordine' => $ordine,
-                        'inizio' => $inizio->format('H:i:s'),
-                        'fine' => $fine->format('H:i:s'),
-                        'intervallo_dopo' => false,
-                    ]);
+                Slot::query()->create([
+                    'giorno' => $giorno,
+                    'ordine' => $ordine,
+                    'inizio' => $inizio->format('H:i:s'),
+                    'fine' => $fine->format('H:i:s'),
+                    'intervallo_dopo' => false,
+                ]);
 
-                    $inizio = $fine;
-                }
+                $inizio = $fine;
             }
         }
     }

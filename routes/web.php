@@ -12,7 +12,6 @@ use App\Http\Controllers\GenerazioneController;
 use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
 use App\Http\Controllers\SedeController;
-use App\Http\Controllers\SostegnoController;
 use App\Http\Controllers\UtenzaController;
 use App\Http\Controllers\VincoloController;
 use App\Http\Controllers\WorkerController;
@@ -78,8 +77,6 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('aule', AulaController::class)->parameters($parametriRisorse['aule'])->only(['store', 'update', 'destroy']);
         Route::resource('discipline', DisciplinaController::class)->parameters($parametriRisorse['discipline'])->only(['store', 'update', 'destroy']);
         Route::resource('quadri-orari', QuadroOrarioController::class)->parameters($parametriRisorse['quadri-orari'])->only(['store', 'update', 'destroy']);
-        Route::post('/quadri-orari/{quadroOrario}/righe', [QuadroOrarioController::class, 'storeRiga'])->name('quadri-orari.righe.store');
-        Route::delete('/quadri-orari/righe/{riga}', [QuadroOrarioController::class, 'destroyRiga'])->name('quadri-orari.righe.destroy');
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
 
@@ -104,17 +101,9 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('docenti', DocenteController::class)->parameters($parametriRisorse['docenti'])->only(['store', 'update', 'destroy']);
         Route::get('/docenti-import', [DocenteController::class, 'importForm'])->name('docenti.import.form');
         Route::post('/docenti-import', [DocenteController::class, 'import'])->name('docenti.import');
-        Route::put('/docenti/{docente}/indisponibilita', [DocenteController::class, 'updateIndisponibilita'])->name('docenti.indisponibilita.update');
 
         Route::resource('classi', ClasseController::class)->parameters($parametriRisorse['classi'])->only(['store', 'update', 'destroy']);
         Route::get('/classi-import', [ClasseController::class, 'importForm'])->name('classi.import.form');
         Route::post('/classi-import', [ClasseController::class, 'import'])->name('classi.import');
-        Route::put('/classi/{classe}/slot-attivi', [ClasseController::class, 'updateSlotAttivi'])->name('classi.slot-attivi.update');
-
-        Route::post('/classi/{classe}/sostegno/fabbisogni', [SostegnoController::class, 'storeFabbisogno'])->name('sostegno.fabbisogni.store');
-        Route::delete('/classi/{classe}/sostegno/fabbisogni/{fabbisogno}', [SostegnoController::class, 'destroyFabbisogno'])->name('sostegno.fabbisogni.destroy');
-        Route::post('/classi/{classe}/sostegno/assegnazioni', [SostegnoController::class, 'storeAssegnazione'])->name('sostegno.assegnazioni.store');
-        Route::delete('/classi/{classe}/sostegno/assegnazioni/{assegnazione}', [SostegnoController::class, 'destroyAssegnazione'])->name('sostegno.assegnazioni.destroy');
-        Route::put('/classi/{classe}/sostegno/conteggio', [SostegnoController::class, 'updateConteggio'])->name('sostegno.conteggio.update');
     });
 });

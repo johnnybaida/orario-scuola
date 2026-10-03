@@ -20,6 +20,14 @@ class Slot extends Model
     /** Le ore con ordine > 6 sono i rientri pomeridiani (stessa convenzione degli slot mattutini di default). */
     public const ULTIMA_ORA_MATTINA = 6;
 
+    /** Slot raggruppati per giorno, fino all'ora $ordineMax (null = tutte): niente righe vuote oltre l'ultima ora usata. */
+    public static function perGiorno(?int $ordineMax = null)
+    {
+        return self::query()
+            ->when($ordineMax, fn ($q) => $q->where('ordine', '<=', $ordineMax))
+            ->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno');
+    }
+
     protected function casts(): array
     {
         return [

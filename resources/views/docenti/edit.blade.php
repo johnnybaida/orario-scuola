@@ -10,22 +10,26 @@
         servizio in un'altra scuola): il generatore automatico e l'editor manuale li rispettano sempre.
     </x-guida>
 
-    <div class="grid lg:grid-cols-2 gap-6">
-        <form method="POST" action="{{ route('docenti.update', $docente) }}" class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            @csrf
-            @method('PUT')
-            @include('docenti._form')
-            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
-        </form>
+    @php($puoGestire = auth()->user()->can('gestisci-docenti-classi'))
+    @php($puoCattedre = auth()->user()->can('gestisci-anagrafica'))
 
-        <div class="space-y-6">
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <h2 class="font-medium mb-3">Indisponibilità (H6/T1)</h2>
-                <p class="text-sm text-gray-500 mb-4">Seleziona gli slot in cui il docente non può avere lezione.</p>
+    <form method="POST" action="{{ route('docenti.update', $docente) }}">
+        @csrf
+        @method('PUT')
+        <input type="hidden" name="sezioni_extra" value="1">
+        @if ($puoCattedre)
+            <input type="hidden" name="cattedre_inviate" value="1">
+        @endif
 
-                <form method="POST" action="{{ route('docenti.indisponibilita.update', $docente) }}">
-                    @csrf
-                    @method('PUT')
+        <fieldset @disabled(! $puoGestire) class="min-w-0 grid lg:grid-cols-2 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                @include('docenti._form')
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-3">Indisponibilità (H6/T1)</h2>
+                    <p class="text-sm text-gray-500 mb-4">Seleziona gli slot in cui il docente non può avere lezione.</p>
 
                     <div class="overflow-x-auto">
                         <table class="text-xs border-collapse">
@@ -58,38 +62,20 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
 
-                    <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva indisponibilità</button>
-                </form>
+                <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-3">Cattedre</h2>
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute:
+                        <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
+                    </p>
+                </fieldset>
             </div>
+        </fieldset>
 
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <h2 class="font-medium mb-3">Cattedre</h2>
-                <table class="w-full text-sm">
-                    <thead class="text-gray-500 text-left">
-                        <tr>
-                            <th class="py-1">Classe</th>
-                            <th class="py-1">Disciplina</th>
-                            <th class="py-1">Ore</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($docente->cattedre()->with('classe', 'disciplina')->get() as $cattedra)
-                            <tr>
-                                <td class="py-1">{{ $cattedra->classe->nomeCompleto() }}</td>
-                                <td class="py-1">{{ $cattedra->disciplina->nome }}</td>
-                                <td class="py-1">{{ $cattedra->ore }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="font-medium border-t border-gray-100">
-                            <td class="py-1" colspan="2">Totale / dovute</td>
-                            <td class="py-1">{{ $docente->cattedre()->sum('ore') }} / {{ $docente->ore_dovute }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
+        @if ($puoGestire)
+            <x-barra-salvataggio :annulla="route('docenti.index')" />
+        @endif
+    </form>
 @endsection

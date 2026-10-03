@@ -37,7 +37,8 @@ class OrarioController extends Controller
         return view('orari.classe', [
             'orario' => $orario,
             'classe' => $classe,
-            'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
+            // Solo fino all'ultima ora attiva della classe.
+            'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
             'lezioni' => $this->lezioniPerSlot($orario, $classe),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get(),
@@ -58,7 +59,8 @@ class OrarioController extends Controller
         return view('orari.docente', [
             'orario' => $orario,
             'docente' => $docente,
-            'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
+            // Solo fino all'ultima ora in cui il docente ha lezione.
+            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
         ]);
     }

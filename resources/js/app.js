@@ -4,3 +4,4 @@ import './vai-a-select.js';
 import './editor-griglia.js';
 import './modale.js';
 import './selezione-multipla.js';
+import './form-modifica.js';

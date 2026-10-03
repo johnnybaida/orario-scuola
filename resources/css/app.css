@@ -94,7 +94,7 @@ dialog::backdrop {
     }
 }
 
-/* Form nelle modali (resources/js/modale.js): a due colonne a tutta larghezza, salva sempre in basso a destra.
+/* Form nelle modali (resources/js/modale.js): a due colonne a tutta larghezza (Salva/Annulla sono nel piè di pagina fisso della modale).
    Solo per i form figli diretti della modale; nelle pagine composite (docenti/classi) restano le card. */
 [data-corpo] > form {
     display: grid;
@@ -113,13 +113,6 @@ dialog::backdrop {
 [data-corpo] > form > .grid,
 [data-corpo] > form > [data-parametri-per] {
     grid-column: 1 / -1;
-}
-
-[data-corpo] > form > button[type='submit'] {
-    grid-column: 1 / -1;
-    justify-self: end;
-    position: sticky;
-    bottom: 0;
 }
 
 @media (max-width: 40rem) {

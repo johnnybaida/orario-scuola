@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\QuadroOrarioRequest;
 use App\Models\Disciplina;
 use App\Models\QuadroOrario;
-use App\Models\QuadroOrarioRiga;
+use App\Services\SincronizzaRighe;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class QuadroOrarioController extends Controller
@@ -26,7 +25,7 @@ class QuadroOrarioController extends Controller
 
     public function store(QuadroOrarioRequest $request): RedirectResponse
     {
-        $quadro = QuadroOrario::query()->create($request->validated());
+        $quadro = QuadroOrario::query()->create($request->safe()->only('nome'));
 
         return redirect()->route('quadri-orari.edit', $quadro)->with('successo', 'Quadro orario creato. Aggiungi ora le discipline.');
     }
@@ -34,14 +33,21 @@ class QuadroOrarioController extends Controller
     public function edit(QuadroOrario $quadroOrario): View
     {
         return view('quadri-orari.edit', [
-            'quadro' => $quadroOrario->load('righe.disciplina'),
+            'quadro' => $quadroOrario,
+            'righe' => $quadroOrario->righe()->with('disciplina')->get()->sortBy('disciplina.nome')
+                ->map(fn ($r) => ['id' => $r->id, 'disciplina_id' => $r->disciplina_id, 'ore_settimanali' => $r->ore_settimanali])->all(),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
         ]);
     }
 
     public function update(QuadroOrarioRequest $request, QuadroOrario $quadroOrario): RedirectResponse
     {
-        $quadroOrario->update($request->validated());
+        $quadroOrario->update($request->safe()->only('nome'));
+
+        if ($request->boolean('sezioni_extra')) {
+            SincronizzaRighe::applica($quadroOrario->righe(), $request->input('righe', []), ['disciplina_id', 'ore_settimanali']);
+            $quadroOrario->update(['ore_totali' => $quadroOrario->righe()->sum('ore_settimanali')]);
+        }
 
         return redirect()->route('quadri-orari.edit', $quadroOrario)->with('successo', 'Quadro orario aggiornato.');
     }
@@ -54,31 +60,5 @@ class QuadroOrarioController extends Controller
         $quadroOrario->delete();
 
         return redirect()->route('quadri-orari.index')->with('successo', 'Quadro orario eliminato.');
-    }
-
-    public function storeRiga(Request $request, QuadroOrario $quadroOrario): RedirectResponse
-    {
-        $dati = $request->validate([
-            'disciplina_id' => ['required', 'exists:discipline,id'],
-            'ore_settimanali' => ['required', 'integer', 'min:1', 'max:40'],
-        ]);
-
-        $quadroOrario->righe()->updateOrCreate(
-            ['disciplina_id' => $dati['disciplina_id']],
-            ['ore_settimanali' => $dati['ore_settimanali']],
-        );
-
-        $quadroOrario->update(['ore_totali' => $quadroOrario->righe()->sum('ore_settimanali')]);
-
-        return back()->with('successo', 'Riga aggiunta al quadro orario.');
-    }
-
-    public function destroyRiga(QuadroOrarioRiga $riga): RedirectResponse
-    {
-        $quadro = $riga->quadroOrario;
-        $riga->delete();
-        $quadro->update(['ore_totali' => $quadro->righe()->sum('ore_settimanali')]);
-
-        return back()->with('successo', 'Riga rimossa dal quadro orario.');
     }
 }

@@ -6,10 +6,13 @@ use App\Http\Requests\DocenteRequest;
 use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\Sede;
+use App\Models\Classe;
 use App\Models\Slot;
+use App\Services\SincronizzaRighe;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class DocenteController extends Controller
@@ -48,6 +51,10 @@ class DocenteController extends Controller
             'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita'),
             'sedi' => Sede::query()->orderBy('nome')->get(),
             'classiConcorso' => $this->classiConcorso(),
+            'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
+            'discipline' => Disciplina::query()->orderBy('nome')->get(),
+            'cattedre' => $docente->cattedre()->with('classe')->get()->sortBy(fn ($c) => $c->classe->nomeCompleto())
+                ->map(fn ($c) => $c->only(['id', 'classe_id', 'disciplina_id', 'ore', 'compresenza']))->all(),
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'indisponibiliIds' => $docente->indisponibilita()->pluck('slot.id'),
         ]);
@@ -55,7 +62,22 @@ class DocenteController extends Controller
 
     public function update(DocenteRequest $request, Docente $docente): RedirectResponse
     {
-        $this->salva($docente, $request);
+        $cattedre = $request->input('cattedre', []);
+        if ($request->boolean('cattedre_inviate')) {
+            Gate::authorize('gestisci-anagrafica');
+            SincronizzaRighe::controllaUnivoche($cattedre, ['classe_id', 'disciplina_id'], 'cattedre', 'Cattedra duplicata: stessa classe e disciplina.');
+        }
+
+        DB::transaction(function () use ($request, $docente, $cattedre) {
+            $this->salva($docente, $request);
+
+            if ($request->boolean('sezioni_extra')) {
+                $docente->indisponibilita()->sync($request->input('slot_ids', []));
+            }
+            if ($request->boolean('cattedre_inviate')) {
+                SincronizzaRighe::applica($docente->cattedre(), $cattedre, ['classe_id', 'disciplina_id', 'ore', 'compresenza']);
+            }
+        });
 
         return redirect()->route('docenti.edit', $docente)->with('successo', 'Docente aggiornato.');
     }
@@ -67,15 +89,6 @@ class DocenteController extends Controller
         return redirect()->route('docenti.index')->with('successo', 'Docente eliminato.');
     }
 
-    public function updateIndisponibilita(Request $request, Docente $docente): RedirectResponse
-    {
-        $slotIds = $request->input('slot_ids', []);
-        $docente->indisponibilita()->sync($slotIds);
-
-        return redirect()->route('docenti.edit', $docente)->with('successo', 'Indisponibilità aggiornate.');
-    }
-
-    /** Classi di concorso censite nelle discipline. */
     private function classiConcorso(): array
     {
         return Disciplina::query()->whereNotNull('classe_concorso')->distinct()->pluck('classe_concorso')->all();

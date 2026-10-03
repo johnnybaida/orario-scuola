@@ -29,6 +29,25 @@ class ClasseRequest extends FormRequest
             'n_alunni' => ['required', 'integer', 'min:0', 'max:35'],
             'rientri' => ['nullable', 'array'],
             'rientri.*' => ['integer', 'between:1,6'],
+            // Sezioni della pagina di modifica (assenti alla creazione).
+            'slot_ids' => ['nullable', 'array'],
+            'slot_ids.*' => ['exists:slot,id'],
+            'conteggio_sostegno' => ['nullable', 'in:per_alunno,per_classe'],
+            'cattedre' => ['nullable', 'array'],
+            'cattedre.*.id' => ['nullable', 'integer'],
+            'cattedre.*.docente_id' => ['required', 'exists:docenti,id'],
+            'cattedre.*.disciplina_id' => ['required', 'exists:discipline,id'],
+            'cattedre.*.ore' => ['required', 'integer', 'min:1', 'max:20'],
+            'cattedre.*.compresenza' => ['nullable', 'boolean'],
+            'fabbisogni' => ['nullable', 'array'],
+            'fabbisogni.*.id' => ['nullable', 'integer'],
+            'fabbisogni.*.codice_anonimo' => ['required', 'string', 'max:50', 'distinct'],
+            'fabbisogni.*.ore_settimanali' => ['required', 'integer', 'min:1', 'max:40'],
+            'fabbisogni.*.docente_unico' => ['nullable', 'boolean'],
+            'assegnazioni' => ['nullable', 'array'],
+            'assegnazioni.*.id' => ['nullable', 'integer'],
+            'assegnazioni.*.docente_id' => ['required', 'exists:docenti,id', 'distinct'],
+            'assegnazioni.*.ore' => ['required', 'integer', 'min:1', 'max:40'],
         ];
     }
 }

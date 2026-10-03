@@ -8,25 +8,30 @@
     <x-guida>
         Gli "slot attivi" sono le ore della scansione settimanale che questa classe usa davvero: tutte le classi a
         tempo normale usano solo il mattino, quelle a tempo prolungato anche i pomeriggi di rientro. Il generatore
-        copre esattamente questi slot (né di più, né di meno).
+        copre esattamente questi slot (né di più, né di meno). Cattedre e sostegno si modificano qui sotto: aggiungi
+        o rimuovi le righe, poi salva una volta sola.
     </x-guida>
 
-    <div class="grid lg:grid-cols-2 gap-6">
-        <form method="POST" action="{{ route('classi.update', $classe) }}" class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            @csrf
-            @method('PUT')
-            @include('classi._form')
-            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
-        </form>
+    @php($puoCattedre = auth()->user()->can('gestisci-anagrafica'))
+    @php($docentiSostegno = $docenti->where('tipo_posto', 'sostegno'))
 
-        <div class="space-y-6">
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <h2 class="font-medium mb-3">Slot attivi (H5)</h2>
-                <p class="text-sm text-gray-500 mb-4">Ore della scansione oraria di istituto usate da questa classe.</p>
+    <form method="POST" action="{{ route('classi.update', $classe) }}">
+        @csrf
+        @method('PUT')
+        <input type="hidden" name="sezioni_extra" value="1">
+        @if ($puoCattedre)
+            <input type="hidden" name="cattedre_inviate" value="1">
+        @endif
 
-                <form method="POST" action="{{ route('classi.slot-attivi.update', $classe) }}">
-                    @csrf
-                    @method('PUT')
+        <fieldset @disabled(! auth()->user()->can('gestisci-docenti-classi')) class="min-w-0 grid lg:grid-cols-2 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                @include('classi._form')
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-3">Slot attivi (H5)</h2>
+                    <p class="text-sm text-gray-500 mb-4">Ore della scansione oraria di istituto usate da questa classe. Spuntando un giorno di rientro si attivano le sue ore pomeridiane.</p>
 
                     <div class="overflow-x-auto">
                         <table class="text-xs border-collapse">
@@ -49,7 +54,7 @@
                                             @php($slot = $slotGiorno->firstWhere('ordine', $ordine))
                                             <td class="p-1 text-center">
                                                 @if ($slot)
-                                                    <input type="checkbox" name="slot_ids[]" value="{{ $slot->id }}"
+                                                    <input type="checkbox" name="slot_ids[]" value="{{ $slot->id }}" data-giorno="{{ $slot->giorno }}" @if ($slot->ordine > \App\Models\Slot::ULTIMA_ORA_MATTINA) data-pomeridiano @endif
                                                            @checked($slotAttiviIds->contains($slot->id))>
                                                 @endif
                                             </td>
@@ -59,42 +64,19 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
 
-                    <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva slot attivi</button>
-                </form>
-            </div>
+                <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-3">Cattedre</h2>
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <span id="ore-quadro" hidden>{{ $classe->quadroOrario->ore_totali }}</span>
+                    <p class="mt-3 text-sm font-medium">Totale ore / quadro orario:
+                        <span data-totale="cattedre" data-riferimento="#ore-quadro"></span>
+                    </p>
+                </fieldset>
 
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <h2 class="font-medium mb-3">Cattedre</h2>
-                <table class="w-full text-sm">
-                    <thead class="text-gray-500 text-left">
-                        <tr>
-                            <th class="py-1">Disciplina</th>
-                            <th class="py-1">Docente</th>
-                            <th class="py-1">Ore</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($classe->cattedre()->with('docente', 'disciplina')->get() as $cattedra)
-                            <tr>
-                                <td class="py-1">{{ $cattedra->disciplina->nome }}</td>
-                                <td class="py-1">{{ $cattedra->docente->nomeCompleto() }}</td>
-                                <td class="py-1">{{ $cattedra->ore }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="font-medium border-t border-gray-100">
-                            <td class="py-1">Totale / quadro</td>
-                            <td class="py-1"></td>
-                            <td class="py-1">{{ $classe->cattedre()->sum('ore') }} / {{ $classe->quadroOrario->ore_totali }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <h2 class="font-medium mb-1">Sostegno</h2>
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-1">Sostegno</h2>
                 <x-guida>
                     Gli alunni non sono censiti: ogni fabbisogno è identificato solo da un codice anonimo (es.
                     "1B-S1") e dalle ore settimanali di sostegno. Le ore dei docenti assegnati devono coprire la
@@ -102,108 +84,29 @@
                     il generatore programma le compresenze di conseguenza.
                 </x-guida>
 
-                <form method="POST" action="{{ route('sostegno.conteggio.update', $classe) }}" class="mb-4 flex items-center gap-2">
-                    @csrf
-                    @method('PUT')
-                    <label for="conteggio_sostegno" class="text-sm text-gray-700">Conteggio ore</label>
-                    <select name="conteggio_sostegno" id="conteggio_sostegno" onchange="this.form.submit()"
-                            class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                        <option value="" @selected(is_null($classe->conteggio_sostegno))>Default istituto ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
-                        <option value="per_alunno" @selected($classe->conteggio_sostegno === 'per_alunno')>Per alunno</option>
-                        <option value="per_classe" @selected($classe->conteggio_sostegno === 'per_classe')>Per classe</option>
-                    </select>
-                </form>
-
-                <h3 class="text-sm font-medium text-gray-700 mb-2">Fabbisogni</h3>
-                <table class="w-full text-sm mb-3">
-                    <thead class="text-gray-500 text-left">
-                        <tr>
-                            <th class="py-1">Codice</th>
-                            <th class="py-1">Ore/sett.</th>
-                            <th class="py-1">Docente unico</th>
-                            <th class="py-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($fabbisogniSostegno as $fabbisogno)
-                            <tr>
-                                <td class="py-1 font-mono">{{ $fabbisogno->codice_anonimo }}</td>
-                                <td class="py-1">{{ $fabbisogno->ore_settimanali }}</td>
-                                <td class="py-1">{{ $fabbisogno->docente_unico ? 'Sì' : 'No' }}</td>
-                                <td class="py-1 text-right">
-                                    <form method="POST" action="{{ route('sostegno.fabbisogni.destroy', [$classe, $fabbisogno]) }}" onsubmit="return confirm('Rimuovere questo fabbisogno?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 underline text-xs">Rimuovi</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <form method="POST" action="{{ route('sostegno.fabbisogni.store', $classe) }}" class="flex flex-wrap items-end gap-2 mb-6">
-                    @csrf
-                    <div>
-                        <label class="block text-xs text-gray-500">Codice anonimo</label>
-                        <input type="text" name="codice_anonimo" placeholder="es. 1B-S1" required class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-500">Ore/sett.</label>
-                        <input type="number" name="ore_settimanali" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                    </div>
-                    <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
-                        <input type="checkbox" name="docente_unico" value="1"> Docente unico
-                    </label>
-                    <button type="submit" class="bg-primary text-white rounded px-3 py-1.5 text-xs hover:bg-primary/90 transition-colors cursor-pointer">Aggiungi</button>
-                </form>
-
-                <h3 class="text-sm font-medium text-gray-700 mb-2">Docenti di sostegno assegnati</h3>
-                <table class="w-full text-sm mb-3">
-                    <thead class="text-gray-500 text-left">
-                        <tr>
-                            <th class="py-1">Docente</th>
-                            <th class="py-1">Ore/sett.</th>
-                            <th class="py-1"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($assegnazioniSostegno as $assegnazione)
-                            <tr>
-                                <td class="py-1">{{ $assegnazione->docente->nomeCompleto() }}</td>
-                                <td class="py-1">{{ $assegnazione->ore }}</td>
-                                <td class="py-1 text-right">
-                                    <form method="POST" action="{{ route('sostegno.assegnazioni.destroy', [$classe, $assegnazione]) }}" onsubmit="return confirm('Rimuovere questa assegnazione?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 underline text-xs">Rimuovi</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="font-medium border-t border-gray-100">
-                            <td class="py-1">Totale ore assegnate / richieste</td>
-                            <td class="py-1">{{ $assegnazioniSostegno->sum('ore') }} / {{ $fabbisogniSostegno->sum('ore_settimanali') }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-                <form method="POST" action="{{ route('sostegno.assegnazioni.store', $classe) }}" class="flex flex-wrap items-end gap-2">
-                    @csrf
-                    <div>
-                        <label class="block text-xs text-gray-500">Docente</label>
-                        <select name="docente_id" required class="text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                            @foreach ($docentiSostegno as $docente)
-                                <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
-                            @endforeach
+                    <div class="mb-4 flex items-center gap-2">
+                        <label for="conteggio_sostegno" class="text-sm text-gray-700">Conteggio ore</label>
+                        <select name="conteggio_sostegno" id="conteggio_sostegno">
+                            <option value="" @selected(is_null($classe->conteggio_sostegno))>Default istituto ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
+                            <option value="per_alunno" @selected($classe->conteggio_sostegno === 'per_alunno')>Per alunno</option>
+                            <option value="per_classe" @selected($classe->conteggio_sostegno === 'per_classe')>Per classe</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-500">Ore/sett.</label>
-                        <input type="number" name="ore" min="1" max="40" required class="w-20 text-sm rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                    </div>
-                    <button type="submit" class="bg-primary text-white rounded px-3 py-1.5 text-xs hover:bg-primary/90 transition-colors cursor-pointer">Aggiungi</button>
-                </form>
+
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Fabbisogni</h3>
+                    <x-righe-ripetibili :righe="old('fabbisogni', $fabbisogni)" partial="classi._riga-fabbisogno" etichetta="Aggiungi fabbisogno" />
+
+                    <h3 class="text-sm font-medium text-gray-700 mt-6 mb-2">Docenti di sostegno assegnati</h3>
+                    <x-righe-ripetibili :righe="old('assegnazioni', $assegnazioni)" partial="classi._riga-assegnazione" :dati="['docentiSostegno' => $docentiSostegno]" etichetta="Aggiungi docente di sostegno" />
+                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / richieste:
+                        <span data-totale="assegnate" data-riferimento="somma:richieste"></span>
+                    </p>
+                </div>
             </div>
-        </div>
-    </div>
+        </fieldset>
+
+        @if (auth()->user()->can('gestisci-docenti-classi'))
+            <x-barra-salvataggio :annulla="route('classi.index')" />
+        @endif
+    </form>
 @endsection

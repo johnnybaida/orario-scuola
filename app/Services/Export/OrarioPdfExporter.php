@@ -23,7 +23,7 @@ class OrarioPdfExporter
 
         return Pdf::loadView('orari.pdf.griglia', [
             'titolo' => "Orario classe {$classe->nomeCompleto()}",
-            'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
+            'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
             'lezioni' => $lezioni,
             'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
         ])->setPaper('a4', 'landscape');
@@ -40,7 +40,7 @@ class OrarioPdfExporter
 
         return Pdf::loadView('orari.pdf.griglia', [
             'titolo' => "Orario docente {$docente->nomeCompleto()}",
-            'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
+            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
             'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome,
         ])->setPaper('a4', 'landscape');
