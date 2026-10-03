@@ -360,4 +360,18 @@ class AnagraficheTest extends TestCase
         $this->assertSame(6, $quadro->ore_totali);
         $this->assertDatabaseHas('quadro_orario_righe', ['quadro_orario_id' => $quadro->id, 'disciplina_id' => $italiano->id]);
     }
+
+    public function test_i_campi_obbligatori_sono_marcati_required_cosi_compare_lasterisco(): void
+    {
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/docenti/create')->assertOk()
+            ->assertSee('name="nome" id="nome" value="" required', false)
+            ->assertSee('name="tipo_contratto" id="tipo_contratto" required', false)
+            ->assertSee('name="ore_dovute" id="ore_dovute" min="1" max="24" value="18" required', false)
+            ->assertSee('campo obbligatorio'); // legenda nella barra di salvataggio
+        $utente->get('/vincoli/create')->assertOk()
+            ->assertSee('name="parametri[disciplina_id]" required', false)
+            ->assertSee('data-attiva-se="#severita=preferenziale" data-richiesto', false);
+    }
 }

@@ -3,7 +3,7 @@
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
         <label for="anno_corso" class="block text-sm font-medium text-gray-700">Anno di corso</label>
-        <select name="anno_corso" id="anno_corso" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <select name="anno_corso" id="anno_corso" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach ([1, 2, 3] as $anno)
                 <option value="{{ $anno }}" @selected(old('anno_corso', $classe?->anno_corso) == $anno)>{{ $anno }}ª</option>
             @endforeach
@@ -48,7 +48,7 @@
     </div>
     <div>
         <label for="tempo_scuola" class="block text-sm font-medium text-gray-700">Tempo scuola</label>
-        <select name="tempo_scuola" id="tempo_scuola" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <select name="tempo_scuola" id="tempo_scuola" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             <option value="normale" @selected(old('tempo_scuola', $classe?->tempo_scuola) === 'normale')>Normale</option>
             <option value="prolungato" @selected(old('tempo_scuola', $classe?->tempo_scuola) === 'prolungato')>Prolungato</option>
         </select>

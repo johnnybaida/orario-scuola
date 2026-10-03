@@ -55,7 +55,7 @@
 {{-- D1_BLOCCO_MIN_CONSECUTIVO / D3_MAX_ORE_GIORNO: disciplina comune --}}
 <div data-parametri-per="D1_BLOCCO_MIN_CONSECUTIVO">
     <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         @foreach ($discipline as $disciplina)
             <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
         @endforeach
@@ -63,7 +63,7 @@
     <div class="grid sm:grid-cols-2 gap-4 mt-2">
         <div>
             <label class="block text-sm font-medium text-gray-700">Min ore consecutive</label>
-            <input type="number" name="parametri[min_consecutive]" min="2" max="6" value="{{ $parametri['min_consecutive'] ?? 2 }}"
+            <input type="number" name="parametri[min_consecutive]" required min="2" max="6" value="{{ $parametri['min_consecutive'] ?? 2 }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>
         <div>
@@ -76,29 +76,29 @@
 
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
     <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         @foreach ($discipline as $disciplina)
             <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
         @endforeach
     </select>
     <label class="block text-sm font-medium text-gray-700 mt-2">Max ore/giorno</label>
-    <input type="number" name="parametri[max]" min="1" max="6" value="{{ $parametri['max'] ?? 1 }}"
+    <input type="number" name="parametri[max]" required min="1" max="6" value="{{ $parametri['max'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
 <div data-parametri-per="D6_FASCIA_ORARIA">
     <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         @foreach ($discipline as $disciplina)
             <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
         @endforeach
     </select>
     <label class="block text-sm font-medium text-gray-700 mt-2">Tipo fascia</label>
-    <select name="parametri[tipo]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <select name="parametri[tipo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="vietata" @selected(($parametri['tipo'] ?? null) === 'vietata')>Vietata</option>
         <option value="preferita" @selected(($parametri['tipo'] ?? null) === 'preferita')>Preferita</option>
     </select>
-    <label class="block text-sm font-medium text-gray-700 mt-2">Slot</label>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Slot <span class="text-destructive" aria-hidden="true">*</span></label>
     <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded p-2">
         @foreach ($slot as $giorno => $slotGiorno)
             @foreach ($slotGiorno as $s)
@@ -114,7 +114,7 @@
 
 <div data-parametri-per="T2_GIORNO_LIBERO">
     <label class="block text-sm font-medium text-gray-700">N. giorni liberi richiesti</label>
-    <input type="number" name="parametri[n_giorni]" min="1" max="3" value="{{ $parametri['n_giorni'] ?? 1 }}"
+    <input type="number" name="parametri[n_giorni]" required min="1" max="3" value="{{ $parametri['n_giorni'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <label class="block text-sm font-medium text-gray-700 mt-2">Giorno preferito (opzionale)</label>
     <select name="parametri[preferenze][]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -150,7 +150,7 @@
             <option value="preferenziale" @selected(old('severita', $vincolo?->severita) === 'preferenziale')>Preferenziale</option>
         </select>
     </div>
-    <div data-attiva-se="#severita=preferenziale">
+    <div data-attiva-se="#severita=preferenziale" data-richiesto>
         <label for="peso" class="block text-sm font-medium text-gray-700">Peso (1-100)
             <x-info testo="Il peso serve solo ai vincoli preferenziali: imposta Severità = Preferenziale." />
         </label>

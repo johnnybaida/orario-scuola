@@ -5,7 +5,8 @@
 @unless (request()->ajax())
     <div class="h-20" aria-hidden="true"></div>
     <div class="fixed bottom-0 inset-x-0 md:left-60 z-20 border-t border-gray-200 bg-white/95 backdrop-blur">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-end gap-3">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-end gap-3">
+            <span class="mr-auto text-xs text-gray-500"><span class="text-destructive">*</span> campo obbligatorio</span>
             <a href="{{ $annulla }}" class="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">Annulla</a>
             <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">{{ $etichetta }}</button>
         </div>

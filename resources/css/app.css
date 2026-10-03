@@ -54,6 +54,13 @@
     }
 }
 
+/* Campi obbligatori: asterisco rosso sulle etichette seguite da un controllo `required` (attributo impostato anche via JS). */
+label:has(+ :is(input, select, textarea)[required])::after {
+    content: ' *';
+    color: var(--color-destructive);
+    font-weight: 600;
+}
+
 /* Tabelle: intestazione compatta in maiuscoletto, riga evidenziata al passaggio. */
 main thead th {
     font-size: 0.75rem;

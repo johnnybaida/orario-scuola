@@ -13,7 +13,8 @@ function creaDialog() {
     dialog.className = 'relative m-auto w-full max-w-5xl max-h-[90vh] rounded-lg p-0 open:flex flex-col backdrop:bg-black/50';
     dialog.innerHTML = `<button type="button" data-chiudi aria-label="Chiudi" class="absolute right-4 top-3 z-10 text-2xl leading-none text-gray-500 hover:text-gray-900 transition-colors cursor-pointer">&times;</button>
         <div data-corpo class="px-6 py-6 overflow-y-auto flex-1"></div>
-        <div class="flex justify-end gap-3 border-t border-gray-200 px-6 py-3">
+        <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-3">
+            <span class="mr-auto text-xs text-gray-500"><span class="text-destructive">*</span> campo obbligatorio</span>
             <button type="button" data-chiudi class="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">Annulla</button>
             <button type="button" data-salva class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60">Salva</button>
         </div>`;

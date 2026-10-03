@@ -22,7 +22,7 @@
 <div class="grid sm:grid-cols-3 gap-4">
     <div>
         <label for="tipo_contratto" class="block text-sm font-medium text-gray-700">Contratto</label>
-        <select name="tipo_contratto" id="tipo_contratto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <select name="tipo_contratto" id="tipo_contratto" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach (['tempo_indeterminato' => 'Tempo indeterminato', 'tempo_determinato_annuale' => 'Determinato annuale', 'tempo_determinato_fino_termine' => 'Determinato fino al termine', 'supplenza_breve' => 'Supplenza breve'] as $valore => $etichetta)
                 <option value="{{ $valore }}" @selected(old('tipo_contratto', $docente?->tipo_contratto) === $valore)>{{ $etichetta }}</option>
             @endforeach
@@ -30,7 +30,7 @@
     </div>
     <div>
         <label for="tipo_posto" class="block text-sm font-medium text-gray-700">Tipo posto</label>
-        <select name="tipo_posto" id="tipo_posto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <select name="tipo_posto" id="tipo_posto" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach (['comune' => 'Comune', 'sostegno' => 'Sostegno', 'potenziamento' => 'Potenziamento', 'irc' => 'IRC', 'strumento' => 'Strumento musicale'] as $valore => $etichetta)
                 <option value="{{ $valore }}" @selected(old('tipo_posto', $docente?->tipo_posto) === $valore)>{{ $etichetta }}</option>
             @endforeach
@@ -38,7 +38,7 @@
     </div>
     <div>
         <label for="regime" class="block text-sm font-medium text-gray-700">Regime</label>
-        <select name="regime" id="regime" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <select name="regime" id="regime" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach (['tempo_pieno' => 'Tempo pieno', 'part_time_orizzontale' => 'Part-time orizzontale', 'part_time_verticale' => 'Part-time verticale', 'part_time_misto' => 'Part-time misto'] as $valore => $etichetta)
                 <option value="{{ $valore }}" @selected(old('regime', $docente?->regime) === $valore)>{{ $etichetta }}</option>
             @endforeach
