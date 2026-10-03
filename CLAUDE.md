@@ -89,6 +89,7 @@ docs/
 - Guida utente: unico file `docs/guida-utente.md`, mostrato nel pannello di aiuto (pulsante Aiuto o F1, `GuidaController` + `resources/js/guida-pannello.js`); una sezione `##` = una voce del menu. Aggiornalo quando cambia una funzione visibile all'utente.
 - Utenze (solo amministratore) in `/utenze`.
 - Ogni pagina principale ha una mini guida con il componente `<x-guida>` (vedi `resources/views/components/guida.blade.php`).
+- Le notifiche all'utente (conferme, errori di validazione, esiti) sono toast che spariscono dopo 10 secondi: il server le espone con `<div data-flash="successo|errore|avviso" hidden>` nel layout, il JS con `mostraToast()` da `resources/js/toast.js`. Restano fuori i pannelli persistenti (avvisi dell'orario, errori di import CSV).
 - Gli esiti (errori/avvisi) delle modifiche manuali all'orario restano visibili in un pannello persistente (tabella `avvisi_orario`) finché non vengono azzerati esplicitamente: non usare `alert()` JS per questo.
 
 ---

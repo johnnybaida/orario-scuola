@@ -5,5 +5,4 @@
     <button type="button" data-azione="elimina" disabled
             class="text-destructive hover:underline cursor-pointer disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed">Elimina selezionati</button>
     <x-info testo="Seleziona una o più righe con le caselle a sinistra per poterle eliminare." />
-    <span data-esito class="text-amber-700"></span>
 </div>

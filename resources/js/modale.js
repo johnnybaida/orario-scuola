@@ -1,3 +1,5 @@
+import { mostraToast } from './toast.js';
+
 // Apre in una <dialog> le pagine di creazione/modifica (link con `data-modale`).
 // Si chiude con × (in alto a destra), "Annulla" o Esc, non con un click fuori. Piè di pagina fisso con un solo "Annulla" e un solo "Salva": Salva invia il form della modale o, se
 // la pagina ne contiene più d'uno (es. dati + indisponibilità), tutti quelli modificati, in sequenza.
@@ -38,16 +40,7 @@ function segnaModificato(e) {
     if (form) form.dataset.modificato = '1';
 }
 
-function mostraErrori(messaggi) {
-    corpo().querySelector('[data-errori]')?.remove();
-    const box = document.createElement('div');
-    box.dataset.errori = '';
-    box.className = 'mb-4 rounded bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm';
-    box.innerHTML = '<ul class="list-disc list-inside space-y-1"></ul>';
-    messaggi.forEach((m) => box.firstChild.append(Object.assign(document.createElement('li'), { textContent: m })));
-    corpo().prepend(box);
-    corpo().scrollTo(0, 0);
-}
+const mostraErrori = (messaggi) => mostraToast(messaggi, 'errore');
 
 async function carica(url) {
     const risposta = await fetch(url, { headers: intestazioni });

@@ -121,6 +121,14 @@ dialog::backdrop {
     margin: 0;
 }
 
+/* Schede (fieldset o .scheda) dentro un form di modale: a piena larghezza e senza bordo, la modale è già il contenitore. */
+[data-corpo] > form > :is(fieldset, .scheda) {
+    grid-column: 1 / -1;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
 /* Righe intere: gruppi di campi, schede, separatori, elenchi di checkbox e testi lunghi. */
 :is(.form-colonne, [data-corpo] > form) > :is(.grid, fieldset, hr, p, [data-parametri-per], div:has(textarea, input[type='checkbox'][name$='[]'])) {
     grid-column: 1 / -1;

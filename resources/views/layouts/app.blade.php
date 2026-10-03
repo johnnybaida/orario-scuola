@@ -63,19 +63,16 @@
                     </div>
                 @endauth
 
+                {{-- Messaggi del server: li mostra resources/js/toast.js come notifiche a comparsa (10 secondi). --}}
                 @if (session('successo'))
-                    <div class="mb-4 rounded bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
-                        {{ session('successo') }}
-                    </div>
+                    <div data-flash="successo" hidden><span>{{ session('successo') }}</span></div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
-                        <ul class="list-disc list-inside space-y-1">
-                            @foreach ($errors->all() as $errore)
-                                <li>{{ $errore }}</li>
-                            @endforeach
-                        </ul>
+                    <div data-flash="errore" hidden>
+                        @foreach ($errors->all() as $errore)
+                            <span>{{ $errore }}</span>
+                        @endforeach
                     </div>
                 @endif
 

@@ -8,3 +8,4 @@ import './form-modifica.js';
 import './select-ricerca.js';
 import './condizioni.js';
 import './guida-pannello.js';
+import './toast.js';

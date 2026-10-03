@@ -1,3 +1,5 @@
+import { mostraToast } from './toast.js';
+
 // Checkbox di riga (.js-sel, value = URL di eliminazione) + barra azioni <x-barra-selezione>.
 // Elimina riutilizzando le rotte destroy esistenti, una richiesta per riga.
 const selezionate = () => [...document.querySelectorAll('.js-sel:checked')];
@@ -47,6 +49,5 @@ document.addEventListener('click', async (e) => {
     }
     deseleziona();
     if (!falliti) return location.reload();
-    document.querySelector('[data-esito]').textContent = `${falliti} non eliminat${falliti === 1 ? 'o' : 'i'} (probabilmente in uso).`;
-    aggiorna();
+    mostraToast(`${falliti} non eliminat${falliti === 1 ? 'o' : 'i'} (probabilmente in uso).`, 'avviso');
 });

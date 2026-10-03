@@ -278,6 +278,7 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
 - **Modali**: le schede di creazione e modifica semplici si aprono in una finestra. Si chiude con **×**, **Annulla** o **Esc**; un click fuori non la chiude, così non perdi i dati. Salvando la finestra si chiude. **Salva** è sempre in basso a destra. Docenti e classi si modificano su pagina intera.
 - **Eliminare**: nelle tabelle spunta le righe e premi **Elimina selezionati**. Il pulsante è disabilitato finché non selezioni almeno una riga. Gli elementi ancora in uso non vengono eliminati e ti viene detto quanti.
+- **Notifiche**: conferme ed errori compaiono in alto a destra come piccoli messaggi che spariscono dopo 10 secondi. Passandoci sopra con il mouse il tempo si ferma; la **×** li chiude subito. Gli avvisi sulle modifiche all'orario, invece, restano nel pannello sopra la griglia finché non li azzeri.
 - **Campi obbligatori**: sono contrassegnati da un asterisco rosso **\***; senza compilarli non si può salvare. Alcuni lo diventano solo in certe condizioni (per esempio il peso di un vincolo, obbligatorio solo se la severità è Preferenziale).
 - **Controlli disabilitati**: se un campo è grigio e vedi un'icona **i**, passaci sopra: spiega cosa impostare per attivarlo.
 - **Righe ripetibili** (cattedre, discipline del quadro, sostegno): aggiungi o rimuovi righe con i pulsanti della sezione e salva con il pulsante unico in basso a destra.

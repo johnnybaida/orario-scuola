@@ -8,7 +8,7 @@
     <form method="POST" action="{{ route('quadri-orari.store') }}">
         @csrf
         <input type="hidden" name="sezioni_extra" value="1">
-        <div class="space-y-4 bg-white border border-gray-200 rounded-lg p-6">
+        <div class="scheda space-y-4 bg-white border border-gray-200 rounded-lg p-6">
             @include('quadri-orari._form')
         </div>
         <x-barra-salvataggio :annulla="route('quadri-orari.index')" />

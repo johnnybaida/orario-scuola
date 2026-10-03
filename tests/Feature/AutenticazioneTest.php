@@ -60,4 +60,13 @@ class AutenticazioneTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_i_messaggi_del_server_arrivano_come_dati_per_i_toast(): void
+    {
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))
+            ->withSession(['successo' => 'Salvataggio riuscito.'])
+            ->get('/dashboard')
+            ->assertSee('data-flash="successo"', false)
+            ->assertSee('Salvataggio riuscito.');
+    }
 }
