@@ -22,6 +22,15 @@ Perché la generazione possa riuscire, per **ogni classe** devono valere due con
 - le **ore delle cattedre** coincidono con le ore del **quadro orario** della classe;
 - il numero di **slot attivi** della classe coincide con le ore del quadro orario (30 ore di quadro = 30 slot attivi).
 
+La **Dashboard** ti dice a che punto sei:
+
+- **Numeri** dell'istituto: classi (a tempo normale e prolungato), docenti per tipo di posto, cattedre con le ore assegnate rispetto a quelle dovute, e le altre anagrafiche.
+- **Sei pronto a generare?**: i problemi che bloccherebbero la generazione, ognuno con il link **Correggi** alla pagina giusta. Se non ce ne sono, vedi "Tutto a posto".
+- **Generazione e worker**: stato del worker di coda (con **Avvia**), ultima generazione con seed e punteggio, e **Nuova generazione**.
+- **Ultimo orario**: versione, stato, punteggio e avvisi aperti, con il tabellone PDF e la ricerca di una classe o di un docente.
+- **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*.
+- **Percorso di avvio**: i passi del percorso tipico, spuntati quando hai già inserito qualcosa.
+
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
 ## Sedi e aule

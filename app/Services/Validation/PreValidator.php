@@ -16,7 +16,14 @@ use App\Models\Vincolo;
  */
 class PreValidator
 {
+    /** @return list<string> solo i messaggi (usato dalla generazione) */
     public function esegui(): array
+    {
+        return array_column($this->problemi(), 'testo');
+    }
+
+    /** @return list<array{testo: string, url: string}> messaggi con il link alla pagina dove correggerli */
+    public function problemi(): array
     {
         return [
             ...$this->oreQuadroVsCattedre(),
@@ -25,6 +32,11 @@ class PreValidator
             ...$this->vincoliContraddittori(),
             ...$this->oreSostegno(),
         ];
+    }
+
+    private function p(string $testo, string $url): array
+    {
+        return ['testo' => $testo, 'url' => $url];
     }
 
     private function oreQuadroVsCattedre(): array
@@ -37,13 +49,13 @@ class PreValidator
             $nSlotAttivi = $classe->slotAttivi()->count();
 
             if ($oreCattedre != $oreQuadro) {
-                $problemi[] = "Classe {$classe->nomeCompleto()}: il quadro orario prevede {$oreQuadro}h "
-                    ."ma le cattedre assegnate coprono {$oreCattedre}h.";
+                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: il quadro orario prevede {$oreQuadro}h "
+                    ."ma le cattedre assegnate coprono {$oreCattedre}h.", route('classi.edit', $classe));
             }
 
             if ($nSlotAttivi !== $oreQuadro) {
-                $problemi[] = "Classe {$classe->nomeCompleto()}: {$nSlotAttivi} slot attivi ma il quadro "
-                    ."orario richiede {$oreQuadro}h (devono coincidere).";
+                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: {$nSlotAttivi} slot attivi ma il quadro "
+                    ."orario richiede {$oreQuadro}h (devono coincidere).", route('classi.edit', $classe));
             }
         }
 
@@ -60,8 +72,8 @@ class PreValidator
             $oreAssegnate = $docente->cattedre_sum_ore ?? 0;
 
             if ($oreAssegnate > $slotDisponibili) {
-                $problemi[] = "Docente {$docente->nomeCompleto()}: {$oreAssegnate}h assegnate ma solo "
-                    ."{$slotDisponibili} slot disponibili (indisponibilità escluse).";
+                $problemi[] = $this->p("Docente {$docente->nomeCompleto()}: {$oreAssegnate}h assegnate ma solo "
+                    ."{$slotDisponibili} slot disponibili (indisponibilità escluse).", route('docenti.edit', $docente));
             }
         }
 
@@ -84,10 +96,10 @@ class PreValidator
             $capacitaSettimanale = Aula::query()->where('tipo', $tipo)->sum('capienza') * $totaleSlot;
 
             if ($capacitaSettimanale === 0) {
-                $problemi[] = "Nessuna aula di tipo '{$tipo}' censita, ma servono {$oreTotali}h settimanali.";
+                $problemi[] = $this->p("Nessuna aula di tipo '{$tipo}' censita, ma servono {$oreTotali}h settimanali.", route('aule.index'));
             } elseif ($oreTotali > $capacitaSettimanale) {
-                $problemi[] = "Aule di tipo '{$tipo}': servono {$oreTotali}h settimanali ma la capacità "
-                    ."massima teorica è {$capacitaSettimanale}h.";
+                $problemi[] = $this->p("Aule di tipo '{$tipo}': servono {$oreTotali}h settimanali ma la capacità "
+                    ."massima teorica è {$capacitaSettimanale}h.", route('aule.index'));
             }
         }
 
@@ -105,14 +117,14 @@ class PreValidator
                 : $classe->fabbisogniSostegno->sum('ore_settimanali');
 
             if ($oreAssegnate < $oreRichieste) {
-                $problemi[] = "Sostegno classe {$classe->nomeCompleto()}: servono {$oreRichieste}h "
-                    ."({$classe->conteggioSostegnoEffettivo()}) ma i docenti assegnati coprono solo {$oreAssegnate}h.";
+                $problemi[] = $this->p("Sostegno classe {$classe->nomeCompleto()}: servono {$oreRichieste}h "
+                    ."({$classe->conteggioSostegnoEffettivo()}) ma i docenti assegnati coprono solo {$oreAssegnate}h.", route('classi.edit', $classe));
             }
 
             foreach ($classe->fabbisogniSostegno as $fabbisogno) {
                 if ($fabbisogno->docente_unico && $classe->assegnazioniSostegno->isEmpty()) {
-                    $problemi[] = "Sostegno classe {$classe->nomeCompleto()}: il fabbisogno {$fabbisogno->codice_anonimo} "
-                        .'richiede un docente unico ma nessun docente di sostegno è assegnato.';
+                    $problemi[] = $this->p("Sostegno classe {$classe->nomeCompleto()}: il fabbisogno {$fabbisogno->codice_anonimo} "
+                        .'richiede un docente unico ma nessun docente di sostegno è assegnato.', route('classi.edit', $classe));
                 }
             }
         }
@@ -140,8 +152,8 @@ class PreValidator
 
                 if ($ore > 0 && $ore < $minRichiesto) {
                     $classe = Classe::find($classeId);
-                    $problemi[] = "Vincolo D1 su {$disciplina->nome} per {$classe?->nomeCompleto()}: richiede "
-                        ."{$minRichiesto}h ma la cattedra ne assegna solo {$ore}.";
+                    $problemi[] = $this->p("Vincolo D1 su {$disciplina->nome} per {$classe?->nomeCompleto()}: richiede "
+                        ."{$minRichiesto}h ma la cattedra ne assegna solo {$ore}.", route('vincoli.index'));
                 }
             }
         }
