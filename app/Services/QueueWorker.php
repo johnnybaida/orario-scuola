@@ -29,12 +29,24 @@ class QueueWorker
         return $this->attivo() && is_file($this->fileArresto());
     }
 
+    private function pid(): int
+    {
+        return is_file($this->pidFile()) ? (int) trim(file_get_contents($this->pidFile())) : 0;
+    }
+
     public function attivo(): bool
     {
-        $pid = is_file($this->pidFile()) ? (int) trim(file_get_contents($this->pidFile())) : 0;
+        $pid = $this->pid();
 
-        // kill -0 non invia segnali: controlla solo che il processo esista.
-        return $pid > 0 && (new Process(['kill', '-0', (string) $pid]))->run() === 0;
+        return $pid > 0 && $this->processoVivo($pid);
+    }
+
+    /** Segnale 0: non invia nulla, controlla solo che il processo esista (senza dipendere dal PATH del web server). */
+    private function processoVivo(int $pid): bool
+    {
+        return function_exists('posix_kill')
+            ? posix_kill($pid, 0)
+            : (new Process(['ps', '-p', (string) $pid]))->run() === 0;
     }
 
     /**
@@ -50,11 +62,14 @@ class QueueWorker
         @unlink($this->fileArresto());
 
         // Il worker confronta il timestamp di restart all'avvio: un eventuale "ferma" precedente non lo uccide.
+        // trap '' HUP + exec = come nohup (SIGHUP ignorato, stesso PID) senza dipendere dal comando nohup.
+        $log = storage_path('logs/queue-worker.log');
+        $offsetLog = is_file($log) ? filesize($log) : 0;
         $comando = sprintf(
-            'nohup %s %s queue:work --tries=1 < /dev/null >> %s 2>&1 & echo $!',
+            "(trap '' HUP; exec %s %s queue:work --tries=1) < /dev/null >> %s 2>&1 & echo $!",
             escapeshellarg((new PhpExecutableFinder)->find() ?: 'php'),
             escapeshellarg(base_path('artisan')),
-            escapeshellarg(storage_path('logs/queue-worker.log')),
+            escapeshellarg($log),
         );
         $processo = Process::fromShellCommandline($comando, base_path());
         $processo->run();
@@ -62,8 +77,9 @@ class QueueWorker
 
         usleep(1_500_000);
         if (! $this->attivo()) {
-            $log = array_slice(file(storage_path('logs/queue-worker.log'), FILE_IGNORE_NEW_LINES) ?: [], -5);
-            throw new \RuntimeException("Il worker si è fermato subito dopo l'avvio. ".implode(' | ', $log));
+            // Solo l'output di questo avvio, non quello degli avvii precedenti.
+            $nuovo = trim(substr((string) file_get_contents($log), $offsetLog));
+            throw new \RuntimeException("Il worker si è fermato subito dopo l'avvio (PID {$this->pid()}). ".($nuovo ?: 'Nessun output nel log: controlla storage/logs/queue-worker.log.'));
         }
 
         return true;
