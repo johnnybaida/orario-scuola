@@ -16,3 +16,37 @@
     --color-on-accent: #0f172a;
     --color-destructive: #dc2626;
 }
+
+/* Form nelle modali (resources/js/modale.js): a due colonne a tutta larghezza, salva sempre in basso a destra.
+   Solo per i form figli diretti della modale; nelle pagine composite (docenti/classi) restano le card. */
+[data-corpo] > form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+[data-corpo] > form > * {
+    margin: 0;
+}
+
+[data-corpo] > form > .grid,
+[data-corpo] > form > [data-parametri-per] {
+    grid-column: 1 / -1;
+}
+
+[data-corpo] > form > button[type='submit'] {
+    grid-column: 1 / -1;
+    justify-self: end;
+    position: sticky;
+    bottom: 0;
+}
+
+@media (max-width: 40rem) {
+    [data-corpo] > form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
