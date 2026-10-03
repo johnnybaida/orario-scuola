@@ -5,7 +5,7 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">Modifica sede</h1>
 
-    <form method="POST" action="{{ route('sedi.update', $sede) }}" class="bg-white border border-gray-200 rounded-lg p-6 max-w-lg space-y-4">
+    <form method="POST" action="{{ route('sedi.update', $sede) }}" class="bg-white border border-gray-200 rounded-lg p-6 form-colonne">
         @csrf
         @method('PUT')
         @include('sedi._form')

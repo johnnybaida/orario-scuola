@@ -94,28 +94,33 @@ dialog::backdrop {
     }
 }
 
-/* Form nelle modali (resources/js/modale.js): a due colonne a tutta larghezza (Salva/Annulla sono nel piè di pagina fisso della modale).
-   Solo per i form figli diretti della modale; nelle pagine composite (docenti/classi) restano le card. */
+/* Form a tutta larghezza, campi su due colonne: nelle modali (form figlio diretto di [data-corpo], vedi resources/js/modale.js)
+   e nelle pagine (classe .form-colonne sulla scheda). Nelle modali la scheda perde bordo e padding; Salva/Annulla sono nel piè di pagina. */
+.form-colonne,
 [data-corpo] > form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+}
+
+[data-corpo] > form {
     max-width: none;
     padding: 0;
     border: 0;
     background: none;
 }
 
-[data-corpo] > form > * {
+:is(.form-colonne, [data-corpo] > form) > * {
     margin: 0;
 }
 
-[data-corpo] > form > .grid,
-[data-corpo] > form > [data-parametri-per] {
+/* Righe intere: gruppi di campi, schede, separatori, elenchi di checkbox e testi lunghi. */
+:is(.form-colonne, [data-corpo] > form) > :is(.grid, fieldset, hr, p, [data-parametri-per], div:has(textarea, input[type='checkbox'][name$='[]'])) {
     grid-column: 1 / -1;
 }
 
 @media (max-width: 40rem) {
+    .form-colonne,
     [data-corpo] > form {
         grid-template-columns: minmax(0, 1fr);
     }

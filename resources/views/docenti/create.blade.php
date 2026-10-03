@@ -7,7 +7,7 @@
 
     <form method="POST" action="{{ route('docenti.store') }}">
         @csrf
-        <div class="bg-white border border-gray-200 rounded-lg p-6 max-w-2xl space-y-4">
+        <div class="bg-white border border-gray-200 rounded-lg p-6 form-colonne">
             @include('docenti._form')
         </div>
         <x-barra-salvataggio :annulla="route('docenti.index')" />

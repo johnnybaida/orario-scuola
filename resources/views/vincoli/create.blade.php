@@ -11,7 +11,7 @@
         anche un peso: più alto, più il solver cerca di evitarne la violazione.
     </x-guida>
 
-    <form method="POST" action="{{ route('vincoli.store') }}" class="bg-white border border-gray-200 rounded-lg p-6 max-w-2xl space-y-4">
+    <form method="POST" action="{{ route('vincoli.store') }}" class="bg-white border border-gray-200 rounded-lg p-6 form-colonne">
         @csrf
         @include('vincoli._form')
         <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>

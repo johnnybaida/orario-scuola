@@ -5,7 +5,7 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">Importa classi da CSV</h1>
 
-    <div class="bg-white border border-gray-200 rounded-lg p-6 max-w-lg space-y-4">
+    <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
         <p class="text-sm text-gray-600">
             Colonne attese: <code>anno_corso, sezione, sede, quadro_orario, tempo_scuola, n_alunni</code>.
             <code>sede</code> e <code>quadro_orario</code> sono il nome esatto già censito; se non trovati si usa il primo disponibile.

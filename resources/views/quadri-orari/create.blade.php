@@ -5,7 +5,7 @@
 @section('contenuto')
     <h1 class="text-xl font-semibold mb-6">Nuovo quadro orario</h1>
 
-    <form method="POST" action="{{ route('quadri-orari.store') }}" class="bg-white border border-gray-200 rounded-lg p-6 max-w-lg space-y-4">
+    <form method="POST" action="{{ route('quadri-orari.store') }}" class="bg-white border border-gray-200 rounded-lg p-6 form-colonne">
         @csrf
         <div>
             <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>

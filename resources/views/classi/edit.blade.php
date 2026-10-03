@@ -23,12 +23,12 @@
             <input type="hidden" name="cattedre_inviate" value="1">
         @endif
 
-        <fieldset @disabled(! auth()->user()->can('gestisci-docenti-classi')) class="min-w-0 grid lg:grid-cols-2 gap-6">
-            <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+        <fieldset @disabled(! auth()->user()->can('gestisci-docenti-classi')) class="min-w-0 space-y-6">
+            <div class="form-colonne bg-white border border-gray-200 rounded-lg p-6">
                 @include('classi._form')
             </div>
 
-            <div class="space-y-6">
+            <div class="grid lg:grid-cols-2 gap-6 items-start">
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-3">Slot attivi (H5)</h2>
                     <p class="text-sm text-gray-500 mb-4">Ore della scansione oraria di istituto usate da questa classe. Spuntando un giorno di rientro si attivano le sue ore pomeridiane.</p>
@@ -79,7 +79,7 @@
                     </p>
                 </fieldset>
 
-                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 lg:col-span-2">
                     <h2 class="font-medium mb-1">Sostegno</h2>
                 <x-guida>
                     Gli alunni non sono censiti: ogni fabbisogno è identificato solo da un codice anonimo (es.

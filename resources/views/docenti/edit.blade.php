@@ -21,12 +21,12 @@
             <input type="hidden" name="cattedre_inviate" value="1">
         @endif
 
-        <fieldset @disabled(! $puoGestire) class="min-w-0 grid lg:grid-cols-2 gap-6">
-            <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+        <fieldset @disabled(! $puoGestire) class="min-w-0 space-y-6">
+            <div class="form-colonne bg-white border border-gray-200 rounded-lg p-6">
                 @include('docenti._form')
             </div>
 
-            <div class="space-y-6">
+            <div class="grid lg:grid-cols-2 gap-6 items-start">
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-3">Indisponibilità (H6/T1)</h2>
                     <p class="text-sm text-gray-500 mb-4">Seleziona gli slot in cui il docente non può avere lezione.</p>
