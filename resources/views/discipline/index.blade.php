@@ -6,25 +6,28 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">Discipline</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('discipline.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova disciplina</a>
+            <a data-modale href="{{ route('discipline.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova disciplina</a>
         @endcan
     </div>
 
     <x-guida>
         Catalogo delle materie insegnate, con la classe di concorso abilitante e l'eventuale tipo di aula richiesto
-        (es. palestra per Scienze motorie). In modalità DADA puoi collegare una disciplina a un'aula specifica
-        direttamente dalla scheda dell'aula. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
+        (es. palestra per Scienze motorie). In modalità DADA la disciplina si svolge in un'aula dedicata dove si
+        spostano gli alunni: crea l'aula in "Sedi/Aule" scegliendo "DADA · disciplina" e il collegamento è automatico. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
         (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
     </x-guida>
+
+    <x-barra-selezione />
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Codice</th>
                     <th class="px-4 py-2">Nome</th>
                     <th class="px-4 py-2">Classe di concorso</th>
-                    <th class="px-4 py-2">Tipo aula richiesto</th>
+                    <th class="px-4 py-2">Aula richiesta</th>
                     <th class="px-4 py-2">Sotto-disciplina di</th>
                     <th class="px-4 py-2"></th>
                 </tr>
@@ -32,6 +35,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($discipline as $disciplina)
                     <tr>
+                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('discipline.destroy', $disciplina) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2 font-mono">{{ $disciplina->codice }}</td>
                         <td class="px-4 py-2">{{ $disciplina->nome }}</td>
                         <td class="px-4 py-2">{{ $disciplina->classe_concorso }}</td>
@@ -39,11 +43,7 @@
                         <td class="px-4 py-2">{{ $disciplina->padre?->nome }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')
-                                <a href="{{ route('discipline.edit', $disciplina) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
-                                <form method="POST" action="{{ route('discipline.destroy', $disciplina) }}" class="inline" onsubmit="return confirm('Eliminare questa disciplina?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 underline">Elimina</button>
-                                </form>
+                                <a data-modale href="{{ route('discipline.edit', $disciplina) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                             @endcan
                         </td>
                     </tr>

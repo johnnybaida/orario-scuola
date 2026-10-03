@@ -33,6 +33,7 @@
                 <option value="{{ $aula->id }}" @selected(old('aula_base_id', $classe?->aula_base_id) == $aula->id)>{{ $aula->nome }}</option>
             @endforeach
         </select>
+        <p class="mt-1 text-xs text-gray-500">Vuota se la scuola usa DADA: gli alunni si spostano nelle aule delle discipline.</p>
     </div>
 </div>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DocenteRequest;
+use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\Sede;
 use App\Models\Slot;
@@ -31,7 +32,7 @@ class DocenteController extends Controller
 
     public function create(): View
     {
-        return view('docenti.create', ['sedi' => Sede::query()->orderBy('nome')->get()]);
+        return view('docenti.create', ['sedi' => Sede::query()->orderBy('nome')->get(), 'classiConcorso' => $this->classiConcorso()]);
     }
 
     public function store(DocenteRequest $request): RedirectResponse
@@ -46,6 +47,7 @@ class DocenteController extends Controller
         return view('docenti.edit', [
             'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita'),
             'sedi' => Sede::query()->orderBy('nome')->get(),
+            'classiConcorso' => $this->classiConcorso(),
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'indisponibiliIds' => $docente->indisponibilita()->pluck('slot.id'),
         ]);
@@ -73,10 +75,16 @@ class DocenteController extends Controller
         return redirect()->route('docenti.edit', $docente)->with('successo', 'Indisponibilità aggiornate.');
     }
 
+    /** Classi di concorso censite nelle discipline. */
+    private function classiConcorso(): array
+    {
+        return Disciplina::query()->whereNotNull('classe_concorso')->distinct()->pluck('classe_concorso')->all();
+    }
+
     private function salva(Docente $docente, DocenteRequest $request): Docente
     {
         $dati = $request->validated();
-        $classiConcorso = array_filter(array_map('trim', explode(',', $dati['classi_concorso'] ?? '')));
+        $classiConcorso = $dati['classi_concorso'] ?? [];
         $sediIds = $dati['sedi'] ?? [];
 
         $docente->fill([

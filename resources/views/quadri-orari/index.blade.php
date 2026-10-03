@@ -16,10 +16,13 @@
         la generazione dell'orario segnala un'incoerenza in fase di pre-validazione.
     </x-guida>
 
+    <x-barra-selezione />
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Nome</th>
                     <th class="px-4 py-2">Ore totali</th>
                     <th class="px-4 py-2">Classi</th>
@@ -29,17 +32,12 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($quadri as $quadro)
                     <tr>
+                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('quadri-orari.destroy', $quadro) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $quadro->nome }}</td>
                         <td class="px-4 py-2">{{ $quadro->ore_totali }}</td>
                         <td class="px-4 py-2">{{ $quadro->classi_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             <a href="{{ route('quadri-orari.edit', $quadro) }}" class="text-gray-600 hover:text-gray-900 underline">Apri</a>
-                            @can('gestisci-anagrafica')
-                                <form method="POST" action="{{ route('quadri-orari.destroy', $quadro) }}" class="inline" onsubmit="return confirm('Eliminare questo quadro orario?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 underline">Elimina</button>
-                                </form>
-                            @endcan
                         </td>
                     </tr>
                 @endforeach

@@ -19,19 +19,20 @@
 </div>
 
 <div>
-    <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Tipo aula richiesto</label>
-    <input type="text" name="tipo_aula_richiesto" id="tipo_aula_richiesto" list="tipi-aula"
-           value="{{ old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto) }}"
-           placeholder="vuoto = aula di classe"
-           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-    <datalist id="tipi-aula">
-        @foreach ($tipiAula as $tipo)
-            <option value="{{ $tipo }}">
+    <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Aula richiesta</label>
+    @php($sel = old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto))
+    <select name="tipo_aula_richiesto" id="tipo_aula_richiesto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">Aula della classe (nessuna aula speciale)</option>
+        @foreach ($tipiAula as $tipo => $etichetta)
+            <option value="{{ $tipo }}" @selected($sel === $tipo)>{{ $etichetta }}</option>
         @endforeach
-    </datalist>
+        @if ($sel && ! isset($tipiAula[$sel]))
+            <option value="{{ $sel }}" selected>{{ $sel }} (nessuna aula censita)</option>
+        @endif
+    </select>
     <p class="mt-1 text-xs text-gray-500">
-        Deve coincidere con il tipo di un'aula censita. Per DADA, crea un'aula dedicata con un tipo a piacere
-        (es. "dada_italiano") e usalo qui.
+        Elenco dei tipi di aula censiti in "Sedi/Aule". Per DADA: crea l'aula con tipo "DADA · questa disciplina"
+        e il collegamento avviene da solo; qui puoi comunque sceglierlo a mano.
     </p>
 </div>
 

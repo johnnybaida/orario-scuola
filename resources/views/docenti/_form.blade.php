@@ -60,11 +60,17 @@
 </div>
 
 <div>
-    <label for="classi_concorso" class="block text-sm font-medium text-gray-700">Classi di concorso abilitanti (separate da virgola)</label>
-    <input type="text" name="classi_concorso" id="classi_concorso"
-           value="{{ old('classi_concorso', $docente?->relationLoaded('classiConcorso') ? $docente->classiConcorso->pluck('classe_concorso')->implode(', ') : '') }}"
-           placeholder="Es. A022, A028"
-           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Classi di concorso abilitanti</label>
+    @php($scelte = old('classi_concorso', $docente?->relationLoaded('classiConcorso') ? $docente->classiConcorso->pluck('classe_concorso')->all() : []))
+    <div class="flex flex-wrap gap-3">
+        @forelse (collect($classiConcorso)->merge($scelte)->unique()->sort() as $cc)
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" name="classi_concorso[]" value="{{ $cc }}" @checked(in_array($cc, $scelte))> {{ $cc }}
+            </label>
+        @empty
+            <p class="text-xs text-gray-500">Nessuna classe di concorso censita: indicale nelle discipline.</p>
+        @endforelse
+    </div>
 </div>
 
 <div>

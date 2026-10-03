@@ -25,7 +25,8 @@ class DocenteRequest extends FormRequest
             'regime' => ['required', 'in:tempo_pieno,part_time_orizzontale,part_time_verticale,part_time_misto'],
             'ore_dovute' => ['required', 'integer', 'min:1', 'max:24'],
             'coe' => ['nullable', 'boolean'],
-            'classi_concorso' => ['nullable', 'string', 'max:255'],
+            'classi_concorso' => ['nullable', 'array'],
+            'classi_concorso.*' => ['string', 'max:20'],
             'sedi' => ['nullable', 'array'],
             'sedi.*' => ['exists:sedi,id'],
         ];

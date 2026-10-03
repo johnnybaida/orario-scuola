@@ -27,6 +27,11 @@ class Ruoli
         self::AMMINISTRATORE, self::DS, self::REFERENTE_ORARIO, self::REFERENTE_SOSTITUZIONI, self::SEGRETERIA,
     ];
 
+    public static function tutti(): array
+    {
+        return [self::AMMINISTRATORE, self::DS, self::REFERENTE_ORARIO, self::REFERENTE_SOSTITUZIONI, self::SEGRETERIA, self::DOCENTE];
+    }
+
     public static function etichetta(string $ruolo): string
     {
         return match ($ruolo) {

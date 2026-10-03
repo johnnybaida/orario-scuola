@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-xl font-semibold">Vincoli</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('vincoli.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo vincolo</a>
+            <a data-modale href="{{ route('vincoli.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo vincolo</a>
         @endcan
     </div>
 
@@ -26,10 +26,13 @@
         </select>
     </form>
 
+    <x-barra-selezione />
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Tipo</th>
                     <th class="px-4 py-2">Ambito</th>
                     <th class="px-4 py-2">Severità</th>
@@ -41,6 +44,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($vincoli as $vincolo)
                     <tr>
+                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('vincoli.destroy', $vincolo) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $etichette[$vincolo->tipo] ?? $vincolo->tipo }}</td>
                         <td class="px-4 py-2">{{ $vincolo->ambito_livello }}</td>
                         <td class="px-4 py-2">{{ $vincolo->severita }}</td>
@@ -48,11 +52,7 @@
                         <td class="px-4 py-2">{{ $vincolo->attivo ? 'Sì' : 'No' }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')
-                                <a href="{{ route('vincoli.edit', $vincolo) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
-                                <form method="POST" action="{{ route('vincoli.destroy', $vincolo) }}" class="inline" onsubmit="return confirm('Eliminare questo vincolo?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 underline">Elimina</button>
-                                </form>
+                                <a data-modale href="{{ route('vincoli.edit', $vincolo) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                             @endcan
                         </td>
                     </tr>

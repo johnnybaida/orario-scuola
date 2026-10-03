@@ -48,6 +48,22 @@ class AnagraficheTest extends TestCase
         $this->assertDatabaseHas('aule', ['nome' => 'Palestra', 'sede_id' => $sede->id]);
     }
 
+    public function test_aula_dada_scelta_dalla_select_collega_la_disciplina_e_la_modale_non_ha_il_layout(): void
+    {
+        $sede = Sede::factory()->create();
+        $disciplina = Disciplina::factory()->create(['codice' => 'ITA']);
+
+        $this->actingAs($this->referente())->post('/aule', [
+            'sede_id' => $sede->id, 'nome' => 'Aula Italiano', 'tipo' => "dada:{$disciplina->id}", 'capienza' => 1,
+        ])->assertRedirect(route('aule.index'));
+
+        $this->assertDatabaseHas('aule', ['tipo' => 'dada_ita']);
+        $this->assertSame('dada_ita', $disciplina->fresh()->tipo_aula_richiesto);
+
+        $this->actingAs($this->referente())->get('/aule/create', ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()->assertDontSee('<html', false)->assertSee('DADA · '.$disciplina->nome);
+    }
+
     public function test_crea_unaula_dada_con_tipo_libero_e_la_collega_a_una_disciplina(): void
     {
         $sede = Sede::factory()->create();
@@ -105,7 +121,7 @@ class AnagraficheTest extends TestCase
             'tipo_posto' => 'comune',
             'regime' => 'tempo_pieno',
             'ore_dovute' => 18,
-            'classi_concorso' => 'A022, A028',
+            'classi_concorso' => ['A022', 'A028'],
             'sedi' => [$sede->id],
         ]);
 

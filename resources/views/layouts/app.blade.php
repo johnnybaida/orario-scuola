@@ -1,3 +1,7 @@
+@if (request()->ajax())
+    {{-- Richiesta della modale: solo il contenuto della pagina, senza menu né layout --}}
+    @yield('contenuto')
+@else
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -23,6 +27,9 @@
                         <a href="{{ route('vincoli.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Vincoli</a>
                         <a href="{{ route('generazioni.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Genera orario</a>
                         <a href="{{ route('orari.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Orari</a>
+                        @can('gestisci-utenze')
+                            <a href="{{ route('utenze.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Utenze</a>
+                        @endcan
                     </div>
                     <div class="flex items-center gap-3 text-sm">
                         <span class="text-gray-500">{{ auth()->user()->name }} · {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</span>
@@ -59,3 +66,5 @@
     </div>
 </body>
 </html>
+
+@endif

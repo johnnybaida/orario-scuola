@@ -81,6 +81,8 @@ docs/
 - Logica di dominio nei Service, non nei controller.
 - JavaScript: moduli ES, niente variabili globali, `fetch` verso endpoint JSON.
 - Ogni modifica a orario, vincoli e sostituzioni va nell'audit log.
+- Creazione/modifica in modale: link `data-modale` (`resources/js/modale.js`); con `X-Requested-With` il layout rende solo `@yield('contenuto')`. L'eliminazione è solo a selezione multipla (`.js-sel` + `<x-barra-selezione>`), non per riga. Niente campi liberi per valori censiti altrove: usa select.
+- Utenze (solo amministratore) in `/utenze`.
 - Ogni pagina principale ha una mini guida con il componente `<x-guida>` (vedi `resources/views/components/guida.blade.php`).
 - Gli esiti (errori/avvisi) delle modifiche manuali all'orario restano visibili in un pannello persistente (tabella `avvisi_orario`) finché non vengono azzerati esplicitamente: non usare `alert()` JS per questo.
 
@@ -91,7 +93,7 @@ docs/
 ### Dati
 - **Alunni non censiti.** Per classe solo `n_alunni`; per gruppo solo `n_partecipanti`.
 - **Sostegno** (implementato, anticipato rispetto alla Fase 3 originale su richiesta esplicita): per classe, fabbisogni anonimi in `fabbisogni_sostegno` (`codice_anonimo`, es. `1B-S1`, + ore settimanali + `docente_unico` = S4). Docenti assegnati in `assegnazioni_sostegno` (docente + classe + ore). Conteggio in `Impostazioni.conteggio_sostegno` (default istituto) con override opzionale per classe (`Classe.conteggio_sostegno`, nullable = eredita il default). Le ore di sostegno sono **compresenze**, modellate nel solver (`solver/sostegno.py`) e persistite in `compresenze_sostegno` dopo la generazione. **Non implementati**: S1 (discipline preferite), S2 (discipline escluse), S3 (distribuzione minima su più giorni) come vincoli configurabili dedicati.
-- **DADA** (implementato, non nella specifica originale): `aule.tipo` e `discipline.tipo_aula_richiesto` sono stringhe libere, non enum. Oltre ai tipi base, una scuola può censire un'aula dedicata a una disciplina con un tipo a piacere (es. `dada_italiano`) e collegarla dalla scheda della disciplina; riusa il meccanismo esistente di capienza/scelta aula (nessuna modifica al solver necessaria).
+- **DADA** (implementato, non nella specifica originale): `aule.tipo` e `discipline.tipo_aula_richiesto` sono stringhe libere, non enum. Oltre ai tipi base, una scuola può censire un'aula dedicata a una disciplina con un tipo a piacere (es. `dada_italiano`) e collegarla dalla scheda della disciplina; riusa il meccanismo esistente di capienza/scelta aula (nessuna modifica al solver necessaria). In UI il tipo aula si sceglie da select: "DADA · disciplina" crea il tipo `dada_{codice}` e lo collega alla disciplina; in DADA le classi non hanno aula base (si spostano gli alunni).
 - **Scansione oraria unica di istituto**, ereditata da tutte le classi. La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare.
 - **Docenti**: tipo posto (comune, sostegno, potenziamento, IRC, strumento), regime (tempo pieno/part-time), ore dovute (cattedra intera = 18), indisponibilità. Per i COE si gestiscono solo le indisponibilità.
 - **Gruppi interclasse** per seconda lingua articolata, alternativa IRC, LEL (latino opzionale), strumento: le classi coinvolte devono essere compatibili nello stesso slot.

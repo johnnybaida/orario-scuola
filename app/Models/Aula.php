@@ -18,6 +18,19 @@ class Aula extends Model
     /** Tipi suggeriti in UI; il campo resta una stringa libera (vedi DADA in CLAUDE.md). */
     public const TIPI_BASE = ['classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa'];
 
+    /**
+     * Tipi di aula selezionabili: base + quelli già censiti, con le aule che li usano
+     * (tipo => etichetta). Usato dalle select che devono puntare a un tipo esistente.
+     *
+     * @return array<string, string>
+     */
+    public static function tipiConAule(): array
+    {
+        return self::query()->orderBy('nome')->get()->groupBy('tipo')
+            ->map(fn ($aule, $tipo) => (str_starts_with($tipo, 'dada_') ? 'DADA · ' : '').ucfirst(str_replace('_', ' ', $tipo)).' ('.$aule->pluck('nome')->implode(', ').')')
+            ->all();
+    }
+
     public function sede(): BelongsTo
     {
         return $this->belongsTo(Sede::class);

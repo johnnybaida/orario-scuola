@@ -1,4 +1,6 @@
 @php($aula = $aula ?? null)
+@php($dada = $aula && str_starts_with($aula->tipo, 'dada_') ? $discipline->firstWhere('tipo_aula_richiesto', $aula->tipo) : null)
+@php($tipoSel = old('tipo', $dada ? 'dada:'.$dada->id : ($aula?->tipo ?? 'classe')))
 
 <div>
     <label for="sede_id" class="block text-sm font-medium text-gray-700">Sede</label>
@@ -17,20 +19,27 @@
 
 <div>
     <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-    <input type="text" name="tipo" id="tipo" list="tipi-aula" value="{{ old('tipo', $aula?->tipo ?? 'classe') }}" required
-           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-    <datalist id="tipi-aula">
-        @foreach ($tipiSuggeriti as $tipo)
-            <option value="{{ $tipo }}">
-        @endforeach
-    </datalist>
+    <select name="tipo" id="tipo" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <optgroup label="Aule comuni">
+            @foreach ($tipiSuggeriti as $tipo)
+                <option value="{{ $tipo }}" @selected($tipoSel === $tipo)>{{ ucfirst(str_replace('_', ' ', $tipo)) }}</option>
+            @endforeach
+        </optgroup>
+        <optgroup label="Aula DADA (dedicata a una disciplina)">
+            @foreach ($discipline as $disciplina)
+                <option value="dada:{{ $disciplina->id }}" @selected($tipoSel === 'dada:'.$disciplina->id)>DADA · {{ $disciplina->nome }}</option>
+            @endforeach
+        </optgroup>
+    </select>
     <p class="mt-1 text-xs text-gray-500">
-        Scegli un tipo suggerito o scrivine uno nuovo (es. per un'aula dedicata a una disciplina in modalità DADA).
+        Per la didattica DADA scegli "DADA · <em>disciplina</em>": gli alunni si spostano in quest'aula per quella
+        materia e la disciplina viene collegata automaticamente.
     </p>
 </div>
 
 <div>
-    <label for="capienza" class="block text-sm font-medium text-gray-700">Capienza</label>
+    <label for="capienza" class="block text-sm font-medium text-gray-700">Capienza (lezioni contemporanee)</label>
     <input type="number" name="capienza" id="capienza" min="1" value="{{ old('capienza', $aula?->capienza ?? 1) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <p class="mt-1 text-xs text-gray-500">1 = una sola classe alla volta. Per DADA di solito 1 per ogni aula della disciplina.</p>
 </div>

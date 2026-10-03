@@ -21,7 +21,7 @@ class DisciplinaController extends Controller
     {
         return view('discipline.create', [
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
-            'tipiAula' => $this->tipiAula(),
+            'tipiAula' => Aula::tipiConAule(),
         ]);
     }
 
@@ -37,7 +37,7 @@ class DisciplinaController extends Controller
         return view('discipline.edit', [
             'disciplina' => $disciplina,
             'discipline' => Disciplina::query()->where('id', '!=', $disciplina->id)->orderBy('nome')->get(),
-            'tipiAula' => $this->tipiAula(),
+            'tipiAula' => Aula::tipiConAule(),
         ]);
     }
 
@@ -53,10 +53,5 @@ class DisciplinaController extends Controller
         $disciplina->delete();
 
         return redirect()->route('discipline.index')->with('successo', 'Disciplina eliminata.');
-    }
-
-    private function tipiAula(): array
-    {
-        return Aula::query()->distinct()->orderBy('tipo')->pluck('tipo')->all();
     }
 }

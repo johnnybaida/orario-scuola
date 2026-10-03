@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-xl font-semibold">Cattedre</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('cattedre.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova cattedra</a>
+            <a data-modale href="{{ route('cattedre.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova cattedra</a>
         @endcan
     </div>
 
@@ -37,10 +37,13 @@
         </div>
     </form>
 
+    <x-barra-selezione />
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Classe</th>
                     <th class="px-4 py-2">Disciplina</th>
                     <th class="px-4 py-2">Docente</th>
@@ -52,6 +55,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($cattedre as $cattedra)
                     <tr>
+                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('cattedre.destroy', $cattedra) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $cattedra->classe->nomeCompleto() }}</td>
                         <td class="px-4 py-2">{{ $cattedra->disciplina->nome }}</td>
                         <td class="px-4 py-2">{{ $cattedra->docente->nomeCompleto() }}</td>
@@ -59,11 +63,7 @@
                         <td class="px-4 py-2">{{ $cattedra->compresenza ? 'Sì' : 'No' }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')
-                                <a href="{{ route('cattedre.edit', $cattedra) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
-                                <form method="POST" action="{{ route('cattedre.destroy', $cattedra) }}" class="inline" onsubmit="return confirm('Eliminare questa cattedra?');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 underline">Elimina</button>
-                                </form>
+                                <a data-modale href="{{ route('cattedre.edit', $cattedra) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                             @endcan
                         </td>
                     </tr>

@@ -13,6 +13,7 @@ use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
 use App\Http\Controllers\SedeController;
 use App\Http\Controllers\SostegnoController;
+use App\Http\Controllers\UtenzaController;
 use App\Http\Controllers\VincoloController;
 use App\Support\Ruoli;
 use Illuminate\Support\Facades\Route;
@@ -86,6 +87,11 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');
         Route::post('/orari/{orario}/annulla-ultima', [OrarioController::class, 'annullaUltima'])->name('orari.annulla-ultima');
         Route::post('/orari/{orario}/avvisi/azzera', [OrarioController::class, 'azzeraAvvisi'])->name('orari.avvisi.azzera');
+    });
+
+    // Utenze con accesso al sistema: solo l'amministratore.
+    Route::middleware('ruolo:'.Ruoli::AMMINISTRATORE)->group(function () {
+        Route::resource('utenze', UtenzaController::class)->parameters(['utenze' => 'utenza'])->except(['show']);
     });
 
     // Gestione docenti e classi: anche la segreteria.
