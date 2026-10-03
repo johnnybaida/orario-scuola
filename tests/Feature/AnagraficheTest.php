@@ -294,7 +294,7 @@ class AnagraficheTest extends TestCase
         $utente->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-totale="cattedre"', false)->assertSee('Salva');
         $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('data-totale="quadro"', false)->assertSee('Salva');
         // Nella modale il Salva/Annulla è quello della modale, non la barra della pagina.
-        $utente->get("/quadri-orari/{$quadro->id}/edit", ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('sticky bottom-0', false);
+        $utente->get("/quadri-orari/{$quadro->id}/edit", ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertDontSee('fixed bottom-0', false);
     }
 
     public function test_la_migrazione_porta_tutti_i_giorni_fino_alla_nona_ora(): void
@@ -318,8 +318,8 @@ class AnagraficheTest extends TestCase
         foreach (['/docenti', '/classi'] as $indice) {
             $this->get($indice)->assertOk()->assertDontSee('data-modale', false);
         }
-        $this->get('/docenti/create')->assertOk()->assertSee('sticky bottom-0', false);
-        $this->get('/classi/create')->assertOk()->assertSee('sticky bottom-0', false);
+        $this->get('/docenti/create')->assertOk()->assertSee('fixed bottom-0', false);
+        $this->get('/classi/create')->assertOk()->assertSee('fixed bottom-0', false);
     }
 
     public function test_i_controlli_condizionati_hanno_la_condizione_e_il_tooltip_che_spiega_come_attivarli(): void

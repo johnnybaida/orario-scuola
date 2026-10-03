@@ -52,6 +52,16 @@
 
         <main class="flex-1 min-w-0">
             <div class="max-w-6xl mx-auto px-4 py-6">
+                @auth
+                    <div class="flex justify-end mb-3">
+                        <button type="button" data-apri-guida aria-controls="pannello-guida" aria-expanded="false" title="Aiuto (F1)"
+                                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                            Aiuto <kbd class="hidden sm:inline rounded border border-gray-300 px-1 text-[10px] text-gray-500">F1</kbd>
+                        </button>
+                    </div>
+                @endauth
+
                 @if (session('successo'))
                     <div class="mb-4 rounded bg-green-50 border border-green-200 text-green-800 px-4 py-3 text-sm">
                         {{ session('successo') }}
@@ -72,6 +82,22 @@
             </div>
         </main>
     </div>
+
+    @auth
+        <aside id="pannello-guida" hidden role="complementary" aria-label="Guida all'uso"
+               data-url="{{ route('guida') }}" data-contesto="{{ \App\Support\Guida::sezionePer(request()->route()?->getName()) }}"
+               class="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-gray-200 bg-white shadow-xl sm:w-[28rem]">
+            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <h2 class="font-semibold">Guida all'uso</h2>
+                <button type="button" data-chiudi-guida aria-label="Chiudi la guida" class="text-2xl leading-none text-gray-500 hover:text-gray-900 transition-colors cursor-pointer">&times;</button>
+            </div>
+            <div class="px-4 pt-3">
+                <input type="search" data-cerca-guida placeholder="Cerca nella guida…" aria-label="Cerca nella guida" autocomplete="off" class="w-full">
+            </div>
+            <nav data-menu-guida aria-label="Argomenti" class="flex flex-wrap gap-1.5 border-b border-gray-200 px-4 py-3"></nav>
+            <div data-testo-guida class="guida-testo flex-1 overflow-y-auto px-4 py-4 text-sm">Caricamento…</div>
+        </aside>
+    @endauth
 </body>
 </html>
 

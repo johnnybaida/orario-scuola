@@ -9,6 +9,7 @@ use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GenerazioneController;
+use App\Http\Controllers\GuidaController;
 use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
 use App\Http\Controllers\SedeController;
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/guida', [GuidaController::class, 'show'])->name('guida');
 
     // Creazione generazioni: registrata prima di generazioni.show, altrimenti
     // "GET /generazioni/create" verrebbe intercettata dalla rotta con {generazione}.
