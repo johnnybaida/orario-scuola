@@ -3,15 +3,7 @@
 @section('titolo', 'Classi')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Classi</h1>
-        @can('gestisci-docenti-classi')
-            <div class="flex gap-3">
-                <a href="{{ route('classi.import.form') }}" class="text-sm underline text-gray-600 self-center">Importa CSV</a>
-                <a href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
-            </div>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Classi</h1>
 
     <x-guida>
         Anagrafica delle classi: anno, sezione, sede, quadro orario e "slot attivi" (le ore della scansione
@@ -28,6 +20,17 @@
             </ul>
         </div>
     @endif
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-docenti-classi')
+                <div class="flex gap-3">
+                    <a href="{{ route('classi.import.form') }}" class="text-sm underline text-gray-600 self-center">Importa CSV</a>
+                    <a href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
+                </div>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

@@ -3,12 +3,7 @@
 @section('titolo', 'Quadri orari')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Quadri orari</h1>
-        @can('gestisci-anagrafica')
-            <a data-modale href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Quadri orari</h1>
 
     <x-guida>
         Un quadro orario è il monte ore settimanale per disciplina di un percorso (es. "Tempo normale 30h").
@@ -16,6 +11,14 @@
         la generazione dell'orario segnala un'incoerenza in fase di pre-validazione. Un quadro usato da qualche
         classe non si può eliminare.
     </x-guida>
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a data-modale href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

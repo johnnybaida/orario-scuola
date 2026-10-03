@@ -105,7 +105,7 @@
                 <label class="text-xs flex items-center gap-1">
                     <input type="checkbox" name="parametri[slot_ids][]" value="{{ $s->id }}"
                            @checked(in_array($s->id, $parametri['slot_ids'] ?? []))>
-                    G{{ $giorno }}-{{ $s->ordine }}ª
+                    {{ \App\Models\Slot::GIORNI_BREVI[$giorno] ?? "G{$giorno}" }}-{{ $s->ordine }}ª
                 </label>
             @endforeach
         @endforeach

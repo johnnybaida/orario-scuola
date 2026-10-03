@@ -3,17 +3,20 @@
 @section('titolo', 'Sedi')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Sedi</h1>
-        @can('gestisci-anagrafica')
-            <a data-modale href="{{ route('sedi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova sede</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Sedi</h1>
 
     <x-guida>
         Le sedi rappresentano i plessi dell'istituto (una sola scuola per installazione, ma può avere più plessi).
         Ogni aula appartiene a una sede. Se l'istituto ha un solo plesso basta una sede.
     </x-guida>
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a data-modale href="{{ route('sedi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova sede</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

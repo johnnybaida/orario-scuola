@@ -3,12 +3,7 @@
 @section('titolo', 'Vincoli')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 class="text-xl font-semibold">Vincoli</h1>
-        @can('gestisci-anagrafica')
-            <a data-modale href="{{ route('vincoli.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo vincolo</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Vincoli</h1>
 
     <x-guida>
         Regole aggiuntive per la generazione automatica dell'orario, oltre a quelle di sistema sempre attive
@@ -17,14 +12,21 @@
         viene violato solo se non c'è alternativa migliore.
     </x-guida>
 
-    <form method="GET" class="mb-4">
-        <select name="tipo" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">
-            <option value="">Tutti i tipi</option>
-            @foreach ($etichette as $tipo => $etichetta)
-                <option value="{{ $tipo }}" @selected($filtroTipo === $tipo)>{{ $etichetta }}</option>
-            @endforeach
-        </select>
-    </form>
+    <x-barra-tabella>
+        <form method="GET">
+            <select name="tipo" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">
+                <option value="">Tutti i tipi</option>
+                @foreach ($etichette as $tipo => $etichetta)
+                    <option value="{{ $tipo }}" @selected($filtroTipo === $tipo)>{{ $etichetta }}</option>
+                @endforeach
+            </select>
+        </form>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a data-modale href="{{ route('vincoli.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo vincolo</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

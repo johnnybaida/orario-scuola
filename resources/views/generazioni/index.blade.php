@@ -3,12 +3,7 @@
 @section('titolo', 'Generazioni orario')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Generazioni orario</h1>
-        @can('gestisci-anagrafica')
-            <a href="{{ route('generazioni.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova generazione</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Generazioni orario</h1>
 
     <x-guida>
         Ogni generazione lancia il solver (OR-Tools) in background per produrre un orario che rispetta i vincoli
@@ -33,6 +28,14 @@
             <span>Le generazioni restano in coda finché non viene avviato.</span>
         @endif
     </div>
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a href="{{ route('generazioni.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova generazione</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">

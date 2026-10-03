@@ -3,12 +3,7 @@
 @section('titolo', 'Discipline')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Discipline</h1>
-        @can('gestisci-anagrafica')
-            <a data-modale href="{{ route('discipline.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova disciplina</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Discipline</h1>
 
     <x-guida>
         Catalogo delle materie insegnate, con la classe di concorso abilitante e l'eventuale tipo di aula richiesto
@@ -16,6 +11,14 @@
         spostano gli alunni: crea l'aula in "Aule" scegliendo "DADA · disciplina" e il collegamento è automatico. "Sotto-disciplina di" collega materie insegnate dallo stesso docente
         (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
     </x-guida>
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a data-modale href="{{ route('discipline.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova disciplina</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

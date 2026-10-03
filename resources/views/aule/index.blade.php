@@ -3,12 +3,7 @@
 @section('titolo', 'Aule')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-semibold">Aule</h1>
-        @can('gestisci-anagrafica')
-            <a data-modale href="{{ route('aule.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova aula</a>
-        @endcan
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Aule</h1>
 
     <x-guida>
         Ogni aula ha un tipo (classe, laboratorio, palestra, ...) e una capienza: quante lezioni con lo stesso
@@ -17,6 +12,14 @@
         alunni a spostarsi nell'aula della disciplina. Per ogni disciplina DADA crea un'aula scegliendo
         "DADA · disciplina" come tipo: la colonna "Usata da" mostra quali discipline si svolgono in ciascuna aula.
     </x-guida>
+
+    <x-barra-tabella>
+        <x-slot:azioni>
+            @can('gestisci-anagrafica')
+                <a data-modale href="{{ route('aule.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova aula</a>
+            @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

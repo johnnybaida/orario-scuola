@@ -14,7 +14,7 @@ class WorkerCodaTest extends TestCase
 
     protected function tearDown(): void
     {
-        @unlink(app(QueueWorker::class)->pidFile());
+        @unlink(storage_path('app/queue-worker.pid'));
         @unlink(storage_path('app/queue-worker.stop'));
         parent::tearDown();
     }
@@ -39,5 +39,30 @@ class WorkerCodaTest extends TestCase
         $this->actingAs(User::factory()->create(['ruolo' => 'segreteria']))->post('/worker/ferma')->assertForbidden();
         $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->post('/worker/ferma')->assertRedirect();
         $this->assertNotNull(Cache::get('illuminate:queue:restart'));
+    }
+
+    public function test_avvia_generazione_avvia_il_worker_se_la_coda_e_ferma(): void
+    {
+        config(['queue.default' => 'database']);
+        $this->mock(QueueWorker::class)->shouldReceive('avvia')->once()->andReturn(true);
+        $this->seed(\Database\Seeders\ImpostazioniSeeder::class);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))
+            ->post('/generazioni', ['time_limit_s' => 10])
+            ->assertRedirect()
+            ->assertSessionHas('successo');
+    }
+
+    public function test_se_il_worker_non_parte_la_generazione_resta_in_coda_con_il_motivo(): void
+    {
+        config(['queue.default' => 'database']);
+        $this->mock(QueueWorker::class)->shouldReceive('avvia')->andThrow(new \RuntimeException('php non trovato'));
+        $this->seed(\Database\Seeders\ImpostazioniSeeder::class);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))
+            ->post('/generazioni', ['time_limit_s' => 10])
+            ->assertRedirect()
+            ->assertSessionHasErrors('worker');
+        $this->assertDatabaseHas('generazioni', ['stato' => 'in_coda']);
     }
 }

@@ -374,4 +374,24 @@ class AnagraficheTest extends TestCase
             ->assertSee('name="parametri[disciplina_id]" required', false)
             ->assertSee('data-attiva-se="#severita=preferenziale" data-richiesto', false);
     }
+
+    public function test_le_tabelle_hanno_filtri_e_pulsante_nuovo_nella_barra_sopra_la_tabella(): void
+    {
+        $admin = $this->actingAs(User::factory()->create(['ruolo' => 'amministratore']));
+
+        foreach (['/sedi', '/aule', '/discipline', '/quadri-orari', '/docenti', '/classi', '/cattedre', '/vincoli', '/generazioni', '/utenze'] as $pagina) {
+            $risposta = $admin->get($pagina)->assertOk();
+            $html = $risposta->getContent();
+            // La barra della tabella compare dopo il titolo e prima della tabella, con il pulsante "Nuovo" dentro.
+            $this->assertMatchesRegularExpression('/<h1[^>]*>.*?<\/h1>.*?class="mb-3 flex flex-wrap items-end justify-between.*?<table/s', $html, $pagina);
+        }
+    }
+
+    public function test_gli_slot_nel_form_vincoli_usano_le_sigle_dei_giorni(): void
+    {
+        Slot::factory()->create(['giorno' => 2, 'ordine' => 3]);
+
+        $this->actingAs($this->referente())->get('/vincoli/create')
+            ->assertOk()->assertSee('MAR-3ª')->assertDontSee('G2-3ª');
+    }
 }

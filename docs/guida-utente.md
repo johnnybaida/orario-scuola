@@ -160,7 +160,7 @@ La stessa combinazione docente + classe + disciplina può comparire una sola vol
 I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema sempre attive (un docente non può essere in due posti insieme, una classe ha una sola lezione per slot, le indisponibilità sono rispettate, ecc.).
 
 - **Tipo**: quale regola applicare (vedi sotto). I campi mostrati cambiano col tipo.
-- **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale.
+- **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale. Non tutti gli ambiti valgono per ogni tipo: **D1, D3 e D6** si applicano a *Globale* o *Classe*; **T2 e T3** a *Globale* o *Docente*.
 - **Severità**: *Rigido* va rispettato sempre (se non è possibile l'orario risulta infattibile); *Preferenziale* viene rispettato quando possibile.
 - **Peso** (1–100): solo per i preferenziali. Più è alto, più il generatore cerca di evitare di violarlo. Si attiva solo con Severità = Preferenziale.
 - **Attivo**: se tolto, il vincolo resta salvato ma non viene considerato.
@@ -168,17 +168,54 @@ I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema s
 
 Tipi disponibili:
 
-- **Blocco consecutivo minimo (D1)**: una disciplina in blocchi di almeno N ore consecutive. Campi: disciplina, *min ore consecutive* (2–6), *n. blocchi minimi* (1–5).
+- **Blocco consecutivo minimo (D1)**: una disciplina in blocchi di almeno N ore consecutive. Campi: disciplina, *min ore consecutive* (2–6), *n. blocchi minimi* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
 - **Max ore/giorno per disciplina (D3)**: limite di ore al giorno della stessa disciplina. Campi: disciplina, *max ore/giorno*.
-- **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: disciplina, *tipo fascia* (vietata/preferita), gli *slot* interessati.
+- **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: disciplina, *tipo fascia* (vietata/preferita), gli *slot* interessati, indicati con giorno e ora (LUN-1ª, MAR-3ª, ...).
 - **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
 - **Max ore buche (T3)**: limite alle *buche* (ore vuote tra due lezioni dello stesso docente nello stesso giorno). Campi: *max buche/giorno*, *max buche/settimana*.
+
+### Esempi di utilizzo
+
+Ogni esempio indica come compilare il form di **Nuovo vincolo**. I pesi sono indicativi: 1–30 = desiderio lieve, 40–70 = importante, 80–100 = quasi obbligatorio.
+
+**Blocco consecutivo minimo (D1)**
+
+- *Arte in due ore di fila, per il laboratorio.* Tipo D1 · Ambito **Globale** · Disciplina *Arte e immagine* · Min ore consecutive **2** · N. blocchi minimi **1** · Preferenziale, peso **50**. In ogni classe il generatore cerca di avere almeno un giorno con due ore di Arte consecutive; se non ci riesce paga una penalità.
+- *Scienze sempre in due ore per una sola classe.* Tipo D1 · Ambito **Classe → 2ª B** · Disciplina *Scienze* · Min ore consecutive **2** · N. blocchi minimi **1** · **Rigido**. Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione risulta infattibile.
+
+**Max ore/giorno per disciplina (D3)**
+
+- *Scienze motorie al massimo un'ora al giorno.* Tipo D3 · Ambito **Globale** · Disciplina *Scienze motorie* · Max ore/giorno **1** · **Rigido**. In nessuna classe ci saranno due ore di motoria lo stesso giorno.
+- *Italiano non più di due ore al giorno nella 1ª A.* Tipo D3 · Ambito **Classe → 1ª A** · Disciplina *Italiano* · Max ore/giorno **2** · Preferenziale, peso **70**.
+
+**Fascia oraria vietata o preferita (D6)**
+
+- *Matematica mai all'ultima ora.* Tipo D6 · Ambito **Globale** · Disciplina *Matematica* · Tipo fascia **Vietata** · Slot: la **6ª ora** di tutti i giorni · Preferenziale, peso **40**. Ogni lezione di Matematica messa alla 6ª ora aggiunge una penalità.
+- *Matematica preferibilmente nelle prime tre ore.* Tipo D6 · Ambito **Globale** · Disciplina *Matematica* · Tipo fascia **Preferita** · Slot: **1ª, 2ª e 3ª ora** di tutti i giorni · Preferenziale, peso **30**. Ogni lezione fuori da quelle ore aggiunge una penalità. Con severità *Rigido* la disciplina potrebbe stare **solo** in quegli slot.
+
+**Giorno libero (T2)**
+
+- *Ogni docente ha almeno un giorno senza lezioni, meglio il venerdì.* Tipo T2 · Ambito **Globale** · N. giorni liberi **1** · Giorno preferito **Venerdì** · Preferenziale, peso **20**. Il giorno preferito è solo un piccolo bonus.
+- *Un docente deve avere due giorni liberi, a scelta del generatore.* Tipo T2 · Ambito **Docente → il docente** · N. giorni liberi **2** · **Rigido**. Se i giorni liberi sono già decisi (per esempio un part-time verticale con giorni fissi) è meglio segnare le **indisponibilità** del docente: T2 lascia scegliere i giorni al generatore.
+
+**Max ore buche (T3)**
+
+Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso giorno.
+
+- *Al massimo una buca al giorno per tutti.* Tipo T3 · Ambito **Globale** · Max buche/giorno **1** · Preferenziale, peso **60**.
+- *Una docente con al massimo tre buche a settimana.* Tipo T3 · Ambito **Docente → la docente** · Max buche/settimana **3** · **Rigido**. Basta compilare uno solo dei due limiti (giorno o settimana).
+
+**Consigli**
+
+- Parti con vincoli **preferenziali**: usa il **Rigido** solo per ciò che non si può mai violare. Troppi vincoli rigidi, o in contrasto tra loro, rendono l'orario infattibile.
+- Se un vincolo ti crea problemi, togli la spunta **Attivo** invece di eliminarlo: resta salvato e puoi riattivarlo.
+- Dopo aver aggiunto o cambiato dei vincoli, rigenera l'orario: quelli già generati non cambiano.
 
 ## Genera orario
 
 La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento nella pagina.
 
-1. Controlla in alto lo stato del **worker di coda**, il programma che esegue i calcoli. Se è "fermo", premi **Avvia**: senza worker le generazioni restano in coda. Per fermarlo usa **Ferma**: termina prima il job in corso. Se lo vedi "in arresto" puoi già riavviarlo.
+1. Controlla in alto lo stato del **worker di coda**, il programma che esegue i calcoli. Se è "fermo", premi **Avvia**: senza worker le generazioni restano in coda. Quando premi **Avvia generazione** il worker, se è fermo, parte da solo (compare un messaggio); se non riesce a partire vedi il motivo. Per fermarlo usa **Ferma**: termina prima il job in corso. Se lo vedi "in arresto" puoi già riavviarlo.
 2. Premi **Nuova generazione** e compila:
    - **Tempo limite** (10–900 secondi): per quanto tempo il generatore può cercare un orario migliore. Più tempo, orari generalmente migliori.
    - **Seed** (facoltativo): un numero che rende il risultato riproducibile. Stessi dati e stesso seed producono lo stesso orario. Vuoto = casuale; il seed usato viene sempre registrato.
@@ -275,7 +312,7 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
 ## Problemi frequenti
 
-- **La generazione resta "in coda".** Il worker di coda è fermo: in **Genera orario** premi **Avvia**.
+- **La generazione resta "in coda".** Il worker di coda è fermo (di solito parte da solo con **Avvia generazione**): in **Genera orario** premi **Avvia**.
 - **La generazione è "infattibile".** Leggi i messaggi nella pagina della generazione. Le cause più comuni: le ore delle cattedre di una classe non coincidono con il quadro orario; gli slot attivi della classe non coincidono con le ore del quadro; a un docente sono state assegnate più ore degli slot in cui è disponibile; non ci sono abbastanza aule di un tipo; due vincoli rigidi si contraddicono; le ore di sostegno assegnate non coprono il fabbisogno.
 - **Non riesco a eliminare un elemento.** È ancora in uso: ad esempio un quadro orario usato da classi. Il messaggio dopo l'eliminazione dice quanti elementi non sono stati eliminati.
 - **Ho eliminato un docente o una classe per errore.** Con loro vengono eliminate anche le cattedre collegate e le lezioni degli orari già generati che le usavano. Controlla sempre la conferma prima di eliminare.

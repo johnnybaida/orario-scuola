@@ -3,20 +3,7 @@
 @section('titolo', 'Docenti')
 
 @section('contenuto')
-    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 class="text-xl font-semibold">Docenti</h1>
-        <div class="flex items-center gap-3">
-            <form method="GET" class="flex items-center gap-2">
-                <input type="text" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome"
-                       class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary">
-                <button type="submit" class="text-sm underline text-gray-600">Cerca</button>
-            </form>
-            @can('gestisci-docenti-classi')
-                <a href="{{ route('docenti.import.form') }}" class="text-sm underline text-gray-600">Importa CSV</a>
-                <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
-            @endcan
-        </div>
-    </div>
+    <h1 class="text-xl font-semibold mb-6">Docenti</h1>
 
     <x-guida>
         Anagrafica dei docenti: tipo di posto, regime orario, ore dovute (18h = cattedra intera), classi di
@@ -33,6 +20,19 @@
             </ul>
         </div>
     @endif
+
+    <x-barra-tabella>
+        <form method="GET" class="flex items-center gap-2">
+            <input type="search" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome" aria-label="Cerca docente">
+            <button type="submit" class="text-sm underline text-gray-600 cursor-pointer">Cerca</button>
+        </form>
+        <x-slot:azioni>
+        @can('gestisci-docenti-classi')
+            <a href="{{ route('docenti.import.form') }}" class="text-sm underline text-gray-600">Importa CSV</a>
+            <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
+        @endcan
+        </x-slot:azioni>
+    </x-barra-tabella>
 
     <x-barra-selezione />
 

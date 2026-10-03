@@ -12,7 +12,14 @@ function aggiorna() {
     barra.querySelector('[data-info]').hidden = n > 0;
 }
 
-document.addEventListener('DOMContentLoaded', aggiorna);
+// Dopo un'azione (o tornando indietro nella cronologia, quando il browser ripristina le caselle) non resta nulla di selezionato.
+function deseleziona() {
+    document.querySelectorAll('.js-sel, .js-sel-tutti').forEach((c) => { c.checked = false; });
+    aggiorna();
+}
+
+document.addEventListener('DOMContentLoaded', deseleziona);
+window.addEventListener('pageshow', deseleziona);
 
 document.addEventListener('change', (e) => {
     if (e.target.matches('.js-sel-tutti')) {
@@ -38,6 +45,7 @@ document.addEventListener('click', async (e) => {
         });
         if (r.type === 'opaqueredirect' || r.ok) c.closest('tr').remove(); else falliti++;
     }
+    deseleziona();
     if (!falliti) return location.reload();
     document.querySelector('[data-esito]').textContent = `${falliti} non eliminat${falliti === 1 ? 'o' : 'i'} (probabilmente in uso).`;
     aggiorna();

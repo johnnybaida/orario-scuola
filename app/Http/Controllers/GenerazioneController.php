@@ -6,6 +6,7 @@ use App\Http\Requests\GenerazioneRequest;
 use App\Jobs\GenerateTimetable;
 use App\Models\Generazione;
 use App\Models\Periodo;
+use App\Services\QueueWorker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -26,7 +27,7 @@ class GenerazioneController extends Controller
         return view('generazioni.create');
     }
 
-    public function store(GenerazioneRequest $request): RedirectResponse
+    public function store(GenerazioneRequest $request, QueueWorker $worker): RedirectResponse
     {
         $generazione = Generazione::query()->create([
             'periodo_id' => Periodo::corrente()->id,
@@ -39,7 +40,20 @@ class GenerazioneController extends Controller
 
         GenerateTimetable::dispatch($generazione->id);
 
-        return redirect()->route('generazioni.show', $generazione);
+        $redirect = redirect()->route('generazioni.show', $generazione);
+
+        // Con la coda "sync" il job è già stato eseguito; altrimenti serve un worker, e se è fermo lo avviamo noi.
+        if (config('queue.default') !== 'sync') {
+            try {
+                if ($worker->avvia()) {
+                    $redirect->with('successo', 'Il worker di coda era fermo: l\'ho avviato.');
+                }
+            } catch (\RuntimeException $e) {
+                $redirect->withErrors(['worker' => "Generazione in coda, ma il worker non è partito: {$e->getMessage()}"]);
+            }
+        }
+
+        return $redirect;
     }
 
     public function show(Generazione $generazione): View

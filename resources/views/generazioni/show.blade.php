@@ -7,11 +7,11 @@
 
     <x-guida>
         Questa pagina si aggiorna da sola ogni due secondi finché la generazione è in corso. Se resta bloccata
-        su "in coda", il worker (<code>php artisan queue:work</code>) non è attivo.
+        su "in coda", il worker non è attivo.
     </x-guida>
 
     <div id="stato-generazione" data-url="{{ route('generazioni.stato', $generazione) }}" data-stato="{{ $generazione->stato }}"
-         class="bg-white border border-gray-200 rounded-lg p-6 max-w-xl space-y-4">
+         class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
         <div>
             <span class="text-sm text-gray-500">Stato</span>
             <div class="text-lg font-medium" data-campo="stato">{{ $generazione->stato }}</div>

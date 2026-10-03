@@ -17,6 +17,9 @@ class Slot extends Model
 
     public const GIORNI = [1 => 'Lunedì', 2 => 'Martedì', 3 => 'Mercoledì', 4 => 'Giovedì', 5 => 'Venerdì', 6 => 'Sabato'];
 
+    /** Sigle dei giorni per etichettare gli slot (es. LUN-3ª). */
+    public const GIORNI_BREVI = [1 => 'LUN', 2 => 'MAR', 3 => 'MER', 4 => 'GIO', 5 => 'VEN', 6 => 'SAB'];
+
     /** Le ore con ordine > 6 sono i rientri pomeridiani (stessa convenzione degli slot mattutini di default). */
     public const ULTIMA_ORA_MATTINA = 6;
 

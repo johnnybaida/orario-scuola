@@ -17,7 +17,7 @@
                 <input type="number" name="seed" id="seed" min="0" value="{{ old('seed') }}" class="mt-1 block w-full">
             </div>
             <p class="text-xs text-gray-500">
-                La generazione viene eseguita in coda: assicurati che il worker di coda sia attivo (puoi avviarlo da "Genera orario").
+                La generazione viene eseguita in coda da un worker: se è fermo, lo avvio io quando premi "Avvia generazione".
             </p>
         </div>
         <x-barra-salvataggio :annulla="route('generazioni.index')" etichetta="Avvia generazione" />
