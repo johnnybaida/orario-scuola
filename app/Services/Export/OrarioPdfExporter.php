@@ -49,13 +49,13 @@ class OrarioPdfExporter
     public function generale(Orario $orario): PdfDocument
     {
         $classi = Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
-        $slot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
-
-        $lezioni = Lezione::query()
+        $tutte = Lezione::query()
             ->where('orario_id', $orario->id)
             ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente')
-            ->get()
-            ->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
+            ->get();
+        // Solo le ore in cui almeno una classe ha lezione (niente righe vuote, es. pomeriggi senza rientri).
+        $slot = Slot::query()->whereIn('id', $tutte->pluck('slot_id'))->orderBy('giorno')->orderBy('ordine')->get();
+        $lezioni = $tutte->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
 
         return Pdf::loadView('orari.pdf.tabellone', [
             'titolo' => 'Quadro generale orario',

@@ -6,14 +6,15 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">Quadri orari</h1>
         @can('gestisci-anagrafica')
-            <a href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
+            <a data-modale="resta" href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
         @endcan
     </div>
 
     <x-guida>
         Un quadro orario è il monte ore settimanale per disciplina di un percorso (es. "Tempo normale 30h").
         Ogni classe ne usa uno; le cattedre di quella classe devono coprire esattamente queste ore, altrimenti
-        la generazione dell'orario segnala un'incoerenza in fase di pre-validazione.
+        la generazione dell'orario segnala un'incoerenza in fase di pre-validazione. Un quadro usato da qualche
+        classe non si può eliminare.
     </x-guida>
 
     <x-barra-selezione />
@@ -37,7 +38,7 @@
                         <td class="px-4 py-2">{{ $quadro->ore_totali }}</td>
                         <td class="px-4 py-2">{{ $quadro->classi_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
-                            <a href="{{ route('quadri-orari.edit', $quadro) }}" class="text-gray-600 hover:text-gray-900 underline">Apri</a>
+                            <a data-modale="resta" href="{{ route('quadri-orari.edit', $quadro) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                         </td>
                     </tr>
                 @endforeach

@@ -10,10 +10,13 @@
         docente (sola lettura), oppure esporti il tabellone generale in PDF.
     </x-guida>
 
+    <x-barra-selezione />
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Periodo</th>
                     <th class="px-4 py-2">Versione</th>
                     <th class="px-4 py-2">Stato</th>
@@ -24,6 +27,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($orari as $orario)
                     <tr>
+                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $orario->periodo->nome }}</td>
                         <td class="px-4 py-2">{{ $orario->versione }}</td>
                         <td class="px-4 py-2">{{ $orario->stato }}</td>

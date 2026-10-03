@@ -113,6 +113,22 @@ class OrarioController extends Controller
             : 'Nessuna modifica da annullare.');
     }
 
+    public function destroy(Request $request, Orario $orario): RedirectResponse
+    {
+        // Lezioni, avvisi e compresenze cadono in cascata; le generazioni restano come storico.
+        AuditLog::query()->create([
+            'user_id' => $request->user()->id,
+            'entita' => 'Orario',
+            'entita_id' => $orario->id,
+            'azione' => 'eliminazione',
+            'dati_prima' => $orario->only(['periodo_id', 'versione', 'stato', 'seed', 'punteggio']),
+            'dati_dopo' => null,
+        ]);
+        $orario->delete();
+
+        return redirect()->route('orari.index')->with('successo', 'Orario eliminato.');
+    }
+
     public function azzeraAvvisi(Orario $orario): RedirectResponse
     {
         $orario->avvisi()->delete();

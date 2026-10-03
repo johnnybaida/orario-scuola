@@ -31,8 +31,9 @@ class ClasseController extends Controller
 
     public function store(ClasseRequest $request): RedirectResponse
     {
-        $classe = Classe::query()->create($request->validated());
+        $classe = Classe::query()->create($request->safe()->except('rientri'));
         $this->applicaSlotDefault($classe);
+        $this->sincronizzaRientri($classe, $request->input('rientri', []));
 
         return redirect()->route('classi.edit', $classe)->with('successo', 'Classe creata.');
     }
@@ -43,6 +44,7 @@ class ClasseController extends Controller
             'classe' => $classe,
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
+            'rientriAttivi' => $classe->slotAttivi()->where('ordine', '>', Slot::ULTIMA_ORA_MATTINA)->pluck('giorno')->unique()->values()->all(),
             'fabbisogniSostegno' => $classe->fabbisogniSostegno()->orderBy('codice_anonimo')->get(),
             'assegnazioniSostegno' => $classe->assegnazioniSostegno()->with('docente')->get(),
             'docentiSostegno' => Docente::query()->where('tipo_posto', 'sostegno')->orderBy('cognome')->get(),
@@ -51,7 +53,8 @@ class ClasseController extends Controller
 
     public function update(ClasseRequest $request, Classe $classe): RedirectResponse
     {
-        $classe->update($request->validated());
+        $classe->update($request->safe()->except('rientri'));
+        $this->sincronizzaRientri($classe, $request->input('rientri', []));
 
         return redirect()->route('classi.edit', $classe)->with('successo', 'Classe aggiornata.');
     }
@@ -76,13 +79,23 @@ class ClasseController extends Controller
             'sedi' => Sede::query()->orderBy('nome')->get(),
             'aule' => Aula::query()->where('tipo', 'classe')->orderBy('nome')->get(),
             'quadri' => QuadroOrario::query()->orderBy('nome')->get(),
+            // Giorni in cui la scansione di istituto prevede ore pomeridiane.
+            'giorniRientro' => Slot::query()->where('ordine', '>', Slot::ULTIMA_ORA_MATTINA)->distinct()->orderBy('giorno')->pluck('giorno'),
         ];
+    }
+
+    /** Attiva le ore pomeridiane dei soli giorni scelti; le ore mattutine restano come sono. */
+    private function sincronizzaRientri(Classe $classe, array $giorni): void
+    {
+        $pomeridiani = Slot::query()->where('ordine', '>', Slot::ULTIMA_ORA_MATTINA)->get();
+        $classe->slotAttivi()->detach($pomeridiani->pluck('id'));
+        $classe->slotAttivi()->attach($pomeridiani->whereIn('giorno', array_map('intval', $giorni))->pluck('id'));
     }
 
     /** Alla creazione, attiva di default tutti gli slot mattutini (tempo normale). */
     private function applicaSlotDefault(Classe $classe): void
     {
-        $slotIds = Slot::query()->where('ordine', '<=', 6)->pluck('id');
+        $slotIds = Slot::query()->where('ordine', '<=', Slot::ULTIMA_ORA_MATTINA)->pluck('id');
         $classe->slotAttivi()->sync($slotIds);
     }
 

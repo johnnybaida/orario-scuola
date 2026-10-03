@@ -48,6 +48,9 @@ class QuadroOrarioController extends Controller
 
     public function destroy(QuadroOrario $quadroOrario): RedirectResponse
     {
+        // Le classi cadono in cascata col quadro: non si elimina un quadro in uso.
+        abort_if($quadroOrario->classi()->exists(), 422, 'Quadro orario usato da alcune classi.');
+
         $quadroOrario->delete();
 
         return redirect()->route('quadri-orari.index')->with('successo', 'Quadro orario eliminato.');

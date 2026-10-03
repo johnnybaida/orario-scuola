@@ -27,6 +27,8 @@ class ClasseRequest extends FormRequest
             'quadro_orario_id' => ['required', 'exists:quadri_orari,id'],
             'tempo_scuola' => ['required', 'in:normale,prolungato'],
             'n_alunni' => ['required', 'integer', 'min:0', 'max:35'],
+            'rientri' => ['nullable', 'array'],
+            'rientri.*' => ['integer', 'between:1,6'],
         ];
     }
 }

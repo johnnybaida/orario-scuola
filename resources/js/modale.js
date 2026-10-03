@@ -1,7 +1,12 @@
 // Apre in una <dialog> le pagine di creazione/modifica (link con `data-modale`) e invia i form
 // via fetch: errori di validazione nella modale, successo = reload della pagina (il flash resta in sessione).
+// Con `data-modale="resta"` la modale resta aperta dopo ogni salvataggio (si ricarica il suo contenuto,
+// o si apre la pagina verso cui il server reindirizza) e la pagina sotto si aggiorna alla chiusura.
 const intestazioni = { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' };
 let dialog;
+let resta = false;
+let urlCorrente;
+let modificato = false;
 
 function creaDialog() {
     dialog = document.createElement('dialog');
@@ -11,6 +16,9 @@ function creaDialog() {
     </div><div data-corpo class="px-6 pb-6"></div>`;
     dialog.addEventListener('click', (e) => {
         if (e.target === dialog || e.target.closest('[data-chiudi]')) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+        if (modificato) location.reload();
     });
     dialog.addEventListener('submit', invia);
     document.body.append(dialog);
@@ -28,16 +36,31 @@ function mostraErrori(messaggi) {
     dialog.scrollTo(0, 0);
 }
 
+async function carica(url) {
+    urlCorrente = url;
+    const risposta = await fetch(url, { headers: intestazioni });
+    dialog.querySelector('[data-corpo]').innerHTML = await risposta.text();
+    if (!dialog.open) dialog.showModal();
+    document.dispatchEvent(new CustomEvent('modale:caricata', { detail: dialog }));
+}
+
 async function invia(e) {
     if (e.defaultPrevented) return; // es. conferma di eliminazione annullata
     e.preventDefault();
     const form = e.target;
     const risposta = await fetch(form.action, {
-        method: 'POST', body: new FormData(form), headers: intestazioni, redirect: 'manual',
+        method: 'POST', body: new FormData(form), headers: intestazioni, redirect: resta ? 'follow' : 'manual',
     });
-    if (risposta.type === 'opaqueredirect' || risposta.ok) return location.reload();
     if (risposta.status === 422) return mostraErrori(Object.values((await risposta.json()).errors).flat());
-    mostraErrori([`Operazione non riuscita (codice ${risposta.status}).`]);
+    if (!(risposta.ok || risposta.type === 'opaqueredirect')) {
+        return mostraErrori([`Operazione non riuscita (codice ${risposta.status}).`]);
+    }
+    if (!resta) return location.reload();
+
+    modificato = true;
+    // Redirect verso un'altra pagina (es. dopo la creazione si passa alla modifica): la mostriamo; altrimenti ricarichiamo la corrente.
+    const destinazione = risposta.redirected && risposta.url !== location.href ? risposta.url : urlCorrente;
+    await carica(destinazione);
 }
 
 document.addEventListener('click', async (e) => {
@@ -45,8 +68,7 @@ document.addEventListener('click', async (e) => {
     if (!link) return;
     e.preventDefault();
     if (!dialog) creaDialog();
-    const risposta = await fetch(link.href, { headers: intestazioni });
-    dialog.querySelector('[data-corpo]').innerHTML = await risposta.text();
-    dialog.showModal();
-    document.dispatchEvent(new CustomEvent('modale:caricata', { detail: dialog }));
+    resta = link.dataset.modale === 'resta';
+    modificato = false;
+    await carica(link.href);
 });

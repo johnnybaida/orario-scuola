@@ -59,4 +59,19 @@ class ExportPdfTest extends TestCase
         $response->assertOk();
         $this->assertSame('application/pdf', $response->headers->get('content-type'));
     }
+
+    public function test_il_tabellone_non_mostra_le_ore_senza_lezioni(): void
+    {
+        $classe = Classe::factory()->create();
+        $conLezione = Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 2]);
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $conLezione->id]);
+
+        $html = app(\App\Services\Export\OrarioPdfExporter::class)->generale($orario)->getDomPDF()->outputHtml();
+
+        $this->assertStringContainsString('G1 - 1&ordf;', $html);
+        $this->assertStringNotContainsString('G1 - 2&ordf;', $html);
+    }
 }

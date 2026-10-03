@@ -225,4 +225,47 @@ class AnagraficheTest extends TestCase
             }
         }
     }
+
+    public function test_elimina_un_orario_e_lo_registra_nellaudit_log(): void
+    {
+        $orario = \App\Models\Orario::factory()->create();
+
+        $this->actingAs($this->referente())->delete("/orari/{$orario->id}")->assertRedirect(route('orari.index'));
+
+        $this->assertModelMissing($orario);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Orario', 'entita_id' => $orario->id, 'azione' => 'eliminazione']);
+    }
+
+    public function test_non_elimina_un_quadro_orario_usato_da_classi(): void
+    {
+        $classe = Classe::factory()->create();
+        $libero = QuadroOrario::factory()->create();
+
+        $this->actingAs($this->referente());
+        $this->delete("/quadri-orari/{$classe->quadro_orario_id}")->assertStatus(422);
+        $this->assertDatabaseHas('quadri_orari', ['id' => $classe->quadro_orario_id]);
+
+        $this->delete("/quadri-orari/{$libero->id}")->assertRedirect(route('quadri-orari.index'));
+        $this->assertModelMissing($libero);
+    }
+
+    public function test_i_rientri_pomeridiani_si_scelgono_per_giorno_senza_toccare_la_mattina(): void
+    {
+        $classe = Classe::factory()->create();
+        $mattina = Slot::factory()->create(['giorno' => 2, 'ordine' => 1]);
+        $martedi = Slot::factory()->create(['giorno' => 2, 'ordine' => 7]);
+        $giovedi = Slot::factory()->create(['giorno' => 4, 'ordine' => 7]);
+        $classe->slotAttivi()->sync([$mattina->id, $giovedi->id]);
+
+        $dati = [
+            'anno_corso' => $classe->anno_corso, 'sezione' => $classe->sezione, 'sede_id' => $classe->sede_id,
+            'quadro_orario_id' => $classe->quadro_orario_id, 'tempo_scuola' => 'prolungato', 'n_alunni' => 20,
+        ];
+        $this->actingAs($this->referente())->put("/classi/{$classe->id}", $dati + ['rientri' => [2]])->assertRedirect();
+
+        $this->assertEqualsCanonicalizing(
+            [$mattina->id, $martedi->id],
+            $classe->slotAttivi()->pluck('slot.id')->all(),
+        );
+    }
 }

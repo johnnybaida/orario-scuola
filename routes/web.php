@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/worker/avvia', [WorkerController::class, 'avvia'])->name('worker.avvia');
         Route::post('/worker/ferma', [WorkerController::class, 'ferma'])->name('worker.ferma');
 
+        Route::delete('/orari/{orario}', [OrarioController::class, 'destroy'])->name('orari.destroy');
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');

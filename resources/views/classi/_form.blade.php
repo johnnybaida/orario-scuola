@@ -56,6 +56,22 @@
 </div>
 
 <div>
+    <span class="block text-sm font-medium text-gray-700 mb-1">Rientri pomeridiani</span>
+    @php($rientri = old('rientri', $rientriAttivi ?? []))
+    <div class="flex flex-wrap gap-4">
+        @forelse ($giorniRientro as $giorno)
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" name="rientri[]" value="{{ $giorno }}" @checked(in_array($giorno, $rientri))>
+                {{ \App\Models\Slot::GIORNI[$giorno] }}
+            </label>
+        @empty
+            <p class="text-xs text-gray-500">La scansione oraria di istituto non prevede ore pomeridiane.</p>
+        @endforelse
+    </div>
+    <p class="mt-1 text-xs text-gray-500">Giorni di rientro della classe (tempo prolungato): ognuno si sceglie in modo indipendente. Il dettaglio delle singole ore resta negli "Slot attivi".</p>
+</div>
+
+<div>
     <label for="n_alunni" class="block text-sm font-medium text-gray-700">Numero alunni</label>
     <input type="number" name="n_alunni" id="n_alunni" min="0" max="35" value="{{ old('n_alunni', $classe?->n_alunni ?? 0) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
