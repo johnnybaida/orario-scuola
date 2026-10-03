@@ -16,16 +16,7 @@
         <input type="hidden" name="sezioni_extra" value="1">
 
         <fieldset @disabled(! auth()->user()->can('gestisci-anagrafica')) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            <div>
-                <label for="nome" class="block text-sm font-medium text-gray-700">Nome quadro</label>
-                <input type="text" name="nome" id="nome" value="{{ old('nome', $quadro->nome) }}" required class="mt-1 block w-full">
-            </div>
-
-            <div>
-                <h2 class="font-medium mb-2">Discipline</h2>
-                <x-righe-ripetibili :righe="old('righe', $righe)" partial="quadri-orari._riga" esaurito="Tutte le discipline sono già nel quadro orario." :blocca="$discipline->isEmpty() ? 'Nessuna disciplina censita: aggiungila prima nella sezione Discipline.' : null" :dati="['discipline' => $discipline]" etichetta="Aggiungi disciplina" />
-                <p class="mt-3 text-sm font-medium">Totale ore settimanali: <span data-totale="quadro">{{ $quadro->ore_totali }}</span></p>
-            </div>
+            @include('quadri-orari._form')
         </fieldset>
 
         @can('gestisci-anagrafica')

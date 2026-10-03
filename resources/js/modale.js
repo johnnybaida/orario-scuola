@@ -1,14 +1,9 @@
 // Apre in una <dialog> le pagine di creazione/modifica (link con `data-modale`).
 // Si chiude con × (in alto a destra), "Annulla" o Esc, non con un click fuori. Piè di pagina fisso con un solo "Annulla" e un solo "Salva": Salva invia il form della modale o, se
 // la pagina ne contiene più d'uno (es. dati + indisponibilità), tutti quelli modificati, in sequenza.
-// Errori di validazione nella modale; successo = reload della pagina (il flash resta in sessione).
-// Con `data-modale="resta"` la modale resta aperta dopo ogni salvataggio (si ricarica il suo contenuto,
-// o si apre la pagina verso cui il server reindirizza) e la pagina sotto si aggiorna alla chiusura.
+// Errori di validazione nella modale; dopo il salvataggio la modale si chiude e la pagina si ricarica (il flash resta in sessione).
 const intestazioni = { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' };
 let dialog;
-let resta = false;
-let urlCorrente;
-let modificato = false;
 
 const corpo = () => dialog.querySelector('[data-corpo]');
 const eEliminazione = (form) => form.querySelector('[name="_method"][value="DELETE"]');
@@ -26,9 +21,6 @@ function creaDialog() {
         // Si chiude solo con ×, Annulla o Esc: un click fuori dalla modale non fa perdere i dati inseriti.
         if (e.target.closest('[data-chiudi]')) dialog.close();
         if (e.target.closest('[data-salva]')) salva();
-    });
-    dialog.addEventListener('close', () => {
-        if (modificato) location.reload();
     });
     dialog.addEventListener('input', (e) => segnaModificato(e));
     dialog.addEventListener('change', (e) => segnaModificato(e));
@@ -57,7 +49,6 @@ function mostraErrori(messaggi) {
 }
 
 async function carica(url) {
-    urlCorrente = url;
     const risposta = await fetch(url, { headers: intestazioni });
     corpo().innerHTML = await risposta.text();
     // I pulsanti di invio interni sono sostituiti dal "Salva" del piè di pagina (restano quelli di eliminazione riga).
@@ -83,18 +74,14 @@ async function eseguiInvio(forms) {
         let ultima;
         for (const form of forms) {
             ultima = await fetch(form.action, {
-                method: 'POST', body: new FormData(form), headers: intestazioni, redirect: resta ? 'follow' : 'manual',
+                method: 'POST', body: new FormData(form), headers: intestazioni, redirect: 'manual',
             });
             if (ultima.status === 422) return mostraErrori(Object.values((await ultima.json()).errors).flat());
             if (!(ultima.ok || ultima.type === 'opaqueredirect')) {
                 return mostraErrori([`Operazione non riuscita (codice ${ultima.status}).`]);
             }
         }
-        if (!resta) return location.reload();
-
-        modificato = true;
-        // Redirect verso un'altra pagina (es. dopo la creazione si passa alla modifica): la mostriamo; altrimenti ricarichiamo la corrente.
-        await carica(ultima.redirected && ultima.url !== location.href ? ultima.url : urlCorrente);
+        location.reload();
     } finally {
         bottone.disabled = false;
     }
@@ -105,7 +92,5 @@ document.addEventListener('click', async (e) => {
     if (!link) return;
     e.preventDefault();
     if (!dialog) creaDialog();
-    resta = link.dataset.modale === 'resta';
-    modificato = false;
     await carica(link.href);
 });

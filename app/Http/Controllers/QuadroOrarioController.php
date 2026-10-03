@@ -20,14 +20,15 @@ class QuadroOrarioController extends Controller
 
     public function create(): View
     {
-        return view('quadri-orari.create');
+        return view('quadri-orari.create', ['righe' => [], 'discipline' => Disciplina::query()->orderBy('nome')->get()]);
     }
 
     public function store(QuadroOrarioRequest $request): RedirectResponse
     {
         $quadro = QuadroOrario::query()->create($request->safe()->only('nome'));
+        $this->salvaRighe($request, $quadro);
 
-        return redirect()->route('quadri-orari.edit', $quadro)->with('successo', 'Quadro orario creato. Aggiungi ora le discipline.');
+        return redirect()->route('quadri-orari.index')->with('successo', 'Quadro orario creato.');
     }
 
     public function edit(QuadroOrario $quadroOrario): View
@@ -44,12 +45,9 @@ class QuadroOrarioController extends Controller
     {
         $quadroOrario->update($request->safe()->only('nome'));
 
-        if ($request->boolean('sezioni_extra')) {
-            SincronizzaRighe::applica($quadroOrario->righe(), $request->input('righe', []), ['disciplina_id', 'ore_settimanali']);
-            $quadroOrario->update(['ore_totali' => $quadroOrario->righe()->sum('ore_settimanali')]);
-        }
+        $this->salvaRighe($request, $quadroOrario);
 
-        return redirect()->route('quadri-orari.edit', $quadroOrario)->with('successo', 'Quadro orario aggiornato.');
+        return redirect()->route('quadri-orari.index')->with('successo', 'Quadro orario aggiornato.');
     }
 
     public function destroy(QuadroOrario $quadroOrario): RedirectResponse
@@ -60,5 +58,15 @@ class QuadroOrarioController extends Controller
         $quadroOrario->delete();
 
         return redirect()->route('quadri-orari.index')->with('successo', 'Quadro orario eliminato.');
+    }
+
+    private function salvaRighe(QuadroOrarioRequest $request, QuadroOrario $quadro): void
+    {
+        if (! $request->boolean('sezioni_extra')) {
+            return;
+        }
+
+        SincronizzaRighe::applica($quadro->righe(), $request->input('righe', []), ['disciplina_id', 'ore_settimanali']);
+        $quadro->update(['ore_totali' => $quadro->righe()->sum('ore_settimanali')]);
     }
 }

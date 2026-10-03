@@ -343,4 +343,21 @@ class AnagraficheTest extends TestCase
             ->assertSee('href="'.route('sedi.index').'"', false)
             ->assertSee('href="'.route('aule.index').'"', false);
     }
+
+    public function test_il_quadro_orario_si_crea_con_le_discipline_in_un_solo_salvataggio(): void
+    {
+        $italiano = Disciplina::factory()->create();
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/quadri-orari/create')->assertOk()->assertSee('data-univoca', false);
+
+        $utente->post('/quadri-orari', [
+            'nome' => 'Tempo normale 30h', 'sezioni_extra' => 1,
+            'righe' => [['disciplina_id' => $italiano->id, 'ore_settimanali' => 6]],
+        ])->assertRedirect(route('quadri-orari.index'));
+
+        $quadro = QuadroOrario::query()->where('nome', 'Tempo normale 30h')->firstOrFail();
+        $this->assertSame(6, $quadro->ore_totali);
+        $this->assertDatabaseHas('quadro_orario_righe', ['quadro_orario_id' => $quadro->id, 'disciplina_id' => $italiano->id]);
+    }
 }

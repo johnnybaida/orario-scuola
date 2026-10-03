@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">Quadri orari</h1>
         @can('gestisci-anagrafica')
-            <a data-modale="resta" href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
+            <a data-modale href="{{ route('quadri-orari.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo quadro orario</a>
         @endcan
     </div>
 
@@ -38,7 +38,7 @@
                         <td class="px-4 py-2">{{ $quadro->ore_totali }}</td>
                         <td class="px-4 py-2">{{ $quadro->classi_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
-                            <a data-modale="resta" href="{{ route('quadri-orari.edit', $quadro) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
+                            <a data-modale href="{{ route('quadri-orari.edit', $quadro) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
                         </td>
                     </tr>
                 @endforeach
