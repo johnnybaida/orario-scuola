@@ -9,7 +9,11 @@ class WorkerController extends Controller
 {
     public function avvia(QueueWorker $worker): RedirectResponse
     {
-        $messaggio = $worker->avvia() ? 'Worker di coda avviato.' : 'Il worker di coda è già attivo.';
+        try {
+            $messaggio = $worker->avvia() ? 'Worker di coda avviato.' : 'Il worker di coda è già attivo.';
+        } catch (\RuntimeException $e) {
+            return back()->withErrors($e->getMessage());
+        }
 
         return back()->with('successo', $messaggio);
     }

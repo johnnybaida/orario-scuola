@@ -17,18 +17,21 @@
         puoi avviarlo e fermarlo da qui sotto. L'arresto è sicuro, il worker termina prima il job in corso.
     </x-guida>
 
-    <div class="mb-4 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm {{ $workerAttivo ? 'bg-green-50 border-green-200 text-green-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
-        <span class="font-medium">Worker di coda: {{ $workerAttivo ? 'attivo' : 'fermo' }}</span>
+    @php($attivoPieno = $workerAttivo && ! $workerInArresto)
+    <div class="mb-4 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm {{ $attivoPieno ? 'bg-green-50 border-green-200 text-green-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
+        <span class="font-medium">Worker di coda: {{ $attivoPieno ? 'attivo' : ($workerInArresto ? 'in arresto' : 'fermo') }}</span>
         @can('gestisci-anagrafica')
-            <form method="POST" action="{{ route($workerAttivo ? 'worker.ferma' : 'worker.avvia') }}"
-                  @if ($workerAttivo) onsubmit="return confirm('Fermare il worker? Termina prima il job in corso.');" @endif>
+            <form method="POST" action="{{ route($attivoPieno ? 'worker.ferma' : 'worker.avvia') }}"
+                  @if ($attivoPieno) onsubmit="return confirm('Fermare il worker? Termina prima il job in corso.');" @endif>
                 @csrf
-                <button type="submit" class="underline cursor-pointer">{{ $workerAttivo ? 'Ferma' : 'Avvia' }}</button>
+                <button type="submit" class="underline cursor-pointer">{{ $attivoPieno ? 'Ferma' : 'Avvia' }}</button>
             </form>
         @endcan
-        @unless ($workerAttivo)
+        @if ($workerInArresto)
+            <span>Sta terminando il job in corso: puoi già riavviarlo.</span>
+        @elseif (! $workerAttivo)
             <span>Le generazioni restano in coda finché non viene avviato.</span>
-        @endunless
+        @endif
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">

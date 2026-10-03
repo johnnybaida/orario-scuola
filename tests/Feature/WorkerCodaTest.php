@@ -15,6 +15,7 @@ class WorkerCodaTest extends TestCase
     protected function tearDown(): void
     {
         @unlink(app(QueueWorker::class)->pidFile());
+        @unlink(storage_path('app/queue-worker.stop'));
         parent::tearDown();
     }
 
@@ -28,6 +29,9 @@ class WorkerCodaTest extends TestCase
         file_put_contents($worker->pidFile(), (string) getmypid());
         $this->assertTrue($worker->attivo());
         $this->assertFalse($worker->avvia()); // già attivo: non ne lancia un secondo
+
+        $worker->ferma();
+        $this->assertTrue($worker->inArresto()); // in arresto: Avvia è di nuovo consentito
     }
 
     public function test_solo_chi_gestisce_lanagrafica_puo_fermare_il_worker(): void
