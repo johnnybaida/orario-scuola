@@ -25,7 +25,7 @@ class SincronizzaRighe
         foreach ($righe as $riga) {
             $dati = [];
             foreach ($campi as $campo) {
-                $dati[$campo] = $riga[$campo] ?? false;
+                $dati[$campo] = array_key_exists($campo, $riga) ? $riga[$campo] : false; // null esplicito = NULL (es. data di fine aperta); campo assente = casella non spuntata
             }
             empty($riga['id']) ? $relazione->create($dati) : $base()->whereKey($riga['id'])->first()?->update($dati);
         }

@@ -27,6 +27,7 @@ class PreValidator
     {
         return [
             ...$this->oreQuadroVsCattedre(),
+            ...$this->docentiSospesi(),
             ...$this->oreDocenteVsSlotDisponibili(),
             ...$this->capacitaAuleTipo(),
             ...$this->vincoliContraddittori(),
@@ -56,6 +57,22 @@ class PreValidator
             if ($nSlotAttivi !== $oreQuadro) {
                 $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: {$nSlotAttivi} slot attivi ma il quadro "
                     ."orario richiede {$oreQuadro}h (devono coincidere).", route('classi.edit', $classe));
+            }
+        }
+
+        return $problemi;
+    }
+
+    /** Un docente con una sospensione in corso "esclusa dall'orario" non può avere cattedre: vanno riassegnate a un supplente. */
+    private function docentiSospesi(): array
+    {
+        $problemi = [];
+
+        foreach (Docente::query()->whereHas('cattedre')->withCount('cattedre')->with('sospensioni')->get() as $docente) {
+            $sospensione = $docente->sospensioni->first(fn ($s) => $s->esclude_da_orario && $s->attivaIl(now()));
+            if ($sospensione) {
+                $problemi[] = $this->p("Docente {$docente->nomeCompleto()}: {$sospensione->etichettaMotivo()} {$sospensione->periodo()}, "
+                    ."ma ha {$docente->cattedre_count} cattedre: riassegnale a un supplente o chiudi la sospensione.", route('docenti.edit', $docente));
             }
         }
 

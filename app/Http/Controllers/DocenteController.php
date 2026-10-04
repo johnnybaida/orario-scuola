@@ -25,6 +25,7 @@ class DocenteController extends Controller
                     $q->where('nome', 'like', "%{$cerca}%")->orWhere('cognome', 'like', "%{$cerca}%");
                 });
             })
+            ->with('sospensioni')
             ->withCount('cattedre')
             ->orderBy('cognome')
             ->paginate(30)
@@ -49,6 +50,10 @@ class DocenteController extends Controller
     {
         return view('docenti.edit', [
             'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita'),
+            'sospensioni' => $docente->sospensioni->map(fn ($s) => [
+                'id' => $s->id, 'dal' => $s->dal->format('Y-m-d'), 'al' => $s->al?->format('Y-m-d'),
+                'motivo' => $s->motivo, 'esclude_da_orario' => $s->esclude_da_orario, 'note' => $s->note,
+            ])->all(),
             'sedi' => Sede::query()->orderBy('nome')->get(),
             'classiConcorso' => $this->classiConcorso(),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
@@ -73,6 +78,10 @@ class DocenteController extends Controller
 
             if ($request->boolean('sezioni_extra')) {
                 $docente->indisponibilita()->sync($request->input('slot_ids', []));
+            }
+            if ($request->boolean('sospensioni_inviate')) {
+                $righe = array_map(fn ($r) => ['al' => $r['al'] ?: null, 'note' => $r['note'] ?: null] + $r, $request->input('sospensioni', []));
+                SincronizzaRighe::applica($docente->sospensioni(), $righe, ['dal', 'al', 'motivo', 'esclude_da_orario', 'note']);
             }
             if ($request->boolean('cattedre_inviate')) {
                 SincronizzaRighe::applica($docente->cattedre(), $cattedre, ['classe_id', 'disciplina_id', 'ore', 'compresenza']);

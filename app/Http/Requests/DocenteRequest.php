@@ -32,6 +32,13 @@ class DocenteRequest extends FormRequest
             // Sezioni della pagina di modifica (assenti alla creazione).
             'slot_ids' => ['nullable', 'array'],
             'slot_ids.*' => ['exists:slot,id'],
+            'sospensioni' => ['nullable', 'array'],
+            'sospensioni.*.id' => ['nullable', 'integer'],
+            'sospensioni.*.dal' => ['required', 'date'],
+            'sospensioni.*.al' => ['nullable', 'date', 'after_or_equal:sospensioni.*.dal'],
+            'sospensioni.*.motivo' => ['required', Rule::in(array_keys(\App\Models\Sospensione::MOTIVI))],
+            'sospensioni.*.esclude_da_orario' => ['nullable', 'boolean'],
+            'sospensioni.*.note' => ['nullable', 'string', 'max:255'],
             'cattedre' => ['nullable', 'array'],
             'cattedre.*.id' => ['nullable', 'integer'],
             'cattedre.*.classe_id' => ['required', 'exists:classi,id'],

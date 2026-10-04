@@ -142,7 +142,10 @@ Importante: **contratto, regime, COE e classi di concorso sono dati anagrafici**
 Nella pagina del docente puoi anche:
 
 - impostare le **indisponibilità**: la griglia degli slot in cui il docente non può avere lezione (part-time, servizio in altre scuole, permessi). Il generatore e l'editor le rispettano sempre;
+- registrare le **sospensioni e assenze lunghe** (sospensione dal servizio, malattia lunga, congedo o aspettativa): per ognuna scrivi **dal** e, se la conosci, **al** (vuoto = fino a nuova comunicazione), il motivo e una nota. Nell'elenco dei docenti chi è sospeso oggi ha l'etichetta **Sospeso**;
 - gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa ambra se non coincide.
+
+**Come funziona la sospensione.** Spuntando **Escludi dall'orario** (è già spuntato di norma), finché la sospensione è in corso il docente **non può avere cattedre**: i controlli prima di generare lo segnalano con un link alla sua scheda e **la generazione non parte** finché non riassegni le sue cattedre a un **supplente** (un altro docente, per esempio con contratto *Supplenza breve*) dalla pagina **Cattedre** o dalla scheda del docente, oppure non chiudi la sospensione. Togli la spunta per un'assenza **breve** che non deve cambiare l'orario base: in quel caso viene solo registrata. Sospensioni già finite o non ancora iniziate non bloccano nulla. La proposta automatica dei sostituti per i giorni di assenza arriverà con la gestione di assenze e sostituzioni.
 
 Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per tutta la pagina. Puoi importare più docenti insieme da un file **CSV** (colonne: nome, cognome, email, tipo_contratto, tipo_posto, regime, ore_dovute).
 <!-- /permesso -->

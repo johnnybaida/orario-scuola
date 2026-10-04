@@ -39,6 +39,19 @@ class Docente extends Model
         return $this->belongsToMany(Slot::class, 'docente_indisponibilita');
     }
 
+    public function sospensioni(): HasMany
+    {
+        return $this->hasMany(Sospensione::class)->orderBy('dal');
+    }
+
+    /** Sospensione in corso alla data indicata (oggi se omessa); usa la relazione caricata se c'è. */
+    public function sospensioneAttiva(?\Carbon\CarbonInterface $data = null): ?Sospensione
+    {
+        $data ??= now();
+
+        return $this->sospensioni->first(fn (Sospensione $s) => $s->attivaIl($data));
+    }
+
     public function cattedre(): HasMany
     {
         return $this->hasMany(Cattedra::class);

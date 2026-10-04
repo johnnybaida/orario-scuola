@@ -54,7 +54,11 @@
                 @foreach ($docenti as $docente)
                     <tr>
                         @can('gestisci-docenti-classi')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('docenti.destroy', $docente) }}" aria-label="Seleziona"></td>@endcan
-                        <td class="px-4 py-2">{{ $docente->nomeCompleto() }}</td>
+                        <td class="px-4 py-2">{{ $docente->nomeCompleto() }}
+                            @if ($sospensione = $docente->sospensioneAttiva())
+                                <span class="ml-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800" title="{{ $sospensione->etichettaMotivo() }} {{ $sospensione->periodo() }}">Sospeso</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-2">{{ $docente->email }}</td>
                         <td class="px-4 py-2">{{ $docente->tipo_posto }}</td>
                         <td class="px-4 py-2">{{ $docente->regime }}</td>
