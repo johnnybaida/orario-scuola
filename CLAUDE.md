@@ -41,7 +41,7 @@ php artisan queue:work          # necessario per la generazione; l'app lo avvia/
 # tutto su Docker (app + database + worker, con la scuola di esempio): http://localhost:8080
 docker compose up -d --build
 docker compose down -v          # ferma e cancella i dati
-# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola.bat (Windows) o .command (Mac); istruzioni in INSTALLAZIONE.txt
+# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola.bat (Windows) o .command (Mac); istruzioni nel README
 
 # test
 php artisan test
@@ -85,7 +85,6 @@ docs/
 design-system/            # design system dell'interfaccia (MASTER.md + regole per tipo di pagina)
 docker/                   # entrypoint, Caddyfile e script di avvio del container; vedi anche Dockerfile e compose.yaml
 Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
-INSTALLAZIONE.txt         # istruzioni passo passo per gli utenti
 ```
 
 ---
@@ -219,6 +218,7 @@ Non anticipare funzionalità di fasi successive; se servono predisposizioni nel 
 
 ## Come lavorare
 
+- **Non modificare mai il file `.env`** (né `.env.local`, `.env.production`, ...): contiene credenziali e la chiave dell'applicazione e non è recuperabile da git. Niente `cp`/`mv`/`rm`/redirect/`sed -i` su di esso e niente `php artisan key:generate` senza `--show`: se serve un valore diverso, chiedilo all'utente. Per le prove di script usa percorsi temporanei o variabili d'ambiente. L'impedimento è anche tecnico: `.claude/settings.json` nega le modifiche con gli strumenti di scrittura e `.claude/hooks/proteggi-env.py` blocca i comandi di shell che toccano `.env` (la lettura resta consentita; `.env.example` è modificabile).
 - Modifica solo ciò che serve al task; niente refactoring non richiesti.
 - Prima di scelte architetturali non coperte da qui o dall'analisi: **fermati e chiedi**.
 - Ogni nuovo tipo di vincolo si implementa su entrambi i lati (definizione in `app/Constraints/` + modulo in `solver/constraints/`), con un test PHP di validazione e un test pytest con un caso fattibile e uno infattibile.

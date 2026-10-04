@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(.env)",
+      "Edit(**/.env)",
+      "Edit(.env.local)",
+      "Edit(.env.production)",
+      "Edit(.env.backup)",
+      "Edit(.env.testing)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/proteggi-env.py\"",
+            "statusMessage": "Controllo che non si modifichi il .env"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -51,7 +51,56 @@ solver/.venv/bin/pip install -r solver/requirements.txt
 
 ## Installazione semplice per Windows e Mac
 
-Per chi non è uno sviluppatore: dopo aver installato **Docker Desktop**, basta un doppio clic su `Avvia-Orario-Scuola.bat` (Windows) o `Avvia-Orario-Scuola.command` (Mac). Il file controlla che Docker sia acceso, avvia l'applicazione (`docker compose up -d --build`, vedi sotto), attende che risponda e apre il browser su <http://localhost:8080>. Per spegnere: `Ferma-Orario-Scuola.bat` / `.command` (i dati restano). Istruzioni passo passo per gli utenti, con le soluzioni ai problemi più comuni: [`INSTALLAZIONE.txt`](INSTALLAZIONE.txt).
+Per chi non è uno sviluppatore: servono 3 passi, e il primo si fa una volta sola. Non occorre sapere cosa sia Docker o usare il terminale.
+
+**Cosa serve**
+
+- Un computer **Windows 10/11** (64 bit) oppure un **Mac** (Intel o Apple Silicon), con almeno 8 GB di memoria e circa 5 GB di spazio libero.
+- Una connessione a internet, soltanto la prima volta (scarica i componenti).
+
+### Passo 1 - Installare Docker Desktop (una volta sola)
+
+Docker è il programma che fa funzionare Orario Scuola. È gratuito per scuole e istruzione.
+
+1. Scarica la versione per il tuo computer da **<https://www.docker.com/products/docker-desktop/>**.
+2. Installala e, se richiesto, riavvia il computer.
+3. Apri "Docker Desktop" una volta, accetta le condizioni e aspetta che sia pronto (l'icona della balena smette di muoversi).
+
+Se ti sembra complicato, chiedi aiuto a chi gestisce i computer della scuola: dopo questo passo il resto è semplicissimo.
+
+### Passo 2 - Preparare la cartella
+
+Se hai ricevuto un file ZIP, **estrailo** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
+
+### Passo 3 - Avviare Orario Scuola
+
+| Sistema | Fai doppio clic su | Se compare un avviso |
+|---|---|---|
+| **Windows** | `Avvia-Orario-Scuola.bat` | "Windows ha protetto il PC": clicca *Ulteriori informazioni* e poi *Esegui comunque*. |
+| **Mac** | `Avvia-Orario-Scuola.command` | "Sviluppatore non identificato": tasto destro sul file → *Apri* → *Apri* (oppure *Impostazioni di Sistema → Privacy e sicurezza → Apri comunque*). Se dice "permesso negato": nell'app *Terminale* scrivi `chmod +x ` (con uno spazio), trascina i due file `.command`, premi Invio e riprova. |
+
+Si apre una finestra nera con le istruzioni: controlla che Docker sia installato e acceso (lo accende se serve), avvia l'applicazione (`docker compose up -d --build`, vedi [Avvio con Docker](#avvio-con-docker)), attende che risponda e apre il browser su <http://localhost:8080>. **La prima volta ci vogliono alcuni minuti (anche 10): non chiuderla.**
+
+**Primo accesso:** email `amministratore@scuola.test`, password `password`. Appena entri cambia la password dalla voce *Utenze* del menu. Nella scuola di esempio ci sono anche altri utenti di prova: sono elencati in [Accessi di prova](#accessi-di-prova-seed).
+
+### Uso quotidiano
+
+- Se Docker Desktop è aperto, Orario Scuola è già acceso: basta aprire il browser su <http://localhost:8080> (puoi salvarlo tra i preferiti). Se non si apre, rifai doppio clic su `Avvia-Orario-Scuola`.
+- Per **spegnerlo**: doppio clic su `Ferma-Orario-Scuola.bat` / `.command`. I dati (docenti, classi, orari, ...) **non** vengono cancellati. Chiudere la finestra nera non spegne l'applicazione.
+- **Aggiornare** a una nuova versione: sostituisci la cartella con quella nuova e rifai doppio clic su `Avvia-Orario-Scuola`. I dati restano: li conserva Docker, non la cartella.
+
+### Usarlo da altri computer della scuola
+
+Il computer dove è installato deve restare acceso con Docker aperto. Dagli altri computer collegati alla stessa rete si apre il browser su `http://INDIRIZZO-DEL-COMPUTER:8080` (l'indirizzo lo trova chi gestisce la rete). Se compare un avviso del firewall, consenti l'accesso alle reti private.
+
+### Se qualcosa non va
+
+- **Docker non parte o "non è acceso":** apri Docker Desktop a mano e aspetta che sia pronto. Su Windows serve la virtualizzazione attiva (se Docker lo segnala, chiedi assistenza).
+- **Porta occupata, o il browser mostra un altro sito:** crea nella cartella un file di testo chiamato `.env` con dentro la riga `APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`).
+- **L'applicazione è lenta al primo avvio:** è normale, attendi.
+- **Altri problemi:** copia o fotografa il testo della finestra nera e mandalo a chi gestisce l'installazione.
+
+> **Attenzione:** `docker compose down -v` **cancella tutti i dati**. Non usarlo se non sei sicuro.
 
 ---
 
