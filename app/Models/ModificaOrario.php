@@ -23,6 +23,7 @@ class ModificaOrario extends Model
             'scambio' => 'scambio di due lezioni',
             'cambio_cattedra' => 'cambio di docente o materia',
             'blocco' => 'blocco o sblocco di una lezione',
+            'cambio_aula' => 'cambio di aula',
             default => $this->tipo,
         };
     }

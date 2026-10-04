@@ -8,6 +8,8 @@ use App\Models\Docente;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
+use App\Services\Editor\SpostamentiAula;
+use App\Support\ColoriDiscipline;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocument;
 use Illuminate\Support\Collection;
@@ -28,19 +30,29 @@ class OrarioPdfExporter
         $classi ??= Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
         $sostegni = $orario->compresenzeSostegno()->with('docente')->get()->groupBy('classe_id');
 
-        $fogli = $classi->map(fn (Classe $classe) => [
-            'titolo' => "Orario classe {$classe->nomeCompleto()}",
-            'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
-            'lezioni' => Lezione::query()
+        $fogli = $classi->map(function (Classe $classe) use ($orario, $sostegni) {
+            $lezioni = Lezione::query()
                 ->where('orario_id', $orario->id)
                 ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-                ->with('cattedra.disciplina', 'cattedra.docente', 'aula')
-                ->get()
-                ->keyBy('slot_id'),
-            'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
-            'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
-                ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
-        ])->all();
+                ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'aula', 'slot')
+                ->get();
+            $cambi = app(SpostamentiAula::class)->cambi($lezioni);
+
+            return [
+                'titolo' => "Orario classe {$classe->nomeCompleto()}",
+                'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
+                'lezioni' => $lezioni->keyBy('slot_id'),
+                // L'aula si scrive se non è quella della classe o se è cambiata rispetto all'ora prima (freccia →).
+                'colonna' => function (Lezione $l) use ($cambi) {
+                    $cambio = $cambi[$l->id] ?? null;
+                    $aula = $l->aulaDaMostrare() ?? ($cambio['a'] ?? null);
+
+                    return $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($aula ? "\n".($cambio ? '→ ' : '').$aula->nome : '');
+                },
+                'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
+                    ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
+            ];
+        })->all();
 
         return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
     }
@@ -113,15 +125,16 @@ class OrarioPdfExporter
     }
 
     /**
-     * Tabellone su un solo foglio: una riga per classe, colonne raggruppate per giorno con la stessa larghezza
-     * per tutte le ore. Le ore vuote non compaiono; i docenti di sostegno in compresenza sono visibili in cella.
+     * Tabellone su un solo foglio: una riga per classe (o per aula con $per = 'aula'), colonne raggruppate per giorno con
+     * la stessa larghezza per tutte le ore, un colore per disciplina. Le ore vuote non compaiono; i docenti di sostegno
+     * in compresenza sono visibili in cella (nella vista per classe).
      */
-    public function generale(Orario $orario): PdfDocument
+    public function generale(Orario $orario, string $per = 'classe'): PdfDocument
     {
         $classi = Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
-            ->with('cattedra.disciplina', 'cattedra.docente')
+            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'aula')
             ->get();
         $compresenze = $orario->compresenzeSostegno()->with('docente')->get();
 
@@ -149,13 +162,28 @@ class OrarioPdfExporter
             ] : null;
         })->filter()->values()->all();
 
+        if ($per === 'aula') {
+            $usate = $lezioni->map(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)?->id)->filter()->unique();
+            $righe = Aula::query()->orderBy('nome')->get()->filter(fn (Aula $a) => $usate->contains($a->id))
+                ->map(fn (Aula $a) => ['id' => $a->id, 'etichetta' => $a->nome])->values();
+            if ($lezioni->contains(fn (Lezione $l) => ! SpostamentiAula::aulaEffettiva($l))) {
+                $righe->push(['id' => 0, 'etichetta' => 'Senza aula']);
+            }
+            $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.(SpostamentiAula::aulaEffettiva($l)?->id ?? 0));
+        } else {
+            $righe = $classi->map(fn (Classe $c) => ['id' => $c->id, 'etichetta' => $c->nomeCompleto()]);
+            $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
+        }
+
         return Pdf::loadView('orari.pdf.tabellone', [
-            'titolo' => 'Quadro generale orario',
-            'classi' => $classi,
+            'titolo' => $per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario',
+            'per' => $per,
+            'righe' => $righe,
+            'colori' => ColoriDiscipline::mappa(),
             'giorni' => $giorni,
             'ore' => $oreMax ? range(1, $oreMax) : [],
             'slot' => $tuttiGliSlot->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
-            'lezioni' => $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id),
+            'celle' => $celle,
             'sostegni' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->classe_id),
             'discipline' => $lezioni->pluck('cattedra.disciplina')->unique('id')->sortBy('codice'),
             'limite' => $limite,

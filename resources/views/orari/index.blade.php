@@ -6,7 +6,7 @@
     <h1 class="text-xl font-semibold mb-6">Orari generati</h1>
 
     <x-guida>
-        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe, di un docente o di un'aula, oppure
+        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe, di un docente o di un'aula, il <strong>tabellone</strong> (per classe o per aula, con un colore per disciplina), oppure
         esporti i PDF. Ogni orario ha uno <strong>stato</strong>: bozza → in revisione → approvato → pubblicato → archiviato.
         Solo la <strong>bozza</strong> si modifica (la griglia di una classe è modificabile soltanto allora); con
         <strong>Duplica</strong> crei una copia in bozza per provare una variante. Si eliminano solo gli orari in bozza
@@ -66,6 +66,7 @@
                         <section aria-label="Consulta">
                             <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Consulta</h3>
                             <div class="grid gap-2">
+                                <a href="{{ route('orari.tabellone', $orario) }}" class="{{ $pulsante }} justify-center">Tabellone (classi / aule)</a>
                                 <select data-ricerca class="js-vai-classe w-full text-sm" data-base="/orari/{{ $orario->id }}/classe" aria-label="Vista classe">
                                     <option value="">Vista classe…</option>
                                     @foreach ($classi as $classe)
@@ -91,6 +92,7 @@
                             <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Esporta in PDF</h3>
                             <div class="flex flex-wrap gap-2">
                                 <a href="{{ route('orari.export.generale', $orario) }}" class="{{ $pulsante }}">Tabellone</a>
+                                <a href="{{ route('orari.export.generale', [$orario, 'per' => 'aula']) }}" class="{{ $pulsante }}">Tabellone per aula</a>
                                 <a href="{{ route('orari.export.classi', $orario) }}" class="{{ $pulsante }}">Tutte le classi</a>
                                 <a href="{{ route('orari.export.docenti', $orario) }}" class="{{ $pulsante }}">Tutti i docenti</a>
                                 <a href="{{ route('orari.export.aule', $orario) }}" class="{{ $pulsante }}">Tutte le aule</a>

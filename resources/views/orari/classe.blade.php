@@ -82,30 +82,7 @@
         @endif
     </div>
 
-    @if ($avvisi->isNotEmpty())
-        {{-- Cronologia degli esiti: NON descrive lo stato attuale (lo fa il Controllo qui sopra). Neutra, per non sembrare un allarme. --}}
-        <div class="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
-            <div class="flex items-start justify-between gap-3 mb-2">
-                <div>
-                    <p class="font-medium text-gray-800">Registro delle modifiche</p>
-                    <p class="text-xs text-gray-500">Esito dei tentativi fatti su questo orario: una modifica <strong>rifiutata</strong> non ha cambiato nulla. Lo stato attuale è nel Controllo qui sopra.</p>
-                </div>
-                <form method="POST" action="{{ route('orari.avvisi.azzera', $orario) }}">
-                    @csrf
-                    <button type="submit" class="text-xs underline text-gray-600 whitespace-nowrap">Azzera registro</button>
-                </form>
-            </div>
-            <ul class="space-y-1">
-                @foreach ($avvisi as $avviso)
-                    <li class="{{ $avviso->tipo === 'errore' ? 'text-red-700' : 'text-amber-800' }}">
-                        <span class="font-mono text-xs uppercase">[{{ $avviso->tipo === 'errore' ? 'modifica rifiutata' : 'avviso' }}]</span>
-                        {{ $avviso->messaggio }}
-                        <span class="text-gray-400 text-xs">— {{ $avviso->creato_il->diffForHumans() }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    @include('orari._registro')
 
     <div class="bg-white border border-gray-200 rounded-lg">
         <table class="w-full table-fixed text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
@@ -143,8 +120,10 @@
                                              draggable="{{ $modificabile && ! $lezione->bloccata ? 'true' : 'false' }}">
                                             <div class="font-medium">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
-                                            @if ($aulaLezione = $lezione->aulaDaMostrare())
-                                                <div class="text-[10px] font-medium text-blue-800" title="Aula">{{ $aulaLezione->nome }}</div>
+                                            {{-- L'aula si mostra se non è quella della classe, oppure se è cambiata rispetto all'ora precedente (freccia →). --}}
+                                            @php($cambioAula = $cambiAula[$lezione->id] ?? null)
+                                            @if ($aulaLezione = $lezione->aulaDaMostrare() ?? $cambioAula['a'] ?? null)
+                                                <div class="text-[10px] font-medium text-blue-800" title="{{ $cambioAula ? 'Cambio aula: da '.$cambioAula['da']->nome : 'Aula' }}">{{ $cambioAula ? '→ ' : '' }}{{ $aulaLezione->nome }}</div>
                                             @endif
                                             @if ($conflitti)
                                                 <div class="mt-0.5 text-[10px] font-medium text-red-700">⚠ Conflitto: vedi il controllo</div>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TipoAula;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,9 +16,6 @@ class Aula extends Model
 
     protected $table = 'aule';
 
-    /** Tipi suggeriti in UI; il campo resta una stringa libera (vedi DADA in CLAUDE.md). */
-    public const TIPI_BASE = ['classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa'];
-
     /**
      * Tipi di aula selezionabili: base + quelli già censiti, con le aule che li usano
      * (tipo => etichetta). Usato dalle select che devono puntare a un tipo esistente.
@@ -27,7 +25,7 @@ class Aula extends Model
     public static function tipiConAule(): array
     {
         return self::query()->orderBy('nome')->get()->groupBy('tipo')
-            ->map(fn ($aule, $tipo) => (str_starts_with($tipo, 'dada_') ? 'DADA · ' : '').ucfirst(str_replace('_', ' ', $tipo)).' ('.$aule->pluck('nome')->implode(', ').')')
+            ->map(fn ($aule, $tipo) => TipoAula::etichettaDi($tipo).' ('.$aule->pluck('nome')->implode(', ').')')
             ->all();
     }
 

@@ -1,5 +1,5 @@
 @php($aula = $aula ?? null)
-@php($dada = $aula && str_starts_with($aula->tipo, 'dada_') ? $discipline->firstWhere('tipo_aula_richiesto', $aula->tipo) : null)
+@php($dada = $aula && \App\Enums\TipoAula::eDada($aula->tipo) ? $discipline->firstWhere('tipo_aula_richiesto', $aula->tipo) : null)
 @php($tipoSel = old('tipo', $dada ? 'dada:'.$dada->id : ($aula?->tipo ?? 'classe')))
 
 <div>
@@ -22,7 +22,7 @@
     <select name="tipo" id="tipo" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <optgroup label="Aule comuni">
             @foreach ($tipiSuggeriti as $tipo)
-                <option value="{{ $tipo }}" @selected($tipoSel === $tipo)>{{ ucfirst(str_replace('_', ' ', $tipo)) }}</option>
+                <option value="{{ $tipo }}" @selected($tipoSel === $tipo)>{{ \App\Enums\TipoAula::etichettaDi($tipo) }}</option>
             @endforeach
         </optgroup>
         <optgroup label="Aula DADA (dedicata a una disciplina)">

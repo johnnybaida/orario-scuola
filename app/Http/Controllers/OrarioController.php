@@ -13,6 +13,8 @@ use App\Models\Orario;
 use App\Models\Slot;
 use App\Services\Editor\ControlloOrario;
 use App\Services\Editor\EditorLezione;
+use App\Services\Editor\SpostamentiAula;
+use App\Support\ColoriDiscipline;
 use App\Support\StatiOrario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -50,8 +52,9 @@ class OrarioController extends Controller
         ]);
     }
 
-    public function classe(Orario $orario, Classe $classe, EditorLezione $servizio, ControlloOrario $controllo): View
+    public function classe(Orario $orario, Classe $classe, EditorLezione $servizio, ControlloOrario $controllo, SpostamentiAula $spostamenti): View
     {
+        $lezioniClasse = $this->lezioniPerSlot($orario, $classe);
         $problemi = $controllo->perClasse($controllo->problemi($orario), $classe->id);
         $perLezione = [];
         foreach ($problemi as $problema) {
@@ -71,7 +74,8 @@ class OrarioController extends Controller
             'classe' => $classe,
             // Solo fino all'ultima ora attiva della classe.
             'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
-            'lezioni' => $this->lezioniPerSlot($orario, $classe),
+            'lezioni' => $lezioniClasse,
+            'cambiAula' => $spostamenti->cambi($lezioniClasse),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             // In ordine alfabetico per materia (poi docente): più facili da trovare nella select.
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()
@@ -106,6 +110,69 @@ class OrarioController extends Controller
         ]);
     }
 
+    /**
+     * Tabellone a schermo: tutte le classi (o tutte le aule) per tutte le ore, con un colore per disciplina e gli
+     * spostamenti d'aula. Nella vista per aula, con l'orario in bozza, le lezioni si trascinano tra aule e ore.
+     */
+    public function tabellone(Request $request, Orario $orario, ControlloOrario $controllo, SpostamentiAula $spostamenti): View
+    {
+        $classi = Classe::query()->with('aulaBase')->orderBy('anno_corso')->orderBy('sezione')->get();
+        // Senza indicazione: «per aula» se la scuola lavora (in prevalenza) senza aule base, cioè in DADA.
+        $per = $request->query('per') ?? ($classi->isNotEmpty() && $classi->whereNull('aula_base_id')->count() * 2 > $classi->count() ? 'aula' : 'classe');
+        abort_unless(in_array($per, ['classe', 'aula'], true), 404);
+
+        $lezioni = Lezione::query()->where('orario_id', $orario->id)
+            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'slot', 'aula')->get();
+        $usati = $lezioni->pluck('slot')->unique('id');
+        $problemi = $controllo->problemi($orario);
+        $perLezione = [];
+        foreach ($problemi as $problema) {
+            foreach ($problema['lezioni'] as $id) {
+                $perLezione[$id][] = $problema['testo'];
+            }
+        }
+
+        $cambi = [];
+        $cambiPerClasse = [];
+        foreach ($lezioni->groupBy(fn (Lezione $l) => $l->cattedra->classe_id) as $classeId => $sue) {
+            $c = $spostamenti->cambi($sue);
+            $cambi += $c;
+            $cambiPerClasse[$classeId] = count($c);
+        }
+
+        if ($per === 'classe') {
+            $righe = $classi->map(fn (Classe $c) => ['id' => $c->id, 'etichetta' => $c->nomeCompleto()]);
+            $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
+        } else {
+            $aule = Aula::query()->orderBy('nome')->get();
+            $tipiRichiesti = Cattedra::query()->with('disciplina')->get()->pluck('disciplina.tipo_aula_richiesto')->filter()->unique();
+            $usate = $lezioni->map(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)?->id)->filter()->unique();
+            $righe = $aule->filter(fn (Aula $a) => $usate->contains($a->id) || $tipiRichiesti->contains($a->tipo))
+                ->map(fn (Aula $a) => ['id' => $a->id, 'etichetta' => $a->nome])->values();
+            if ($lezioni->contains(fn (Lezione $l) => ! SpostamentiAula::aulaEffettiva($l))) {
+                $righe->push(['id' => 0, 'etichetta' => 'Senza aula']);
+            }
+            $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.(SpostamentiAula::aulaEffettiva($l)?->id ?? 0));
+        }
+
+        return view('orari.tabellone', [
+            'orario' => $orario,
+            'per' => $per,
+            'righe' => $righe,
+            'celle' => $celle,
+            'giorni' => $usati->pluck('giorno')->unique()->sort()->values(),
+            'ore' => $usati->isEmpty() ? [] : range(1, (int) $usati->max('ordine')),
+            'slot' => Slot::query()->get()->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
+            'colori' => ColoriDiscipline::mappa(),
+            'discipline' => $lezioni->pluck('cattedra.disciplina')->unique('id')->sortBy('codice'),
+            'cambi' => $cambi,
+            'cambiPerClasse' => $cambiPerClasse,
+            'problemiPerLezione' => $perLezione,
+            'avvisi' => $orario->avvisi,
+            'modificabile' => $orario->modificabile() && (bool) $request->user()?->can('gestisci-anagrafica'),
+        ]);
+    }
+
     /** Occupazione di un'aula (anche quella base di una classe): chi c'è a ogni ora. Vista in sola lettura. */
     public function aula(Orario $orario, Aula $aula): View
     {
@@ -129,11 +196,11 @@ class OrarioController extends Controller
     {
         $this->soloBozza($orario);
 
-        $dati = $request->validate(['slot_id' => ['required', 'integer', 'exists:slot,id']]);
+        $dati = $request->validate(['slot_id' => ['required', 'integer', 'exists:slot,id'], 'aula_id' => ['nullable', 'integer', 'exists:aule,id']]);
 
         abort_if($lezione->orario_id !== $orario->id, 404);
 
-        $risultato = $servizio->esegui($lezione, $dati['slot_id'], $request->user()->id, $request->boolean('provvisorio'));
+        $risultato = $servizio->esegui($lezione, $dati['slot_id'], $request->user()->id, $request->boolean('provvisorio'), $request->integer('aula_id') ?: null);
 
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
     }
@@ -145,6 +212,28 @@ class OrarioController extends Controller
         abort_if($lezione->orario_id !== $orario->id, 404);
 
         return response()->json($servizio->destinazioni($lezione));
+    }
+
+    public function cambiaAulaLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+
+        $dati = $request->validate(['aula_id' => ['required', 'integer', 'exists:aule,id']]);
+
+        abort_if($lezione->orario_id !== $orario->id, 404);
+
+        $risultato = $servizio->cambiaAula($lezione, $dati['aula_id'], $request->user()->id, $request->boolean('provvisorio'));
+
+        return response()->json($risultato, $risultato['ok'] ? 200 : 422);
+    }
+
+    /** Dove si può trascinare la lezione nel tabellone per aula (cella «{aula}-{slot}» → ok / conflitto / vietato). */
+    public function destinazioniAuleLezione(Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+
+        return response()->json($servizio->destinazioniAule($lezione));
     }
 
     public function cambiaCattedraLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
@@ -320,7 +409,7 @@ class OrarioController extends Controller
         return Lezione::query()
             ->where('orario_id', $orario->id)
             ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'aula')
+            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'aula', 'slot')
             ->get()
             ->keyBy('slot_id');
     }

@@ -17,7 +17,7 @@ class AulaRequest extends FormRequest
             'sede_id' => ['required', 'exists:sedi,id'],
             'nome' => ['required', 'string', 'max:255'],
             // Stringa libera: oltre ai tipi base, una scuola DADA può usare un
-            // tipo dedicato per disciplina (es. "dada_italiano").
+            // tipo dedicato per disciplina (es. "dada_ita", "dada_sec_ling": vedi App\Enums\TipoAula).
             'tipo' => ['required', 'string', 'max:50'],
             'capienza' => ['required', 'integer', 'min:1'],
         ];

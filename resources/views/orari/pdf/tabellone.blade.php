@@ -9,7 +9,7 @@
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { border: 1px solid #999; padding: {{ (int) round($fontPx / 2.5) }}px 1px; text-align: center; vertical-align: middle; overflow: hidden; }
         th { background: #eee; }
-        .classe { width: 34px; background: #f5f5f5; font-weight: bold; }
+        .classe { width: {{ $per === 'aula' ? 62 : 34 }}px; background: #f5f5f5; font-weight: bold; }
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
@@ -22,7 +22,7 @@
     <table>
         <thead>
             <tr>
-                <th class="classe" rowspan="2">Classe</th>
+                <th class="classe" rowspan="2">{{ $per === 'aula' ? 'Aula' : 'Classe' }}</th>
                 @foreach ($giorni as $giorno)
                     <th class="inizio-giorno" colspan="{{ count($ore) }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
                 @endforeach
@@ -36,19 +36,25 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($classi as $classe)
+            @foreach ($righe as $riga)
                 <tr>
-                    <td class="classe">{{ $classe->nomeCompleto() }}</td>
+                    <td class="classe">{{ $riga['etichetta'] }}</td>
                     @foreach ($giorni as $giorno)
                         @foreach ($ore as $ora)
                             @php($s = $slot->get($giorno.'-'.$ora))
-                            @php($lezione = $s ? $lezioni->get($s->id.'-'.$classe->id)?->first() : null)
-                            @php($supporti = $s ? ($sostegni->get($s->id.'-'.$classe->id)?->unique('docente_id') ?? collect()) : collect())
-                            <td @class(['inizio-giorno' => $loop->first])>
-                                @if ($lezione)
-                                    <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
-                                    <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
-                                @endif
+                            @php($gruppo = $s ? $celle->get($s->id.'-'.$riga['id'], collect()) : collect())
+                            @php($supporti = ($s && $per === 'classe') ? ($sostegni->get($s->id.'-'.$riga['id'])?->unique('docente_id') ?? collect()) : collect())
+                            @php($primo = $gruppo->first())
+                            <td @class(['inizio-giorno' => $loop->first]) @if ($primo) style="{{ \App\Support\ColoriDiscipline::stile($colori[$primo->cattedra->disciplina_id] ?? ['#ffffff', '#000000']) }}" @endif>
+                                @foreach ($gruppo as $lezione)
+                                    @if ($per === 'aula')
+                                        <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->classe->nomeCompleto(), $limite, '…') }}</div>
+                                        <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
+                                    @else
+                                        <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
+                                        <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
+                                    @endif
+                                @endforeach
                                 @foreach ($supporti as $supporto)
                                     <div class="sostegno">S {{ \Illuminate\Support\Str::limit($supporto->docente->cognome, max($limite - 2, 3), '…') }}</div>
                                 @endforeach
@@ -74,7 +80,7 @@
 
     <p class="legenda">
         @foreach ($discipline as $disciplina)
-            <strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}@unless ($loop->last) &middot; @endunless
+            <span style="{{ \App\Support\ColoriDiscipline::stile($colori[$disciplina->id] ?? ['#ffffff', '#000000']) }} padding: 0 3px;"><strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}</span>@unless ($loop->last) &middot; @endunless
         @endforeach
         &nbsp;|&nbsp; <span class="sostegno"><strong>S</strong> = docente di sostegno in compresenza</span>
     </p>

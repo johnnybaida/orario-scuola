@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
 
         Route::get('/orari', [OrarioController::class, 'index'])->name('orari.index');
         Route::post('/orari/{orario}/stato', [OrarioController::class, 'cambiaStato'])->name('orari.stato');
+        Route::get('/orari/{orario}/tabellone', [OrarioController::class, 'tabellone'])->name('orari.tabellone');
         Route::get('/orari/{orario}/controllo', [OrarioController::class, 'controllo'])->name('orari.controllo');
         Route::get('/orari/{orario}/classe/{classe}', [OrarioController::class, 'classe'])->name('orari.classe');
         Route::get('/orari/{orario}/docente/{docente}', [OrarioController::class, 'docente'])->name('orari.docente');
@@ -102,6 +103,8 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/orari/{orario}/duplica', [OrarioController::class, 'duplica'])->name('orari.duplica');
         Route::get('/orari/{orario}/nome', [OrarioController::class, 'nomeForm'])->name('orari.nome.form');
         Route::put('/orari/{orario}', [OrarioController::class, 'aggiornaNome'])->name('orari.nome');
+        Route::get('/orari/{orario}/lezioni/{lezione}/destinazioni-aule', [OrarioController::class, 'destinazioniAuleLezione'])->name('orari.lezioni.destinazioni-aule');
+        Route::patch('/orari/{orario}/lezioni/{lezione}/aula', [OrarioController::class, 'cambiaAulaLezione'])->name('orari.lezioni.aula');
         Route::get('/orari/{orario}/lezioni/{lezione}/destinazioni', [OrarioController::class, 'destinazioniLezione'])->name('orari.lezioni.destinazioni');
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');

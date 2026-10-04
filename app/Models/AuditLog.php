@@ -63,7 +63,7 @@ class AuditLog extends Model
         'creazione' => 'Creazione', 'modifica' => 'Modifica', 'eliminazione' => 'Eliminazione', 'generazione' => 'Generazione',
         'importazione' => 'Importazione', 'duplicazione' => 'Duplicazione', 'cambio_stato' => 'Cambio di stato',
         'spostamento' => 'Spostamento', 'scambio' => 'Scambio', 'cambio_cattedra' => 'Cambio di docente/materia',
-        'blocco' => 'Blocco/sblocco', 'annullamento' => 'Annullamento', 'ripristino' => 'Ripristino',
+        'blocco' => 'Blocco/sblocco', 'cambio_aula' => 'Cambio di aula', 'annullamento' => 'Annullamento', 'ripristino' => 'Ripristino',
     ];
 
     public function etichettaAzione(): string

@@ -7,6 +7,7 @@ use App\Models\Classe;
 use App\Models\Docente;
 use App\Models\Orario;
 use App\Services\Export\OrarioPdfExporter;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ExportController extends Controller
@@ -41,8 +42,10 @@ class ExportController extends Controller
         return $exporter->aule($orario)->stream('orario-tutte-le-aule.pdf');
     }
 
-    public function generale(Orario $orario, OrarioPdfExporter $exporter): Response
+    public function generale(Request $request, Orario $orario, OrarioPdfExporter $exporter): Response
     {
-        return $exporter->generale($orario)->stream('orario-generale.pdf');
+        $per = $request->query('per') === 'aula' ? 'aula' : 'classe';
+
+        return $exporter->generale($orario, $per)->stream($per === 'aula' ? 'orario-generale-per-aula.pdf' : 'orario-generale.pdf');
     }
 }

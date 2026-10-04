@@ -64,7 +64,7 @@ Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spo
 
 1. Vai in **Aule** e crea un'aula.
 2. Come tipo scegli **"DADA · nome della disciplina"**.
-3. La disciplina viene collegata automaticamente a quell'aula.
+3. La disciplina viene collegata automaticamente a quell'aula. Le **seconde lingue** (francese, spagnolo, tedesco…) condividono un unico tipo, **«DADA · Seconda lingua»**: crea più aule di quel tipo se servono e scegli una qualunque delle lingue.
 4. Nelle classi lascia vuoto il campo **Aula base**.
 5. Ogni disciplina DADA può avere **più aule** (due aule di Italiano, per esempio): il generatore sceglie quella libera a ogni ora.
 6. Per leggere l'orario ci sono tre modi, tutti nella pagina **Orari**: la **vista classe** (dove deve andare la classe a ogni ora, con il nome dell'aula in ogni lezione), la **vista aula** (chi arriva in aula a ogni ora: è anche il foglio da appendere alla porta) e la **vista docente**. Con la didattica tradizionale restano utili le stesse viste, ma nella classe l'aula compare solo quando non è la sua (palestra, laboratori).
@@ -332,6 +332,24 @@ Da questa pagina puoi inoltre:
 - L'esito dei tentativi di modifica resta nel **Registro delle modifiche** sopra la griglia finché non lo azzeri (**Azzera registro**). È una **cronologia**, non lo stato attuale: una riga «**modifica rifiutata**» vuol dire che l'editor ha detto no e **nulla è cambiato**, quindi può comparire accanto a un Controllo senza problemi. Lo stato vero dell'orario è nel riquadro **Controllo dell'orario**. Ogni messaggio dice **dove** sta il problema: la **classe**, il **giorno e l'ora** (es. «martedì, 3ª ora (09:40–10:30)») e, quando il conflitto è con un'altra lezione, anche **quale** (per esempio «il docente Rossi Anna è già impegnato in 2ª B con Storia»). Se una modifica viene **rifiutata**, la lezione interessata resta com'era (la select torna sulla cattedra reale) e il suo riquadro nella griglia diventa **rosso** con la scritta «Modifica rifiutata: vedi gli avvisi», finché non azzeri gli avvisi. Quando cambi docente o materia di una lezione, gli avvisi sul monte ore sono due e dicono quale è la **cattedra lasciata** (quella che perde un'ora) e quale la **cattedra scelta** (quella che ne guadagna una): l'avviso sul docente che hai appena sostituito non significa che la scelta sia sbagliata. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
 <!-- /permesso -->
 
+### Il tabellone (classi e aule)
+
+Dalla scheda di un orario, **Tabellone (classi / aule)** apre tutto l'orario in una pagina, con un **colore per ogni disciplina** (la legenda è in fondo) e due modi di organizzarlo, che scegli in alto:
+
+- **Per classe**: una riga per classe, come il tabellone tradizionale. L'ultima colonna conta i **cambi d'aula** di ogni classe.
+- **Per aula**: una riga per aula; in ogni cella vedi **quale classe** c'è, con materia e docente. È la vista più comoda con la didattica **DADA**. Se non indichi nulla, si apre «per aula» nelle scuole dove le classi non hanno un'aula base (DADA) e «per classe» negli altri casi.
+
+La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto all'ora precedente (la trovi anche nella griglia della classe e nei PDF per classe). Un riquadro con il **bordo rosso** ha un conflitto: passaci sopra per leggerlo. **Esporta PDF** produce il tabellone nell'organizzazione che stai guardando.
+
+<!-- permesso: gestisci-anagrafica -->
+**Modificare dal tabellone per aula** (orario in bozza): **trascina** una lezione.
+
+- su **un'altra aula nella stessa ora**: la lezione cambia aula (solo tra aule del tipo richiesto dalla materia: una lezione di italiano DADA si sposta tra le aule di italiano);
+- su **un'altra ora**: la lezione si sposta (come nella griglia della classe, scambiandosi con la lezione che c'era) e prende l'aula della cella, se è libera, altrimenti un'altra aula libera dello stesso tipo.
+
+Mentre trascini, le celle si colorano: **verde** si può, **ambra** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
+<!-- /permesso -->
+
 ### Controllo dell'orario
 
 Sopra la griglia di ogni classe c'è il riquadro **Controllo dell'orario**: è lo **stato reale** dell'orario, **ricalcolato ogni volta che apri o ricarichi la pagina** (non si aggiorna da solo mentre la tieni aperta, e se un collega modifica devi ricaricare). Segnala:
@@ -361,6 +379,7 @@ I conflitti provvisori non permettono mai di spostare una lezione bloccata o in 
 - **Tutte le classi** (pulsante **Tutte le classi** nella pagina *Orari*, "Classi PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.
 - **Tutte le aule** (pulsante **Tutte le aule** nella pagina *Orari*) e **una sola aula** ("Esporta PDF" della vista aula): un PDF A4 orizzontale con **un foglio per aula**, in ordine alfabetico, con classe, materia e docente di ogni ora: è il foglio da appendere alla porta. Compaiono solo le aule usate in quell'orario. Nei PDF per classe e per docente l'aula è scritta sotto ogni lezione, con le stesse regole delle griglie.
 - **Tutti i docenti** (pulsante **Tutti i docenti** nella pagina *Orari*, "Docenti PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per docente**, in ordine alfabetico, ciascuno con il titolo centrale, tutta la settimana e in ogni ora classe e materia. Le ore di **sostegno in compresenza** compaiono come "S classe". Compaiono solo i docenti che hanno almeno un'ora in quell'orario. Comodo per consegnare a ciascuno il proprio orario.
+- **Tabellone per aula** (pulsante **Tabellone per aula** nella scheda dell'orario): come il tabellone generale ma con una riga per aula; in ogni cella la classe e la sigla della materia. Come l'altro, ha un colore per ogni disciplina.
 - **Tabellone generale**: un solo foglio A3, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
 ## Ruoli e permessi

@@ -4,53 +4,9 @@
 // (H1/H2/H5/H6/H7). Ogni tentativo (riuscito o no) viene registrato come
 // AvvisoOrario lato server e mostrato nel pannello persistente della
 // pagina: qui ricarichiamo sempre, niente alert() che si perdono al click.
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]').content;
-}
+import { chiamaApi, coloraCelle, leggiProvvisorio, pulisciCelle, salvaProvvisorio } from './destinazioni.js';
 
-async function chiamaApi(url, method, corpo) {
-    const risposta = await fetch(url, {
-        method,
-        headers: {
-            'X-CSRF-TOKEN': csrfToken(),
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: corpo ? JSON.stringify(corpo) : undefined,
-    });
-    return { ok: risposta.ok, dati: await risposta.json() };
-}
-
-// Modalità «conflitti provvisori»: ricordata nel browser, inviata con ogni modifica.
-const CHIAVE_PROVVISORIO = 'orario.conflitti-provvisori';
-const leggiProvvisorio = () => { try { return localStorage.getItem(CHIAVE_PROVVISORIO) === '1'; } catch { return false; } };
-
-// Durante il trascinamento ogni slot della classe si colora in base all'esito dello spostamento (verde = possibile,
-// ambra = possibile solo con i conflitti provvisori, rosso = non ammesso); il motivo è nel tooltip.
-const STILI = {
-    ok: ['ring-2', 'ring-inset', 'ring-green-500', 'bg-green-50'],
-    conflitto: ['ring-2', 'ring-inset', 'ring-amber-500', 'bg-amber-50'],
-    vietato: ['ring-2', 'ring-inset', 'ring-red-300', 'bg-red-50', 'opacity-70'],
-};
-const TUTTI_GLI_STILI = [...new Set(Object.values(STILI).flat())];
-
-function coloraDestinazioni(griglia, esiti, provvisorio) {
-    griglia.querySelectorAll('td[data-slot-id]').forEach((cella) => {
-        const esito = esiti[cella.dataset.slotId];
-        if (!esito) return;
-        // Con i conflitti provvisori spenti un «conflitto» equivale a un divieto.
-        const stato = esito.stato === 'conflitto' && !provvisorio ? 'vietato' : esito.stato;
-        cella.classList.add(...STILI[stato]);
-        if (esito.motivi.length) cella.title = esito.motivi.join('\n');
-    });
-}
-
-function pulisciDestinazioni(griglia) {
-    griglia.querySelectorAll('td[data-slot-id]').forEach((cella) => {
-        cella.classList.remove(...TUTTI_GLI_STILI);
-        cella.removeAttribute('title');
-    });
-}
+const celleSlot = (griglia) => griglia.querySelectorAll('td[data-slot-id]');
 
 function inizializzaGriglia(griglia) {
     const urlLezioni = griglia.dataset.urlLezioni;
@@ -60,7 +16,7 @@ function inizializzaGriglia(griglia) {
     if (interruttore) {
         interruttore.checked = leggiProvvisorio();
         interruttore.addEventListener('change', () => {
-            try { localStorage.setItem(CHIAVE_PROVVISORIO, interruttore.checked ? '1' : '0'); } catch { /* senza storage vale solo per questa pagina */ }
+            salvaProvvisorio(interruttore.checked);
         });
     }
     const provvisorio = () => Boolean(interruttore?.checked);
@@ -73,11 +29,11 @@ function inizializzaGriglia(griglia) {
 
         const id = lezioneTrascinataId;
         chiamaApi(`${urlLezioni}/${id}/destinazioni`, 'GET')
-            .then(({ ok, dati }) => { if (ok && lezioneTrascinataId === id) coloraDestinazioni(griglia, dati, provvisorio()); })
+            .then(({ ok, dati }) => { if (ok && lezioneTrascinataId === id) coloraCelle(celleSlot(griglia), dati, provvisorio(), (c) => c.dataset.slotId); })
             .catch(() => {}); // senza suggerimenti si può comunque trascinare
     });
 
-    griglia.addEventListener('dragend', () => pulisciDestinazioni(griglia));
+    griglia.addEventListener('dragend', () => pulisciCelle(celleSlot(griglia)));
 
     griglia.addEventListener('dragover', (evento) => {
         if (lezioneTrascinataId && evento.target.closest('[data-slot-id]')) {

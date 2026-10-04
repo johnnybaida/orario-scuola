@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TipoAula;
 use App\Http\Requests\AulaRequest;
 use App\Models\Aula;
 use App\Models\Disciplina;
 use App\Models\Sede;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AulaController extends Controller
@@ -64,19 +64,19 @@ class AulaController extends Controller
     /** Tipi base più quelli già in uso, esclusi i tipi DADA che la UI propone per disciplina. */
     private function tipiSuggeriti(): array
     {
-        $dada = Disciplina::query()->where('tipo_aula_richiesto', 'like', 'dada\_%')->pluck('tipo_aula_richiesto')->all();
+        $dada = Disciplina::query()->where('tipo_aula_richiesto', 'like', TipoAula::PREFISSO_DADA.'%')->pluck('tipo_aula_richiesto')->all();
         $usati = Aula::query()->distinct()->orderBy('tipo')->pluck('tipo')->all();
 
-        return array_values(array_diff(array_unique([...Aula::TIPI_BASE, ...$usati]), $dada));
+        return array_values(array_diff(array_unique([...TipoAula::comuni(), ...$usati]), $dada));
     }
 
-    /** Il valore "dada:{id}" della select crea/riusa il tipo "dada_{codice}" e lo collega alla disciplina. */
+    /** Il valore "dada:{id}" della select crea/riusa il tipo DADA della disciplina (vedi TipoAula::dadaPer) e la collega. */
     private function dati(AulaRequest $request): array
     {
         $dati = $request->validated();
         if (str_starts_with($dati['tipo'], 'dada:')) {
             $disciplina = Disciplina::query()->findOrFail((int) substr($dati['tipo'], 5));
-            $dati['tipo'] = 'dada_'.Str::slug($disciplina->codice, '_');
+            $dati['tipo'] = TipoAula::dadaPer($disciplina);
             $disciplina->update(['tipo_aula_richiesto' => $dati['tipo']]);
         }
 
