@@ -451,4 +451,97 @@ class EditorOrarioTest extends TestCase
             ->assertSee('Riporta in bozza')->assertDontSee('>Approva<', false);
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get('/orari')->assertOk()->assertSee('>Approva<', false)->assertDontSee($duplica, false);
     }
+
+    public function test_annulla_e_ripeti_su_piu_livelli_comprese_le_modifiche_di_blocco(): void
+    {
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
+        $slot3 = Slot::factory()->create(['giorno' => 1, 'ordine' => 3]);
+        $classe->slotAttivi()->attach($slot3->id);
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+        $utente = $this->actingAs($this->referente());
+        $base = "/orari/{$orario->id}";
+
+        // tre modifiche: sposta in slot2, sposta in slot3, blocca
+        $utente->patchJson("$base/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot2->id])->assertOk();
+        $utente->patchJson("$base/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot3->id])->assertOk();
+        $utente->postJson("$base/lezioni/{$lezione->id}/blocca")->assertOk();
+        $this->assertTrue($lezione->fresh()->bloccata);
+
+        // annulla ×3: sblocca, torna in slot2, torna in slot1
+        $utente->post("$base/annulla-ultima")->assertSessionHas('successo');
+        $this->assertFalse($lezione->fresh()->bloccata);
+        $utente->post("$base/annulla-ultima");
+        $this->assertSame($slot2->id, $lezione->fresh()->slot_id);
+        $utente->post("$base/annulla-ultima");
+        $this->assertSame($slot1->id, $lezione->fresh()->slot_id);
+        $utente->post("$base/annulla-ultima")->assertSessionHasErrors('annulla'); // niente più da annullare
+
+        // ripeti ×2: slot2, slot3
+        $utente->post("$base/ripeti")->assertSessionHas('successo');
+        $this->assertSame($slot2->id, $lezione->fresh()->slot_id);
+        $utente->post("$base/ripeti");
+        $this->assertSame($slot3->id, $lezione->fresh()->slot_id);
+
+        // una nuova modifica azzera lo stack "ripeti" (il blocco annullato non si può più ripetere)
+        $utente->patchJson("$base/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot1->id])->assertOk();
+        $utente->post("$base/ripeti")->assertSessionHasErrors('annulla');
+        $this->assertFalse($lezione->fresh()->bloccata);
+
+        // il registro delle modifiche non perde nulla: annullamenti e ripristini sono registrati
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'annullamento']);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'ripristino']);
+        $this->assertSame(4, \DB::table('audit_log')->where('entita_id', $lezione->id)->whereIn('azione', ['spostamento', 'blocco'])->count());
+    }
+
+    public function test_annulla_e_ripeti_ripristinano_anche_uno_scambio_di_due_lezioni(): void
+    {
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $a = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => Cattedra::factory()->create(['classe_id' => $classe->id])->id, 'slot_id' => $slot1->id]);
+        $b = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => Cattedra::factory()->create(['classe_id' => $classe->id])->id, 'slot_id' => $slot2->id]);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->patchJson("/orari/{$orario->id}/lezioni/{$a->id}/sposta", ['slot_id' => $slot2->id])->assertOk();
+        $this->assertSame([$slot2->id, $slot1->id], [$a->fresh()->slot_id, $b->fresh()->slot_id]);
+
+        $utente->post("/orari/{$orario->id}/annulla-ultima");
+        $this->assertSame([$slot1->id, $slot2->id], [$a->fresh()->slot_id, $b->fresh()->slot_id]);
+        $utente->post("/orari/{$orario->id}/ripeti");
+        $this->assertSame([$slot2->id, $slot1->id], [$a->fresh()->slot_id, $b->fresh()->slot_id]);
+    }
+
+    public function test_annulla_e_ripeti_non_valgono_fuori_dalla_bozza_ne_per_i_ruoli_senza_permesso(): void
+    {
+        [$orario] = $this->orarioConLezione('approvato');
+
+        $this->actingAs($this->referente())->post("/orari/{$orario->id}/ripeti")->assertStatus(422);
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->post("/orari/{$orario->id}/ripeti")->assertForbidden();
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->post("/orari/{$orario->id}/annulla-ultima")->assertForbidden();
+    }
+
+    public function test_la_griglia_mostra_annulla_e_ripeti_attivi_solo_se_ce_qualcosa_da_fare(): void
+    {
+        [$orario, $lezione, $classe, $slot1, $slot2] = $this->orarioConLezione();
+        $lezione->update(['bloccata' => false]);
+        $utente = $this->actingAs($this->referente());
+
+        $stato = function () use ($utente, $orario, $classe) {
+            $html = $utente->get("/orari/{$orario->id}/classe/{$classe->id}")->assertOk()->getContent();
+            preg_match('/<form id="form-annulla".*?<\/form>/s', $html, $annulla);
+            preg_match('/<form id="form-ripeti".*?<\/form>/s', $html, $ripeti);
+
+            // l'attributo disabled, non le classi Tailwind "disabled:..."
+            return [(bool) preg_match('/\sdisabled[\s>]/', $annulla[0]), (bool) preg_match('/\sdisabled[\s>]/', $ripeti[0])];
+        };
+
+        $this->assertSame([true, true], $stato()); // niente da annullare né da ripetere
+
+        $utente->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot2->id]);
+        $this->assertSame([false, true], $stato()); // si può annullare
+
+        $utente->post("/orari/{$orario->id}/annulla-ultima");
+        $this->assertSame([true, false], $stato()); // ora si può ripetere
+    }
 }

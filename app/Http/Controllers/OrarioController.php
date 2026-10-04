@@ -29,7 +29,7 @@ class OrarioController extends Controller
         ]);
     }
 
-    public function classe(Orario $orario, Classe $classe): View
+    public function classe(Orario $orario, Classe $classe, EditorLezione $servizio): View
     {
         $compresenze = $orario->compresenzeSostegno()
             ->where('classe_id', $classe->id)
@@ -48,6 +48,8 @@ class OrarioController extends Controller
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()
                 ->sortBy(fn (Cattedra $c) => mb_strtolower($c->disciplina->nome.'|'.$c->docente->nomeCompleto()), SORT_NATURAL)->values(),
             'avvisi' => $orario->avvisi,
+            'puoAnnullare' => $servizio->puoAnnullare($orario),
+            'puoRipetere' => $servizio->puoRipetere($orario),
             'modificabile' => $orario->modificabile() && (bool) request()->user()?->can('gestisci-anagrafica'),
             'compresenze' => $compresenze,
         ]);
@@ -97,34 +99,32 @@ class OrarioController extends Controller
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
     }
 
-    public function bloccaLezione(Request $request, Orario $orario, Lezione $lezione): JsonResponse
+    public function bloccaLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
     {
         $this->soloBozza($orario);
         abort_if($lezione->orario_id !== $orario->id, 404);
 
-        $prima = $lezione->bloccata;
-        $lezione->update(['bloccata' => ! $prima]);
-
-        AuditLog::query()->create([
-            'user_id' => $request->user()->id,
-            'entita' => 'Lezione',
-            'entita_id' => $lezione->id,
-            'azione' => 'blocco',
-            'dati_prima' => ['bloccata' => $prima],
-            'dati_dopo' => ['bloccata' => ! $prima],
-        ]);
-
-        return response()->json(['ok' => true, 'bloccata' => $lezione->bloccata]);
+        return response()->json(['ok' => true, 'bloccata' => $servizio->blocca($lezione, $request->user()->id)]);
     }
 
-    public function annullaUltima(Orario $orario, EditorLezione $servizio): RedirectResponse
+    public function annullaUltima(Request $request, Orario $orario, EditorLezione $servizio): RedirectResponse
     {
         $this->soloBozza($orario);
-        $annullato = $servizio->annullaUltima($orario);
 
-        return back()->with($annullato ? 'successo' : 'errore', $annullato
-            ? 'Ultima modifica annullata.'
-            : 'Nessuna modifica da annullare.');
+        return $this->esito($servizio->annulla($orario, $request->user()->id));
+    }
+
+    public function ripeti(Request $request, Orario $orario, EditorLezione $servizio): RedirectResponse
+    {
+        $this->soloBozza($orario);
+
+        return $this->esito($servizio->ripeti($orario, $request->user()->id));
+    }
+
+    /** @param  array{ok: bool, messaggio: string}  $esito */
+    private function esito(array $esito): RedirectResponse
+    {
+        return $esito['ok'] ? back()->with('successo', $esito['messaggio']) : back()->withErrors(['annulla' => $esito['messaggio']]);
     }
 
     public function destroy(Request $request, Orario $orario): RedirectResponse

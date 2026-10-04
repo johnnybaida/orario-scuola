@@ -73,3 +73,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!griglia || griglia.dataset.editabile !== '1') return;
     inizializzaGriglia(griglia);
 });
+
+// Scorciatoie: Ctrl/Cmd+Z annulla, Ctrl/Cmd+Maiusc+Z (o Ctrl+Y) ripete; solo nella griglia modificabile e non mentre si scrive in un campo.
+document.addEventListener('keydown', (evento) => {
+    const griglia = document.querySelector('#griglia-orario');
+    if (!griglia || griglia.dataset.editabile !== '1') return;
+    if (!(evento.ctrlKey || evento.metaKey) || evento.target.closest('input, textarea, select, [contenteditable]')) return;
+
+    const tasto = evento.key.toLowerCase();
+    const ripeti = (tasto === 'z' && evento.shiftKey) || tasto === 'y';
+    const annulla = tasto === 'z' && !evento.shiftKey;
+    if (!ripeti && !annulla) return;
+
+    const pulsante = document.querySelector(ripeti ? '#form-ripeti button' : '#form-annulla button');
+    if (!pulsante || pulsante.disabled) return;
+    evento.preventDefault();
+    pulsante.form.requestSubmit();
+});

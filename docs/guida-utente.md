@@ -318,7 +318,7 @@ Da questa pagina puoi inoltre:
 - **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**.
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
-- **Annulla ultima modifica** ripristina l'ultima operazione.
+- **Annulla** e **Ripeti** (in alto sopra la griglia) tornano indietro e avanti **su più livelli**: spostamenti, scambi, cambi di docente o materia e blocchi/sblocchi. Scorciatoie: **Ctrl/Cmd + Z** per annullare, **Ctrl/Cmd + Maiusc + Z** (o Ctrl + Y) per ripetere. I pulsanti sono grigi quando non c'è nulla da annullare o da ripetere. Dopo una **nuova** modifica le modifiche annullate non si possono più ripetere. Annullamenti e ripristini restano nel registro delle modifiche. La cronologia riguarda le modifiche fatte da questa versione in poi e non passa a una copia: un orario duplicato riparte senza cronologia.
 - L'esito delle modifiche resta nel **pannello degli avvisi** sopra la griglia finché non lo azzeri. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
 <!-- /permesso -->
 

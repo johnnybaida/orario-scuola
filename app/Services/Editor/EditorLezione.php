@@ -7,6 +7,7 @@ use App\Models\Aula;
 use App\Models\AvvisoOrario;
 use App\Models\Cattedra;
 use App\Models\Lezione;
+use App\Models\ModificaOrario;
 use App\Models\Orario;
 
 /**
@@ -68,6 +69,10 @@ class EditorLezione
             'dati_dopo' => ['slot_id' => $slotDestinazioneId, 'scambiata_con' => $lezioneEsistente?->id],
         ]);
 
+        $this->registra($orarioId, $lezioneEsistente ? 'scambio' : 'spostamento', $lezione->id,
+            ['slot_id' => $slotOrigineId, 'scambiata_con' => $lezioneEsistente?->id],
+            ['slot_id' => $slotDestinazioneId, 'scambiata_con' => $lezioneEsistente?->id], $utenteId);
+
         return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => []]);
     }
 
@@ -125,58 +130,111 @@ class EditorLezione
             'dati_dopo' => ['cattedra_id' => $nuovaCattedra->id],
         ]);
 
+        $this->registra($orarioId, 'cambio_cattedra', $lezione->id, ['cattedra_id' => $vecchiaCattedra->id], ['cattedra_id' => $nuovaCattedra->id], $utenteId);
+
         return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $avvisi]);
     }
 
-    /** Annulla l'ultima modifica (spostamento/scambio/cambio cattedra) registrata per questo orario. */
-    public function annullaUltima(Orario $orario): bool
+    /** Blocca o sblocca una lezione (annullabile come le altre modifiche). */
+    public function blocca(Lezione $lezione, int $utenteId): bool
     {
-        $lezioneIds = $orario->lezioni()->pluck('id');
+        $prima = $lezione->bloccata;
+        $lezione->update(['bloccata' => ! $prima]);
 
-        $log = AuditLog::query()
-            ->where('entita', 'Lezione')
-            ->whereIn('entita_id', $lezioneIds)
-            ->whereIn('azione', ['spostamento', 'scambio', 'cambio_cattedra'])
-            ->latest('id')
-            ->first();
+        AuditLog::query()->create([
+            'user_id' => $utenteId, 'entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'blocco',
+            'dati_prima' => ['bloccata' => $prima], 'dati_dopo' => ['bloccata' => ! $prima],
+        ]);
+        $this->registra($lezione->orario_id, 'blocco', $lezione->id, ['bloccata' => $prima], ['bloccata' => ! $prima], $utenteId);
 
-        if (! $log) {
-            return false;
-        }
+        return $lezione->bloccata;
+    }
 
-        if ($log->azione === 'cambio_cattedra') {
-            $lezione = Lezione::find($log->entita_id);
-            $lezione->update([
-                'cattedra_id' => $log->dati_prima['cattedra_id'],
-                'aula_id' => $this->risolviAula(
-                    Cattedra::find($log->dati_prima['cattedra_id']),
-                    $lezione->orario_id,
-                    $lezione->slot_id,
-                    [$lezione->id],
-                ),
-            ]);
-            $log->delete();
+    public function puoAnnullare(Orario $orario): bool
+    {
+        return ModificaOrario::query()->where('orario_id', $orario->id)->where('annullata', false)->exists();
+    }
 
-            return true;
-        }
-
-        Lezione::query()->where('id', $log->entita_id)->update(['slot_id' => $log->dati_prima['slot_id']]);
-
-        $scambiataConId = $log->dati_prima['scambiata_con'] ?? null;
-        if ($scambiataConId) {
-            Lezione::query()->where('id', $scambiataConId)->update(['slot_id' => $log->dati_dopo['slot_id']]);
-        }
-
-        $log->delete();
-
-        return true;
+    public function puoRipetere(Orario $orario): bool
+    {
+        return ModificaOrario::query()->where('orario_id', $orario->id)->where('annullata', true)->exists();
     }
 
     /**
-     * Registra errori/avvisi come AvvisoOrario, così restano leggibili nella
-     * pagina della griglia finché qualcuno non li azzera esplicitamente
-     * (non un alert() che sparisce al primo click).
+     * Annulla l'ultima modifica ancora attiva (su più livelli). Non cancella nulla dal registro delle modifiche:
+     * la voce passa sullo stack "ripeti" e l'annullamento stesso viene registrato.
+     *
+     * @return array{ok: bool, messaggio: string}
      */
+    public function annulla(Orario $orario, int $utenteId): array
+    {
+        $voce = ModificaOrario::query()->where('orario_id', $orario->id)->where('annullata', false)->latest('id')->first();
+
+        return $voce ? $this->applicaVoce($voce, 'prima', $utenteId) : ['ok' => false, 'messaggio' => 'Nessuna modifica da annullare.'];
+    }
+
+    /**
+     * Ripete l'ultima modifica annullata.
+     *
+     * @return array{ok: bool, messaggio: string}
+     */
+    public function ripeti(Orario $orario, int $utenteId): array
+    {
+        $voce = ModificaOrario::query()->where('orario_id', $orario->id)->where('annullata', true)->oldest('id')->first();
+
+        return $voce ? $this->applicaVoce($voce, 'dopo', $utenteId) : ['ok' => false, 'messaggio' => 'Nessuna modifica da ripetere.'];
+    }
+
+    /** Una nuova modifica cancella lo stack "ripeti" (come in ogni editor); l'audit log conserva tutto. */
+    private function registra(int $orarioId, string $tipo, int $lezioneId, array $prima, array $dopo, int $utenteId): void
+    {
+        ModificaOrario::query()->where('orario_id', $orarioId)->where('annullata', true)->delete();
+        ModificaOrario::query()->create([
+            'orario_id' => $orarioId, 'user_id' => $utenteId, 'tipo' => $tipo, 'lezione_id' => $lezioneId,
+            'dati_prima' => $prima, 'dati_dopo' => $dopo,
+        ]);
+    }
+
+    /** Porta la lezione allo stato "prima" (annulla) o "dopo" (ripeti) della voce. */
+    private function applicaVoce(ModificaOrario $voce, string $lato, int $utenteId): array
+    {
+        $stato = $voce->{"dati_$lato"};
+        $altro = $voce->{'dati_'.($lato === 'prima' ? 'dopo' : 'prima')};
+        $lezione = Lezione::query()->find($voce->lezione_id);
+        if (! $lezione) {
+            $voce->delete();
+
+            return ['ok' => false, 'messaggio' => 'Impossibile: la lezione interessata non esiste più.'];
+        }
+
+        match ($voce->tipo) {
+            'spostamento', 'scambio' => $this->riportaSlot($lezione, $stato, $altro),
+            'cambio_cattedra' => $lezione->update([
+                'cattedra_id' => $stato['cattedra_id'],
+                'aula_id' => $this->risolviAula(Cattedra::query()->findOrFail($stato['cattedra_id']), $lezione->orario_id, $lezione->slot_id, [$lezione->id]),
+            ]),
+            'blocco' => $lezione->update(['bloccata' => $stato['bloccata']]),
+        };
+
+        $voce->update(['annullata' => $lato === 'prima']);
+        AuditLog::query()->create([
+            'user_id' => $utenteId, 'entita' => 'Lezione', 'entita_id' => $lezione->id,
+            'azione' => $lato === 'prima' ? 'annullamento' : 'ripristino',
+            'dati_prima' => ['tipo' => $voce->tipo], 'dati_dopo' => $stato,
+        ]);
+
+        return ['ok' => true, 'messaggio' => ($lato === 'prima' ? 'Annullato: ' : 'Ripetuto: ').$voce->descrizione().'.'];
+    }
+
+    private function riportaSlot(Lezione $lezione, array $stato, array $altro): void
+    {
+        $lezione->update(['slot_id' => $stato['slot_id']]);
+        // In uno scambio l'altra lezione va dove si trovava la prima nell'altro stato.
+        if (! empty($stato['scambiata_con'])) {
+            Lezione::query()->where('id', $stato['scambiata_con'])->update(['slot_id' => $altro['slot_id']]);
+        }
+    }
+
     private function persisti(int $orarioId, array $risultato): array
     {
         foreach ($risultato['errori'] as $messaggio) {

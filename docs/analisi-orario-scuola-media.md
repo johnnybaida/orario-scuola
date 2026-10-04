@@ -423,7 +423,7 @@ Requisiti comuni a ogni opzione:
 - **Blocco** di lezioni/giorni/classi prima di rigenerare il resto.
 - Undo/redo, storico modifiche con autore.
 
-> **Implementazione.** Griglia drag&drop per classe (modificabile) e vista docente in sola lettura; scambio di lezioni; blocco/sblocco; cambio di docente e/o materia di una lezione (select con ricerca); «annulla ultima modifica» (un livello, non un undo/redo completo); esiti in un pannello di avvisi persistente (errore = operazione rifiutata, avviso = applicata da controllare); audit log delle modifiche. Le griglie mostrano solo fino all'ultima ora usata.
+> **Implementazione.** Griglia drag&drop per classe (modificabile) e vista docente in sola lettura; scambio di lezioni; blocco/sblocco; cambio di docente e/o materia di una lezione (select con ricerca); **annulla e ripeti su più livelli** (spostamenti, scambi, cambi di docente/materia e blocchi, con scorciatoie da tastiera; cronologia separata dall'audit log); esiti in un pannello di avvisi persistente (errore = operazione rifiutata, avviso = applicata da controllare); audit log delle modifiche. Le griglie mostrano solo fino all'ultima ora usata.
 
 ### 9.2 Stati
 
