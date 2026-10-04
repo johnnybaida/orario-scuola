@@ -7,7 +7,7 @@ title Orario Scuola
 cd /d "%~dp0"
 
 set "PORTA=8080"
-if exist ".env" for /f "usebackq tokens=1,* delims==" %%A in (".env") do if /i "%%A"=="APP_PORT" set "PORTA=%%B"
+if exist ".env" for /f "usebackq tokens=1,* delims==" %%A in (".env") do if /i "%%A"=="DOCKER_APP_PORT" set "PORTA=%%B"
 set "INDIRIZZO=http://localhost:%PORTA%"
 
 echo ==============================================

@@ -7,7 +7,7 @@ export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Con
 
 PORTA=8080
 if [ -f .env ]; then
-    DAL_FILE=$(grep -E '^APP_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '\r"'"'")
+    DAL_FILE=$(grep -E '^DOCKER_APP_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '\r"'"'")
     [ -n "$DAL_FILE" ] && PORTA="$DAL_FILE"
 fi
 INDIRIZZO="http://localhost:$PORTA"

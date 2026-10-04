@@ -8,47 +8,6 @@ La specifica funzionale completa è in [`docs/analisi-orario-scuola-media.md`](d
 
 ---
 
-## Requisiti
-
-In alternativa a tutto quanto segue basta **Docker** con Docker Compose: vedi [Avvio con Docker](#avvio-con-docker).
-
-| Componente | Versione | Note |
-|---|---|---|
-| PHP | ≥ 8.3 | con estensioni `pdo_mysql`, `mbstring`, `xml`, `bcmath` (incluse in una installazione PHP standard) |
-| Composer | 2.x | |
-| Node.js | ≥ 20 | per Vite/Tailwind |
-| MariaDB / MySQL | 10.x / 8.x | un database vuoto, es. `orario_scuola` |
-| Python | 3.11 | per il solver OR-Tools (CP-SAT) |
-
-Il progetto non richiede Apache/Nginx: `php artisan serve` basta per lo sviluppo. Se usi MAMP/MAMP PRO per il database, assicurati che PHP CLI (quello usato per i comandi sotto) abbia l'estensione `pdo_mysql` — non è necessario che sia lo stesso PHP imacchettato con MAMP.
-
----
-
-## Setup iniziale
-
-```bash
-# dipendenze PHP e JS
-composer install
-npm install
-
-# configurazione
-cp .env.example .env
-php artisan key:generate
-```
-
-Apri `.env` e imposta le credenziali del database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) prima di continuare.
-
-```bash
-# schema + dati di esempio (15 classi, 40 docenti, quadro a 30 ore)
-php artisan migrate --seed
-
-# ambiente del solver Python (OR-Tools CP-SAT)
-python3.11 -m venv solver/.venv
-solver/.venv/bin/pip install -r solver/requirements.txt
-```
-
----
-
 ## Installazione semplice per Windows e Mac
 
 Per chi non è uno sviluppatore: servono 3 passi, e il primo si fa una volta sola. Non occorre sapere cosa sia Docker o usare il terminale.
@@ -96,13 +55,15 @@ Il computer dove è installato deve restare acceso con Docker aperto. Dagli altr
 ### Se qualcosa non va
 
 - **Docker non parte o "non è acceso":** apri Docker Desktop a mano e aspetta che sia pronto. Su Windows serve la virtualizzazione attiva (se Docker lo segnala, chiedi assistenza).
-- **Porta occupata, o il browser mostra un altro sito:** crea nella cartella un file di testo chiamato `.env` con dentro la riga `APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`).
+- **Porta occupata, o il browser mostra un altro sito:** aggiungi alla cartella un file di testo chiamato `.env` con dentro la riga `DOCKER_APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`). Su Windows: Blocco note → *Salva con nome* → tipo *Tutti i file* → nome `.env`. Su Mac: nel *Terminale*, dalla cartella, scrivi `echo 'DOCKER_APP_PORT=8081' >> .env`. Se il file c'è già, aggiungi solo quella riga.
 - **L'applicazione è lenta al primo avvio:** è normale, attendi.
 - **Altri problemi:** copia o fotografa il testo della finestra nera e mandalo a chi gestisce l'installazione.
 
 > **Attenzione:** `docker compose down -v` **cancella tutti i dati**. Non usarlo se non sei sicuro.
 
 ---
+
+# Sezione per sviluppatori
 
 ## Avvio con Docker
 
@@ -112,18 +73,20 @@ Con Docker (e Docker Compose) si avvia tutto con un comando, senza installare PH
 docker compose up -d --build
 ```
 
-Poi apri <http://localhost:8080> (la porta si cambia con `APP_PORT`). Al primo avvio il container: crea la chiave dell'applicazione, esegue le migrazioni, carica la **scuola di esempio** (≈15 classi, 40 docenti) e avvia il worker di coda. Accesso iniziale: `amministratore@scuola.test` / `password`: **cambia la password** (o impostala subito con `ADMIN_PASSWORD`, vedi sotto) prima di usarlo su un server raggiungibile da altri. Gli altri utenti di prova sono in [Accessi di prova](#accessi-di-prova-seed).
+Poi apri <http://localhost:8080> (la porta si cambia con `DOCKER_APP_PORT`). Al primo avvio il container: crea la chiave dell'applicazione, esegue le migrazioni, carica la **scuola di esempio** (≈15 classi, 40 docenti) e avvia il worker di coda. Accesso iniziale: `amministratore@scuola.test` / `password`: **cambia la password** (o impostala subito con `DOCKER_ADMIN_PASSWORD`, vedi sotto) prima di usarlo su un server raggiungibile da altri. Gli altri utenti di prova sono in [Accessi di prova](#accessi-di-prova-seed).
 
 Servizi: `db` (MariaDB 11) e `app` (PHP + FrankenPHP con gli assets compilati e il solver Python). I dati stanno in due volumi, `dbdata` (database) e `storage` (chiave, log, file), e sopravvivono ai riavvii.
 
-| Variabile (file `.env` accanto a `compose.yaml`) | Significato | Predefinito |
+Per cambiare le impostazioni predefinite si possono aggiungere righe al file `.env` accanto a `compose.yaml` (o impostare variabili d'ambiente). **Chi non è uno sviluppatore non deve toccare nulla**: senza `.env` si usano i valori predefiniti. Queste variabili hanno il prefisso `DOCKER_` perché le legge solo Docker: il `.env` di Laravel dello sviluppo (`APP_URL`, `DB_PASSWORD`, `APP_KEY`, ...) **non** influisce sull'avvio con Docker, e viceversa.
+
+| Variabile (facoltativa) | Significato | Predefinito |
 |---|---|---|
-| `APP_PORT` | porta sul computer | `8080` |
-| `APP_URL` | indirizzo pubblico dell'applicazione | `http://localhost:8080` |
-| `ADMIN_PASSWORD` | password dell'amministratore di esempio, impostata a ogni avvio | `password` |
-| `SEED_ESEMPIO` | `1` = carica la scuola di esempio al primo avvio, `0` = non carica nulla | `1` |
-| `DB_PASSWORD`, `DB_ROOT_PASSWORD` | password del database | `orario`, `root` |
-| `APP_KEY` | chiave dell'applicazione (se vuota se ne genera una e si conserva nel volume) | vuota |
+| `DOCKER_APP_PORT` | porta sul computer | `8080` |
+| `DOCKER_APP_URL` | indirizzo pubblico dell'applicazione | `http://localhost:8080` |
+| `DOCKER_ADMIN_PASSWORD` | password dell'amministratore di esempio, impostata a ogni avvio | `password` |
+| `DOCKER_SEED_ESEMPIO` | `1` = carica la scuola di esempio al primo avvio, `0` = non carica nulla | `1` |
+| `DOCKER_DB_PASSWORD`, `DOCKER_DB_ROOT_PASSWORD` | password del database | `orario`, `root` |
+| `DOCKER_APP_KEY` | chiave dell'applicazione (se vuota se ne genera una e si conserva nel volume) | vuota |
 
 Comandi utili:
 
@@ -132,6 +95,47 @@ docker compose logs -f app      # log dell'applicazione
 docker compose down             # ferma (i dati restano)
 docker compose down -v          # ferma e CANCELLA database e file
 docker compose up -d --build    # dopo un aggiornamento del codice
+```
+
+---
+
+## Requisiti
+
+In alternativa a tutto quanto segue basta **Docker** con Docker Compose: vedi [Avvio con Docker](#avvio-con-docker).
+
+| Componente | Versione | Note |
+|---|---|---|
+| PHP | ≥ 8.3 | con estensioni `pdo_mysql`, `mbstring`, `xml`, `bcmath` (incluse in una installazione PHP standard) |
+| Composer | 2.x | |
+| Node.js | ≥ 20 | per Vite/Tailwind |
+| MariaDB / MySQL | 10.x / 8.x | un database vuoto, es. `orario_scuola` |
+| Python | 3.11 | per il solver OR-Tools (CP-SAT) |
+
+Il progetto non richiede Apache/Nginx: `php artisan serve` basta per lo sviluppo. Se usi MAMP/MAMP PRO per il database, assicurati che PHP CLI (quello usato per i comandi sotto) abbia l'estensione `pdo_mysql` — non è necessario che sia lo stesso PHP imacchettato con MAMP.
+
+---
+
+## Setup iniziale
+
+```bash
+# dipendenze PHP e JS
+composer install
+npm install
+
+# configurazione
+cp .env.example .env
+php artisan key:generate
+```
+
+Apri `.env` e imposta le credenziali del database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) prima di continuare.
+
+```bash
+# schema + dati di esempio (15 classi, 40 docenti, quadro a 30 ore)
+php artisan migrate --seed
+
+# ambiente del solver Python (OR-Tools CP-SAT)
+python3.11 -m venv solver/.venv
+solver/.venv/bin/pip install -r solver/requirements.txt
 ```
 
 ---
