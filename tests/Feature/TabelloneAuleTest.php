@@ -350,4 +350,56 @@ class TabelloneAuleTest extends TestCase
         $esiti = $this->actingAs($this->referente())->getJson("{$this->base()}/lezioni/{$l->id}/destinazioni-aule")->assertOk()->json();
         $this->assertSame([$base->id.'-'.$this->s1->id, $base->id.'-'.$this->s2->id, $base->id.'-'.$this->s3->id], array_keys($esiti));
     }
+
+    public function test_i_nomi_delle_aule_si_abbreviano_tenendo_la_parte_che_le_distingue(): void
+    {
+        $this->assertSame('Palestra', \App\Support\NomiBrevi::aula('Palestra'));
+        $this->assertSame('Italiano 1', \App\Support\NomiBrevi::aula('Aula Italiano 1'));
+        $this->assertSame('DADA Art 1', \App\Support\NomiBrevi::aula('Aula DADA · Art 1'));           // entra nei 12 caratteri, senza il segno «·»
+        $this->assertSame('Tecnologia 2', \App\Support\NomiBrevi::aula('Laboratorio Tecnologia 2'));
+        $this->assertSame('Art 12', \App\Support\NomiBrevi::aula('Aula DADA · Lingue straniere Art 12'));
+        $this->assertSame('Tecnologia', \App\Support\NomiBrevi::aula('Laboratorio Tecnologia'));
+        $this->assertSame('…logiaxxxxxx', \App\Support\NomiBrevi::aula('Laboratoriotecnologiaxxxxxx'));   // una sola parola troppo lunga: si tiene la fine
+        $this->assertLessThanOrEqual(12, mb_strlen(\App\Support\NomiBrevi::aula('Laboratoriotecnologiaxxxxxx')));
+    }
+
+    public function test_nel_tabellone_il_cambio_d_aula_sta_su_una_riga_e_le_celle_per_aula_sono_piu_alte(): void
+    {
+        $this->a1->update(['nome' => 'Aula DADA · Italiano 1']);
+        $this->a2->update(['nome' => 'Aula DADA · Italiano 2']);
+        $this->lez($this->x, $this->ita, $this->s1, $this->a1, 'Uno');
+        $this->lez($this->x, $this->ita, $this->s2, $this->a2, 'Due');      // la classe cambia aula
+        $referente = $this->actingAs($this->referente());
+
+        $classe = $referente->get("{$this->base()}/tabellone?per=classe")->assertOk()->getContent();
+        $this->assertStringContainsString('→ Italiano 2', $classe);                    // nome breve, non «Aula DADA ·…» troncato
+        $this->assertStringContainsString('class="truncate text-[10px] font-semibold"', $classe);
+        $this->assertStringNotContainsString('→ da', $classe);
+        $this->assertStringContainsString('min-height: 3.5rem', $classe);                // 56px per ogni lezione nella cella
+        $this->assertStringNotContainsString('min-height: 4.5rem', $classe);
+
+        $aula = $referente->get("{$this->base()}/tabellone?per=aula")->assertOk()->getContent();
+        $this->assertStringContainsString('title="Arriva da Aula DADA · Italiano 1"', $aula);   // la freccia accanto alla classe, il dettaglio nel tooltip
+        $this->assertStringNotContainsString('→ da', $aula);
+        $this->assertStringContainsString('min-height: 4.5rem', $aula);                            // 72px per ogni lezione nella cella: più alte
+        $this->assertStringNotContainsString('min-height: 3.5rem', $aula);
+    }
+
+    public function test_una_cella_con_piu_lezioni_cresce_di_un_riquadro_per_lezione_senza_comprimerli(): void
+    {
+        $palestra = Aula::factory()->create(['sede_id' => $this->x->sede_id, 'nome' => 'Palestra', 'tipo' => 'palestra', 'capienza' => 3]);
+        $mot = Disciplina::factory()->create(['codice' => 'MOT', 'nome' => 'Motoria', 'tipo_aula_richiesto' => 'palestra']);
+        $z = $this->classe($this->x->sede, 2, 'C');
+        $this->lez($this->x, $mot, $this->s1, $palestra, 'Neri');
+        $this->lez($this->y, $mot, $this->s1, $palestra, 'Gialli');
+        $this->lez($z, $mot, $this->s1, $palestra, 'Verdi');
+        $this->lez($this->x, $mot, $this->s2, $palestra, 'Rossi');   // una sola lezione alla 2ª ora
+        $html = $this->actingAs($this->referente())->get("{$this->base()}/tabellone?per=aula")->assertOk()->getContent();
+
+        $this->assertStringContainsString('min-height: 13.5rem', $html);   // 3 lezioni × 4.5rem
+        $this->assertStringContainsString('min-height: 4.5rem', $html);    // 1 lezione (e le celle vuote)
+        $this->assertStringNotContainsString('min-h-[4.5rem]', $html);     // nessuna altezza minima fissa sul riquadro
+        $this->assertStringContainsString('shrink-0 grow', $html);         // i riquadri non si comprimono e si dividono lo spazio
+        $this->assertSame(4, substr_count($html, 'data-lezione-id'));
+    }
 }

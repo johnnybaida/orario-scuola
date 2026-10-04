@@ -86,9 +86,12 @@
                                     <td @class(['border border-gray-200 p-0.5 align-top min-w-14 h-px', 'border-l-2 border-l-gray-500' => $loop->first])
                                         @if ($s) data-slot-id="{{ $s->id }}" @endif
                                         @if ($s && $aulaMode && $riga['id']) data-aula-id="{{ $riga['id'] }}" @endif>
-                                        {{-- Il riquadro (o i riquadri, se più lezioni nella stessa cella) occupa tutta l'altezza della cella; altezza minima uguale per tutte, anche per le celle vuote (56px per classe; 72px per aula, dove ogni riquadro ha una riga in più e una cella può contenere più lezioni, ciascuna con la sua altezza). --}}
-                                        <div class="flex h-full flex-col gap-0.5 {{ $aulaMode ? 'min-h-[4.5rem]' : 'min-h-14' }}">
-                                        @foreach ($s ? $celle->get($s->id.'-'.$riga['id'], collect()) : [] as $lezione)
+                                        {{-- Altezza minima = (altezza di un riquadro) × (numero di lezioni nella cella): 72px per riquadro nella vista per aula,
+                                             56px in quella per classe, anche per le celle vuote. Il contenitore cresce con i riquadri (nessuna altezza fissa
+                                             sui riquadri, che non si comprimono) e questi si dividono lo spazio in più, così si leggono sempre. --}}
+                                        @php($inCella = $s ? $celle->get($s->id.'-'.$riga['id'], collect()) : collect())
+                                        <div class="flex h-full flex-col gap-0.5" style="min-height: {{ max(1, $inCella->count()) * ($aulaMode ? 4.5 : 3.5) }}rem">
+                                        @foreach ($inCella as $lezione)
                                             @php($d = $lezione->cattedra->disciplina)
                                             @php($conflitti = $problemiPerLezione[$lezione->id] ?? [])
                                             @php($cambio = $cambi[$lezione->id] ?? null)
@@ -96,18 +99,17 @@
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
                                                  title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->cattedra->docente->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
-                                                 class="flex flex-1 flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $aulaMode ? 'min-h-[4.5rem]' : '' }} {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
+                                                 class="flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
                                                 @if ($aulaMode)
-                                                    <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
+                                                    {{-- La freccia dice che la classe arriva da un'altra aula (il nome è nel tooltip): resta su una riga. --}}
+                                                    <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}@if ($cambio) <span title="Arriva da {{ $cambio['da']->nome }}">→</span>@endif</div>
                                                     <div>{{ $d->codice }}</div>
                                                 @else
                                                     <div class="font-semibold">{{ $d->codice }}</div>
                                                 @endif
                                                 <div class="text-[10px] opacity-80">{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, 9, '…') }}</div>
                                                 @if ($cambio && ! $aulaMode)
-                                                    <div class="text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \Illuminate\Support\Str::limit($cambio['a']->nome, 12, '…') }}</div>
-                                                @elseif ($cambio)
-                                                    <div class="text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }}">→ da {{ \Illuminate\Support\Str::limit($cambio['da']->nome, 7, '…') }}</div>
+                                                    <div class="truncate text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
                                                 @endif
                                             </div>
                                         @endforeach
