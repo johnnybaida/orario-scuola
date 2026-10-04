@@ -15,65 +15,92 @@
 
     <x-barra-selezione />
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-left">
-                <tr>
-                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
-                    <th class="px-4 py-2">Periodo</th>
-                    <th class="px-4 py-2">Versione</th>
-                    <th class="px-4 py-2">Stato</th>
-                    <th class="px-4 py-2">Punteggio</th>
-                    <th class="px-4 py-2"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @foreach ($orari as $orario)
-                    <tr>
-                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona"></td>@endcan
-                        <td class="px-4 py-2">{{ $orario->periodo->nome }}</td>
-                        <td class="px-4 py-2">{{ $orario->versione }}</td>
-                        <td class="px-4 py-2"><x-stato-orario :orario="$orario" /></td>
-                        <td class="px-4 py-2">{{ $orario->punteggio }}</td>
-                        <td class="px-4 py-2 text-right space-x-3">
-                            <a href="{{ route('orari.export.generale', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Tabellone PDF</a>
-                            <a href="{{ route('orari.export.classi', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Classi PDF</a>
-                            <a href="{{ route('orari.export.docenti', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Docenti PDF</a>
-                            <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/classe">
-                                <option value="">Vista classe…</option>
-                                @foreach ($classi as $classe)
-                                    <option value="{{ $classe->id }}">{{ $classe->nomeCompleto() }}</option>
-                                @endforeach
-                            </select>
-                            <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/docente">
-                                <option value="">Vista docente…</option>
-                                @foreach ($docenti as $docente)
-                                    <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
-                                @endforeach
-                            </select>
-                            @php($consentite = \App\Support\StatiOrario::consentite($orario, auth()->user()))
-                            @if ($consentite || auth()->user()->can('gestisci-anagrafica'))
-                                {{-- Ciclo di vita: i pulsanti compaiono solo per i passaggi che il ruolo può fare; duplicare crea una nuova bozza. --}}
-                                <div class="mt-2 flex flex-wrap justify-end gap-x-4 gap-y-1">
+    @php($puoEliminare = auth()->user()->can('gestisci-anagrafica'))
+    @php($bordo = ['bozza' => 'border-l-gray-300', 'in_revisione' => 'border-l-amber-400', 'approvato' => 'border-l-blue-400', 'pubblicato' => 'border-l-green-500', 'archiviato' => 'border-l-gray-400'])
+    @php($pulsante = 'inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer')
+    @php($principale = 'inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-sm text-white hover:opacity-90 transition-opacity cursor-pointer')
+
+    @if ($orari->isEmpty())
+        <p class="rounded-lg border border-gray-200 bg-white px-4 py-6 text-center text-gray-500">Nessun orario: generalo da <strong>Genera orario</strong>.</p>
+    @else
+        @if ($puoEliminare)
+            <label class="mb-3 inline-flex items-center gap-2 text-sm text-gray-600">
+                <input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti gli orari"> Seleziona tutti
+            </label>
+        @endif
+
+        <div class="grid gap-4">
+            @foreach ($orari as $orario)
+                @php($consentite = \App\Support\StatiOrario::consentite($orario, auth()->user()))
+                <article data-riga class="rounded-lg border border-gray-200 border-l-4 {{ $bordo[$orario->stato] ?? 'border-l-gray-300' }} bg-white">
+                    <header class="flex flex-wrap items-start gap-3 border-b border-gray-100 px-4 py-3">
+                        @if ($puoEliminare)
+                            <input type="checkbox" class="js-sel mt-1" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona l'orario {{ $orario->periodo->nome }} versione {{ $orario->versione }}">
+                        @endif
+                        <div class="min-w-0 flex-1">
+                            <h2 class="flex flex-wrap items-center gap-2 font-semibold">
+                                {{ $orario->periodo->nome }} <span class="font-normal text-gray-500">versione {{ $orario->versione }}</span>
+                                <x-stato-orario :orario="$orario" />
+                            </h2>
+                            <p class="mt-0.5 text-sm text-gray-500">
+                                Creato il {{ $orario->created_at?->format('d/m/Y H:i') }}@if ($orario->creatoDa) da {{ $orario->creatoDa->name }}@endif
+                                · punteggio {{ $orario->punteggio }}
+                            </p>
+                        </div>
+                    </header>
+
+                    <div class="grid gap-x-8 gap-y-4 px-4 py-4 md:grid-cols-3">
+                        <section aria-label="Consulta">
+                            <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Consulta</h3>
+                            <div class="grid gap-2">
+                                <select data-ricerca class="js-vai-classe w-full text-sm" data-base="/orari/{{ $orario->id }}/classe" aria-label="Vista classe">
+                                    <option value="">Vista classe…</option>
+                                    @foreach ($classi as $classe)
+                                        <option value="{{ $classe->id }}">{{ $classe->nomeCompleto() }}</option>
+                                    @endforeach
+                                </select>
+                                <select data-ricerca class="js-vai-classe w-full text-sm" data-base="/orari/{{ $orario->id }}/docente" aria-label="Vista docente">
+                                    <option value="">Vista docente…</option>
+                                    @foreach ($docenti as $docente)
+                                        <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </section>
+
+                        <section aria-label="Esporta">
+                            <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Esporta in PDF</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('orari.export.generale', $orario) }}" class="{{ $pulsante }}">Tabellone</a>
+                                <a href="{{ route('orari.export.classi', $orario) }}" class="{{ $pulsante }}">Tutte le classi</a>
+                                <a href="{{ route('orari.export.docenti', $orario) }}" class="{{ $pulsante }}">Tutti i docenti</a>
+                            </div>
+                        </section>
+
+                        @if ($consentite || auth()->user()->can('gestisci-anagrafica'))
+                            {{-- Ciclo di vita: i pulsanti compaiono solo per i passaggi che il ruolo può fare; duplicare crea una nuova bozza. --}}
+                            <section aria-label="Stato">
+                                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Stato e copia</h3>
+                                <div class="flex flex-wrap gap-2">
                                     @foreach ($consentite as $nuovoStato)
                                         <form method="POST" action="{{ route('orari.stato', $orario) }}">
                                             @csrf
                                             <input type="hidden" name="stato" value="{{ $nuovoStato }}">
-                                            <button type="submit" class="underline text-primary cursor-pointer">{{ \App\Support\StatiOrario::AZIONI[$nuovoStato] }}</button>
+                                            <button type="submit" class="{{ in_array($nuovoStato, ['in_revisione', 'approvato', 'pubblicato']) ? $principale : $pulsante }}">{{ \App\Support\StatiOrario::AZIONI[$nuovoStato] }}</button>
                                         </form>
                                     @endforeach
                                     @can('gestisci-anagrafica')
                                         <form method="POST" action="{{ route('orari.duplica', $orario) }}">
                                             @csrf
-                                            <button type="submit" class="underline text-gray-600 hover:text-gray-900 cursor-pointer">Duplica</button>
+                                            <button type="submit" class="{{ $pulsante }}">Duplica</button>
                                         </form>
                                     @endcan
                                 </div>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                            </section>
+                        @endif
+                    </div>
+                </article>
+            @endforeach
+        </div>
+    @endif
 @endsection

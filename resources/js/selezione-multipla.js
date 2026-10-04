@@ -45,7 +45,7 @@ document.addEventListener('click', async (e) => {
             method: 'POST', body: corpo, redirect: 'manual',
             headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
         });
-        if (r.type === 'opaqueredirect' || r.ok) c.closest('tr').remove(); else falliti++;
+        if (r.type === 'opaqueredirect' || r.ok) c.closest('tr, [data-riga]').remove(); else falliti++;
     }
     deseleziona();
     if (!falliti) return location.reload();

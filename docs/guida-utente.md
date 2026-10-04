@@ -297,7 +297,7 @@ Un orario segue questo percorso: **Bozza → In revisione → Approvato → Pubb
 - **Pubblicato**: è l'orario in vigore. Per ogni periodo ce n'è **uno solo**: pubblicandone un altro, il precedente passa da solo in **Archiviato**.
 - **Archiviato**: resta consultabile ed esportabile.
 
-I pulsanti dello stato compaiono nella riga dell'orario solo per i passaggi che il tuo ruolo può fare: **approvare, pubblicare e archiviare** spetta all'amministratore e al dirigente scolastico; **inviare in revisione** a chi gestisce l'anagrafica. Ogni cambio di stato resta nel registro delle modifiche.
+Ogni orario è una **scheda** con tre blocchi: **Consulta** (le viste per classe e per docente), **Esporta in PDF** e **Stato e copia**. I pulsanti dello stato compaiono nella scheda dell'orario solo per i passaggi che il tuo ruolo può fare: **approvare, pubblicare e archiviare** spetta all'amministratore e al dirigente scolastico; **inviare in revisione** a chi gestisce l'anagrafica. Ogni cambio di stato resta nel registro delle modifiche.
 
 ### Duplicare un orario
 
@@ -308,7 +308,7 @@ Da questa pagina puoi inoltre:
 - aprire la griglia di una classe (modificabile) o di un docente (sola lettura), con le **select di ricerca**: scrivi parte del nome per trovare la voce;
 - scaricare il **tabellone generale in PDF**;
 <!-- permesso: gestisci-anagrafica -->
-- eliminare un orario selezionandolo con la casella a sinistra: si eliminano solo gli orari in **bozza** o **archiviati** (la generazione resta nello storico).
+- eliminare un orario selezionandolo con la casella in alto a sinistra della sua scheda (o con **Seleziona tutti**): si eliminano solo gli orari in **bozza** o **archiviati** (la generazione resta nello storico).
 <!-- /permesso -->
 
 <!-- permesso: gestisci-anagrafica -->
@@ -325,8 +325,8 @@ Da questa pagina puoi inoltre:
 ### Esportare in PDF
 
 - **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Un foglio A4 orizzontale con il titolo al centro e tutta la settimana; le righe delle ore dopo l'ultima usata non compaiono.
-- **Tutte le classi** ("Classi PDF" nella pagina *Orari* e nella dashboard): un solo PDF A4 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.
-- **Tutti i docenti** ("Docenti PDF" nella pagina *Orari* e nella dashboard): un solo PDF A4 orizzontale con **un foglio per docente**, in ordine alfabetico, ciascuno con il titolo centrale, tutta la settimana e in ogni ora classe e materia. Le ore di **sostegno in compresenza** compaiono come "S classe". Compaiono solo i docenti che hanno almeno un'ora in quell'orario. Comodo per consegnare a ciascuno il proprio orario.
+- **Tutte le classi** (pulsante **Tutte le classi** nella pagina *Orari*, "Classi PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.
+- **Tutti i docenti** (pulsante **Tutti i docenti** nella pagina *Orari*, "Docenti PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per docente**, in ordine alfabetico, ciascuno con il titolo centrale, tutta la settimana e in ogni ora classe e materia. Le ore di **sostegno in compresenza** compaiono come "S classe". Compaiono solo i docenti che hanno almeno un'ora in quell'orario. Comodo per consegnare a ciascuno il proprio orario.
 - **Tabellone generale**: un solo foglio A3, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
 ## Ruoli e permessi
