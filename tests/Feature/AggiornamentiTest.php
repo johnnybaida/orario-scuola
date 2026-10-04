@@ -29,32 +29,50 @@ class AggiornamentiTest extends TestCase
         $this->actingAs($this->admin())->get('/dashboard')->assertSee('Versione 0.1.0');
     }
 
-    public function test_segnala_il_tag_piu_alto_se_piu_recente_ignorando_i_tag_non_di_versione(): void
+    private const URL_VERSION = 'raw.githubusercontent.com/johnnybaida/orario-scuola/main/VERSION';
+
+    public function test_segnala_una_versione_piu_alta_nel_file_version_online_senza_bisogno_di_tag(): void
     {
-        Http::fake(['api.github.com/*' => Http::response([['name' => 'v0.2.0'], ['name' => 'v0.10.1'], ['name' => 'v0.9.0'], ['name' => 'bozza']])]);
+        Http::fake([self::URL_VERSION => Http::response("0.10.1\n")]);   // 0.10.1 > 0.1.0: confronto numerico, non alfabetico
 
         $this->actingAs($this->admin())->getJson('/aggiornamenti')
             ->assertOk()->assertJsonPath('disponibile.versione', '0.10.1')
-            ->assertJsonPath('disponibile.url', 'https://github.com/johnnybaida/orario-scuola/releases/tag/v0.10.1');
+            ->assertJsonPath('disponibile.url', 'https://github.com/johnnybaida/orario-scuola');
+        Http::assertSent(fn ($richiesta) => str_contains($richiesta->url(), 'main/VERSION'));
     }
 
-    public function test_nessun_avviso_se_la_versione_e_aggiornata_o_non_ci_sono_tag(): void
+    public function test_nessun_avviso_se_la_versione_e_uguale_inferiore_o_il_file_non_e_valido(): void
     {
-        Http::fake(['api.github.com/*' => Http::response([['name' => 'v0.1.0']])]);
-        $this->actingAs($this->admin())->getJson('/aggiornamenti')->assertOk()->assertJsonPath('disponibile', null);
-
-        Cache::flush();
-        Http::fake(['api.github.com/*' => Http::response([])]);
-        $this->actingAs($this->admin())->getJson('/aggiornamenti')->assertJsonPath('disponibile', null);
+        $admin = $this->admin();
+        foreach (['0.1.0', '0.0.9', 'non una versione', '', '<html>404</html>'] as $contenuto) {
+            Cache::flush();
+            Http::fake([self::URL_VERSION => Http::response($contenuto)]);
+            $this->actingAs($admin)->getJson('/aggiornamenti')->assertOk()->assertJsonPath('disponibile', null);
+        }
     }
 
     public function test_senza_rete_o_con_errore_non_si_rompe_nulla_e_la_risposta_e_in_cache(): void
     {
-        Http::fake(['api.github.com/*' => Http::response('errore', 500)]);
+        Http::fake([self::URL_VERSION => Http::sequence()->push('errore', 500)->push('0.2.0')]);
         $admin = $this->admin();
         $this->actingAs($admin)->getJson('/aggiornamenti')->assertOk()->assertJsonPath('disponibile', null);
         $this->actingAs($admin)->getJson('/aggiornamenti');
-        Http::assertSentCount(1); // il fallimento si ricorda per un'ora
+        Http::assertSentCount(1); // il fallimento si ricorda per 15 minuti
+
+        $this->travel(16)->minutes();
+        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.2.0'); // poi riprova
+    }
+
+    public function test_una_versione_trovata_resta_in_cache_un_ora(): void
+    {
+        Http::fake([self::URL_VERSION => Http::sequence()->push('0.2.0')->push('0.3.0')]);
+        $admin = $this->admin();
+        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.2.0');
+        $this->actingAs($admin)->getJson('/aggiornamenti');
+        Http::assertSentCount(1);
+
+        $this->travel(61)->minutes();
+        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.3.0');
     }
 
     public function test_si_disattiva_e_non_e_per_tutti_i_ruoli(): void

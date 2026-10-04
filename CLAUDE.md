@@ -210,8 +210,8 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 ## Versione e rilasci
 
 - **Ad ogni cambiamento la versione deve cambiare**: prima di committare aggiorna `VERSION` (patch `0.1.0 → 0.1.1` per correzioni e ritocchi, minor `0.1.x → 0.2.0` per una nuova funzione, major per modifiche incompatibili) e, in caso di dubbio sul livello, chiedi. Non committare modifiche al codice o ai documenti dell'applicazione senza aver aggiornato `VERSION`.
-- La versione è nel file `VERSION` (radice, `MAJOR.MINOR.PATCH`), letta in `config('app.versione')` e mostrata in fondo alla sidebar. Per pubblicare una versione: aggiorna `VERSION`, committa, poi `git tag vX.Y.Z` e `git push --tags` (e, se vuoi le note, crea la release su GitHub con lo stesso tag).
-- `App\Services\ControlloAggiornamenti` confronta `VERSION` con il tag `vX.Y.Z` più alto del repository (API pubblica GitHub, in cache 6 ore, 1 ora se fallisce, timeout 3 s); la sidebar lo chiede via `GET /aggiornamenti` (gate `gestisci-utenze`, `resources/js/aggiornamenti.js`) dopo il caricamento, quindi non rallenta le pagine. È l'unica chiamata verso l'esterno: si spegne con `CONTROLLO_AGGIORNAMENTI=false`.
+- La versione è nel file `VERSION` (radice, `MAJOR.MINOR.PATCH`), letta in `config('app.versione')` e mostrata in fondo alla sidebar. Per pubblicare una versione basta aggiornare `VERSION`, committare e fare `git push` (tag e release su GitHub sono facoltativi, solo per le note).
+- `App\Services\ControlloAggiornamenti` confronta `VERSION` con il file `VERSION` del ramo `main` del repository (`raw.githubusercontent.com`, nessun tag richiesto; in cache 1 ora, 15 minuti se fallisce, timeout 3 s; per rileggere subito: `php artisan cache:forget ultima_versione`); la sidebar lo chiede via `GET /aggiornamenti` (gate `gestisci-utenze`, `resources/js/aggiornamenti.js`) dopo il caricamento, quindi non rallenta le pagine. È l'unica chiamata verso l'esterno: si spegne con `CONTROLLO_AGGIORNAMENTI=false`.
 
 ---
 

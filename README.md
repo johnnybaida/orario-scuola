@@ -177,13 +177,14 @@ Password per tutti: `password`.
 
 ## Versione e rilasci
 
-La versione è nel file `VERSION` e compare in fondo alla barra laterale. L'amministratore vede un avviso quando su GitHub esiste un tag `vX.Y.Z` più alto (controllo in sola lettura, ogni 6 ore al massimo; si spegne con `CONTROLLO_AGGIORNAMENTI=false`, su Docker `DOCKER_CONTROLLO_AGGIORNAMENTI=false`).
+La versione è nel file `VERSION` e compare in fondo alla barra laterale. L'amministratore vede un avviso quando il file `VERSION` del ramo `main` su GitHub ha un numero più alto di quello installato (nessun tag necessario; controllo in sola lettura, al massimo una volta all'ora; si spegne con `CONTROLLO_AGGIORNAMENTI=false`, su Docker `DOCKER_CONTROLLO_AGGIORNAMENTI=false`).
 
 Per pubblicare una nuova versione:
 
 ```bash
 echo 0.2.0 > VERSION && git commit -am "Versione 0.2.0"
-git tag v0.2.0 && git push && git push --tags   # poi, facoltativo, crea la release su GitHub con le note
+git push                                        # basta questo: le installazioni vedono l'avviso entro un'ora
+git tag v0.2.0 && git push --tags               # facoltativo: tag e release su GitHub con le note
 ```
 
 ---

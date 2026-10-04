@@ -408,9 +408,9 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 ## Versione e aggiornamenti
 <!-- sezione: gestisci-utenze -->
 
-In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se su GitHub è stata pubblicata una versione più recente, **l'amministratore** vede sotto la versione un avviso «Disponibile la versione X»: cliccandolo si apre la pagina con le novità.
+In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede sotto la versione un avviso «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
 
-- Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge l'elenco pubblico delle versioni del progetto, non invia alcun dato della scuola, avviene al massimo ogni 6 ore e, se manca la rete, semplicemente non succede nulla.
+- Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene al massimo **una volta all'ora** (15 minuti se non è raggiungibile) e, se manca la rete, semplicemente non succede nulla. Dopo aver aggiornato il file su GitHub l'avviso può quindi comparire con un po' di ritardo.
 - Per **aggiornare**: scarica la nuova versione da GitHub (come nell'installazione) e riavvia l'applicazione con il pulsante di avvio; i dati nel database restano.
 - Per **disattivare** il controllo, chi gestisce l'installazione imposta `CONTROLLO_AGGIORNAMENTI=false` nel file di configurazione.
 

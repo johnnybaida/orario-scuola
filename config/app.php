@@ -16,7 +16,7 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
-    | Versione dell'applicazione (file VERSION nella radice, es. 0.1.0; stessa numerazione dei tag git "v0.1.0"),
+    | Versione dell'applicazione (file VERSION nella radice, es. 0.1.0; confrontato con il file VERSION del ramo main su GitHub),
     | repository GitHub da cui controllare le nuove versioni e interruttore del controllo (rete in uscita).
     */
     'versione' => is_file(base_path('VERSION')) ? trim((string) file_get_contents(base_path('VERSION'))) : 'sconosciuta',
