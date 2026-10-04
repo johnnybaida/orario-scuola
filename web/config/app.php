@@ -1,5 +1,9 @@
 <?php
 
+// Radice del progetto (README, docs/, VERSION): nel repository sta una cartella sopra l'applicazione (web/);
+// nell'immagine Docker docs/ e VERSION sono copiati accanto all'applicazione e le due radici coincidono.
+$radice = is_file(base_path('VERSION')) ? base_path() : dirname(base_path());
+
 return [
 
     /*
@@ -19,7 +23,8 @@ return [
     | Versione dell'applicazione (file VERSION nella radice, es. 0.1.0; confrontato con il file VERSION del ramo main su GitHub),
     | repository GitHub da cui controllare le nuove versioni e interruttore del controllo (rete in uscita).
     */
-    'versione' => is_file(base_path('VERSION')) ? trim((string) file_get_contents(base_path('VERSION'))) : 'sconosciuta',
+    'radice' => $radice,
+    'versione' => is_file($radice.'/VERSION') ? trim((string) file_get_contents($radice.'/VERSION')) : 'sconosciuta',
     'repository' => 'johnnybaida/orario-scuola',
     'controllo_aggiornamenti' => (bool) env('CONTROLLO_AGGIORNAMENTI', true),
 

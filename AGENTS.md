@@ -1,3 +1,7 @@
+> **Nota per il progetto:** l'applicazione Laravel sta nella cartella `web/` (la radice contiene solo README, launcher,
+> Docker e documentazione). Tutti i comandi `php artisan`, `composer` e `npm` descritti qui sotto vanno lanciati da `web/`.
+> Vedi `CLAUDE.md` per le convenzioni del progetto.
+
 <laravel-boost-guidelines>
 # Laravel Application
 

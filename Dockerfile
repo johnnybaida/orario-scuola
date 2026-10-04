@@ -2,21 +2,22 @@
 #
 # Immagine unica di Orario Scuola: PHP + web server (FrankenPHP/Caddy), assets già compilati
 # e solver Python (OR-Tools). Si avvia con `docker compose up -d --build` (vedi compose.yaml).
+# L'applicazione sta nella cartella web/; nell'immagine finale è in /app insieme a docs/, docker/ e VERSION.
 
 # 1) Assets (Vite + Tailwind)
 FROM node:22-bookworm-slim AS assets
 WORKDIR /build
-COPY package.json package-lock.json ./
+COPY web/package.json web/package-lock.json ./
 RUN npm ci
-COPY . .
+COPY web/ .
 RUN npm run build
 
 # 2) Dipendenze PHP. Si installano anche quelle di sviluppo: i seeder della scuola di esempio usano Faker.
 FROM composer:2 AS vendor
 WORKDIR /build
-COPY composer.json composer.lock ./
+COPY web/composer.json web/composer.lock ./
 RUN composer install --no-interaction --no-scripts --no-autoloader --prefer-dist --ignore-platform-reqs
-COPY . .
+COPY web/ .
 RUN composer dump-autoload --optimize --no-scripts --ignore-platform-reqs
 
 # 3) Immagine finale (Debian bookworm: Python 3.11, quello richiesto dal solver)
@@ -30,12 +31,15 @@ RUN apt-get update \
 WORKDIR /app
 
 # Solver: l'ambiente virtuale sta dove lo cerca SolverRunner (solver/.venv). pytest serve solo allo sviluppo.
-COPY solver/requirements.txt solver/requirements.txt
+COPY web/solver/requirements.txt solver/requirements.txt
 RUN grep -v '^pytest' solver/requirements.txt > /tmp/requirements.txt \
     && python3 -m venv solver/.venv \
     && solver/.venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY . .
+COPY web/ .
+COPY docs docs
+COPY docker docker
+COPY VERSION VERSION
 COPY --from=vendor /build/vendor vendor
 COPY --from=assets /build/public/build public/build
 COPY docker/Caddyfile /etc/caddy/Caddyfile

@@ -34,6 +34,8 @@ Ti serve la cartella del progetto, con dentro i file di avvio. Puoi averla in du
 - **Scaricarla da GitHub** (consigliato): vai su **<https://github.com/johnnybaida/orario-scuola>**, clicca il pulsante verde **Code** e poi **Download ZIP**. Il file scaricato è lo ZIP da estrarre qui sotto. I file di avvio (`Avvia-Orario-Scuola.bat`, `Avvia-Orario-Scuola.command` e i due `Ferma-…`) sono nella cartella principale del progetto.
 - **Ricevere un file ZIP** da chi gestisce l'installazione: è lo stesso contenuto.
 
+Nella cartella troverai pochi file. **Quelli che ti servono sono i quattro di avvio** (`Avvia-…` e `Ferma-…`, due per Windows e due per Mac) e questo `README.md`. Le cartelle `web`, `docs` e `docker` e gli altri file (`Dockerfile`, `compose.yaml`, `VERSION`, …) sono il programma stesso: **non vanno aperti né modificati**.
+
 In entrambi i casi, **estrai lo ZIP** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
 
 Per **aggiornare** a una nuova versione basta riscaricare lo ZIP da GitHub (o riceverne uno nuovo) e ripetere questo passo e il successivo: i dati non si perdono. Chi usa Git può anche clonare il progetto con `git clone https://github.com/johnnybaida/orario-scuola.git` e aggiornarlo con `git pull`.
@@ -125,17 +127,21 @@ Il progetto non richiede Apache/Nginx: `php artisan serve` basta per lo sviluppo
 
 ## Setup iniziale
 
+L'applicazione sta nella cartella **`web/`**: tutti i comandi qui sotto si lanciano da lì.
+
 ```bash
+cd web
+
 # dipendenze PHP e JS
 composer install
 npm install
 
-# configurazione
+# configurazione (il file .env di Laravel sta in web/, non nella radice del progetto)
 cp .env.example .env
 php artisan key:generate
 ```
 
-Apri `.env` e imposta le credenziali del database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) prima di continuare.
+Apri `web/.env` e imposta le credenziali del database (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) prima di continuare.
 
 ```bash
 # schema + dati di esempio (15 classi, 40 docenti, quadro a 30 ore)
@@ -146,13 +152,16 @@ python3.11 -m venv solver/.venv
 solver/.venv/bin/pip install -r solver/requirements.txt
 ```
 
+> Il file `.env` nella **radice** del progetto serve solo a Docker (variabili `DOCKER_*`, vedi sopra) e non è quello di Laravel.
+
 ---
 
 ## Sviluppo
 
-Servono **tre processi** in parallelo (tre terminali, o un multiplexer):
+Servono **tre processi** in parallelo (tre terminali, o un multiplexer), tutti da `web/`:
 
 ```bash
+cd web
 php artisan serve        # applicazione: http://127.0.0.1:8000
 npm run dev              # build Vite con hot reload di CSS/JS
 php artisan queue:work   # worker di coda: necessario per generare l'orario (vedi sotto)
@@ -192,6 +201,7 @@ git tag v0.2.0 && git push --tags               # facoltativo: tag e release su 
 ## Test
 
 ```bash
+cd web
 php artisan test                    # test PHP (Feature + Unit)
 solver/.venv/bin/pytest solver/tests   # test del solver Python
 ```
@@ -201,32 +211,36 @@ solver/.venv/bin/pytest solver/tests   # test del solver Python
 ## Struttura del progetto
 
 ```
-app/
-  Models/                 # entità di dominio (nomi in italiano)
-  Http/Controllers/
-  Http/Requests/          # validazione dei form
-  Support/                # ruoli/permessi, mappa pagina → sezione della guida
-  Constraints/            # catalogo vincoli configurabili (D1, D3, D6, T2, T3)
-  Services/
-    Solver/               # ProblemBuilder, SolverRunner, ResultImporter
-    Validation/           # pre-validazione prima del solving (con link per correggere)
-    Editor/               # spostamento/scambio lezioni nella griglia
-    Export/               # export PDF
-    QueueWorker.php       # avvio/arresto del worker di coda dall'interfaccia
-    SincronizzaRighe.php  # salvataggio delle righe ripetibili dei form
-  Jobs/GenerateTimetable.php
-resources/
-  views/                  # Blade; components/ con i pezzi riusabili (toast, barre, righe ripetibili, ...)
-  js/                     # moduli ES vanilla (nessun framework JS)
-solver/
-  solver.py               # entrypoint CP-SAT: JSON stdin -> JSON stdout
-  constraints/            # un modulo per tipo di vincolo
-  tests/
+README.md, CLAUDE.md, AGENTS.md, VERSION, LICENSE
+Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic (installazione semplice)
+Dockerfile, compose.yaml, docker/         # avvio con Docker
 docs/
   analisi-orario-scuola-media.md   # specifica funzionale
   guida-utente.md                  # manuale mostrato nel pannello Aiuto
-design-system/            # design system dell'interfaccia
-docker/, Dockerfile, compose.yaml  # avvio con Docker
+  design-system/                   # design system dell'interfaccia
+web/                                # l'applicazione (Laravel): tutti i comandi di sviluppo si lanciano da qui
+  app/
+    Models/               # entità di dominio (nomi in italiano)
+    Http/Controllers/
+    Http/Requests/        # validazione dei form
+    Support/              # ruoli/permessi, mappa pagina → sezione della guida
+    Constraints/          # catalogo vincoli configurabili (D1, D3, D6, T2, T3)
+    Services/
+      Solver/             # ProblemBuilder, SolverRunner, ResultImporter
+      Validation/         # pre-validazione prima del solving (con link per correggere)
+      Editor/             # spostamento/scambio lezioni, controllo dell'orario
+      Export/             # export PDF
+      QueueWorker.php     # avvio/arresto del worker di coda dall'interfaccia
+      SincronizzaRighe.php  # salvataggio delle righe ripetibili dei form
+    Jobs/GenerateTimetable.php
+  resources/
+    views/                # Blade; components/ con i pezzi riusabili (toast, barre, righe ripetibili, ...)
+    js/                   # moduli ES vanilla (nessun framework JS)
+  solver/
+    solver.py             # entrypoint CP-SAT: JSON stdin -> JSON stdout
+    constraints/          # un modulo per tipo di vincolo
+    tests/
+  database/, routes/, config/, tests/, public/, storage/, composer.json, package.json, ...
 ```
 
 Per le convenzioni di codice, l'interfaccia, i permessi, il contratto PHP↔solver e la roadmap delle fasi successive, vedi [`CLAUDE.md`](CLAUDE.md). Il manuale per gli utenti è in [`docs/guida-utente.md`](docs/guida-utente.md) (si aggiorna insieme alle funzioni).

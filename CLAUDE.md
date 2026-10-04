@@ -26,24 +26,27 @@ Non aggiungere dipendenze (Composer, npm, pip) senza chiedere. Per PDF/Excel pro
 
 ## Comandi
 
+L'applicazione Laravel sta in **`web/`**: i comandi di sviluppo (`php artisan`, `composer`, `npm`, test) si lanciano da lì. Nella radice restano solo i file che servono a chi installa (README, launcher, Docker) e la documentazione. Il file `.env` della radice è quello di Docker (variabili `DOCKER_*`); quello di Laravel è `web/.env`.
+
 ```bash
-# setup
+# setup (da web/)
+cd web
 composer install && npm install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed
 python3.11 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt
 
-# sviluppo
+# sviluppo (da web/)
 php artisan serve
 npm run dev
 php artisan queue:work          # necessario per la generazione; l'app lo avvia/ferma da "Genera orario" e lo avvia da sola con "Avvia generazione"
 
-# tutto su Docker (app + database + worker, con la scuola di esempio): http://localhost:8080
+# tutto su Docker (dalla radice: app + database + worker, con la scuola di esempio): http://localhost:8080
 docker compose up -d --build
 docker compose down -v          # ferma e cancella i dati
 # per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola.bat (Windows) o .command (Mac); istruzioni nel README
 
-# test
+# test (da web/)
 php artisan test
 solver/.venv/bin/pytest solver/tests
 ```
@@ -55,6 +58,15 @@ Se un comando non esiste ancora o cambia, aggiorna questa sezione.
 ## Struttura
 
 ```
+README.md, CLAUDE.md, AGENTS.md, VERSION, LICENSE          # nella radice: pochi file, per chi installa e per chi sviluppa
+Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
+Dockerfile, compose.yaml, docker/         # avvio con Docker; docker/ = entrypoint, Caddyfile e script di avvio del container
+docs/
+  analisi-orario-scuola-media.md   # specifica funzionale (fonte di verità)
+  guida-utente.md                  # manuale mostrato nel pannello Aiuto (dipende dal ruolo)
+  design-system/                   # design system dell'interfaccia (MASTER.md + regole per tipo di pagina)
+web/                      # l'applicazione Laravel; i percorsi qui sotto sono relativi a web/
+  artisan, composer.json, package.json, phpunit.xml, vite.config.js, .env.example, config/, database/, routes/, tests/, public/, storage/
 app/
   Models/                 # entità di dominio (nomi in italiano, vedi Convenzioni)
   Http/Controllers/
@@ -79,13 +91,9 @@ solver/
   solver.py               # entrypoint: legge JSON da stdin, scrive JSON su stdout
   constraints/            # un modulo per tipo di vincolo
   tests/
-docs/
-  analisi-orario-scuola-media.md   # specifica funzionale (fonte di verità)
-  guida-utente.md                  # manuale mostrato nel pannello Aiuto (dipende dal ruolo)
-design-system/            # design system dell'interfaccia (MASTER.md + regole per tipo di pagina)
-docker/                   # entrypoint, Caddyfile e script di avvio del container; vedi anche Dockerfile e compose.yaml
-Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
 ```
+
+`docs/` e `VERSION` stanno nella radice, fuori da `web/`: l'applicazione li trova con `config('app.radice')` (nell'immagine Docker sono copiati accanto all'applicazione, in `/app`). Per leggere un file della radice non usare `base_path()` ma `config('app.radice')`.
 
 ---
 

@@ -20,7 +20,7 @@ class GuidaController extends Controller
     public function show(): JsonResponse
     {
         $utente = auth()->user();
-        $parti = preg_split('/^## (.+)$/m', file_get_contents(base_path('docs/guida-utente.md')), -1, PREG_SPLIT_DELIM_CAPTURE);
+        $parti = preg_split('/^## (.+)$/m', file_get_contents(config('app.radice').'/docs/guida-utente.md'), -1, PREG_SPLIT_DELIM_CAPTURE);
         $html = fn (string $testo) => Str::markdown($this->perRuolo($testo), ['html_input' => 'strip', 'allow_unsafe_links' => false]);
 
         // $parti[0] è l'introduzione sotto il titolo "#"; poi coppie [titolo, testo].
