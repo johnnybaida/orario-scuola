@@ -48,8 +48,11 @@
                                 @php($slot = $slotGiorno->firstWhere('ordine', $ordine))
                                 <td style="height: {{ $altezza }}pt">
                                     @if ($slot)
-                                        @php($lezione = $foglio['lezioni']->get($slot->id))
-                                        <span class="cella">{{ $lezione ? $foglio['colonna']($lezione) : '' }}</span>
+                                        {{-- Una cella può avere più lezioni (aula con capienza > 1): una sotto l'altra. --}}
+                                        @foreach (\Illuminate\Support\Collection::wrap($foglio['lezioni']->get($slot->id)) as $lezione)
+                                            @if (! $loop->first)<hr style="border: 0; border-top: 1px solid #bbb; margin: 3px 0">@endif
+                                            <span class="cella">{{ $foglio['colonna']($lezione) }}</span>
+                                        @endforeach
                                         @foreach ($foglio['sostegni'][$slot->id] ?? [] as $cognome)
                                             <br><span class="sostegno">S {{ $cognome }}</span>
                                         @endforeach

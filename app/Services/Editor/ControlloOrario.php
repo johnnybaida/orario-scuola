@@ -2,7 +2,6 @@
 
 namespace App\Services\Editor;
 
-use App\Models\Aula;
 use App\Models\Cattedra;
 use App\Models\Lezione;
 use App\Models\Orario;
@@ -12,7 +11,7 @@ use Illuminate\Support\Collection;
 /**
  * Stato reale di un orario, ricalcolato a ogni richiesta (a differenza degli avvisi, che sono il registro degli esiti
  * delle modifiche): docente in due classi nello stesso slot, docente indisponibile, classe con due lezioni nello
- * stesso slot, slot fuori scansione, aule oltre la capienza, ore diverse dal quadro, ore senza lezione.
+ * stesso slot, slot fuori scansione, aule usate da troppe classi o mancanti, ore diverse dal quadro, ore senza lezione.
  */
 class ControlloOrario
 {
@@ -22,13 +21,14 @@ class ControlloOrario
     public function problemi(Orario $orario): array
     {
         $lezioni = Lezione::query()->where('orario_id', $orario->id)
-            ->with('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina', 'slot')->get();
+            ->with('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina', 'slot', 'aula')->get();
         $problemi = [
             ...$this->docentiInDuePosti($lezioni),
             ...$this->docentiIndisponibili($lezioni),
             ...$this->classiConDueLezioni($lezioni),
             ...$this->slotFuoriScansione($lezioni),
-            ...$this->auleOltreCapienza($lezioni),
+            ...$this->auleMancanti($lezioni),
+            ...$this->auleDoppie($lezioni),
             ...$this->oreDiverseDalQuadro($lezioni),
             ...$this->oreSenzaLezione($lezioni),
         ];
@@ -101,20 +101,40 @@ class ControlloOrario
                 [$l->id], [$l->cattedra->classe_id]))->values()->all();
     }
 
-    private function auleOltreCapienza(Collection $lezioni): array
+    /** Una lezione che richiede un tipo di aula ma non ne ha una assegnata (o ne ha una di tipo diverso). */
+    private function auleMancanti(Collection $lezioni): array
     {
         $problemi = [];
-        $capienze = Aula::query()->selectRaw('tipo, sum(capienza) as totale')->groupBy('tipo')->pluck('totale', 'tipo');
-        $gruppi = $lezioni->filter(fn (Lezione $l) => $l->cattedra->disciplina->tipo_aula_richiesto)
-            ->groupBy(fn (Lezione $l) => $l->cattedra->disciplina->tipo_aula_richiesto.'|'.$l->slot_id);
 
-        foreach ($gruppi as $chiave => $gruppo) {
-            $tipo = explode('|', $chiave)[0];
-            $capienza = (int) ($capienze[$tipo] ?? 0);
-            if ($gruppo->count() > $capienza) {
-                $classi = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe->nomeCompleto())->unique()->implode(', ');
-                $problemi[] = $this->p('errore', "{$gruppo->first()->slot->descrizione()}: l'aula di tipo '{$tipo}' è richiesta da {$gruppo->count()} lezioni ({$classi}) ma ha capienza {$capienza}.",
-                    $gruppo->pluck('id'), $gruppo->map(fn (Lezione $l) => $l->cattedra->classe_id));
+        foreach ($lezioni as $l) {
+            $tipo = $l->cattedra->disciplina->tipo_aula_richiesto;
+            if (! $tipo) {
+                continue;
+            }
+            $dove = "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->disciplina->nome}";
+            if (! $l->aula) {
+                $problemi[] = $this->p('errore', "{$dove} richiede un'aula di tipo '{$tipo}' ma non ne ha una assegnata.", [$l->id], [$l->cattedra->classe_id]);
+            } elseif ($l->aula->tipo !== $tipo) {
+                $problemi[] = $this->p('errore', "{$dove} richiede un'aula di tipo '{$tipo}' ma è in {$l->aula->nome} (tipo '{$l->aula->tipo}').", [$l->id], [$l->cattedra->classe_id]);
+            }
+        }
+
+        return $problemi;
+    }
+
+    /** La stessa aula usata da più classi di quante ne possa contenere (capienza = lezioni contemporanee). */
+    private function auleDoppie(Collection $lezioni): array
+    {
+        $problemi = [];
+        $gruppi = $lezioni->filter(fn (Lezione $l) => $l->aula)->groupBy(fn (Lezione $l) => $l->aula_id.'-'.$l->slot_id);
+
+        foreach ($gruppi as $gruppo) {
+            $aula = $gruppo->first()->aula;
+            $classi = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe)->unique('id');
+            if ($classi->count() > $aula->capienza) {
+                $elenco = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' ('.$l->cattedra->disciplina->nome.')')->implode(' e ');
+                $problemi[] = $this->p('errore', "{$aula->nome}, {$gruppo->first()->slot->descrizione()}: usata da {$classi->count()} classi insieme ({$elenco}) ma può ospitarne {$aula->capienza}.",
+                    $gruppo->pluck('id'), $classi->pluck('id'));
             }
         }
 

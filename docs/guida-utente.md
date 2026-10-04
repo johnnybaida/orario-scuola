@@ -66,6 +66,8 @@ Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spo
 2. Come tipo scegli **"DADA · nome della disciplina"**.
 3. La disciplina viene collegata automaticamente a quell'aula.
 4. Nelle classi lascia vuoto il campo **Aula base**.
+5. Ogni disciplina DADA può avere **più aule** (due aule di Italiano, per esempio): il generatore sceglie quella libera a ogni ora.
+6. Per leggere l'orario ci sono tre modi, tutti nella pagina **Orari**: la **vista classe** (dove deve andare la classe a ogni ora, con il nome dell'aula in ogni lezione), la **vista aula** (chi arriva in aula a ogni ora: è anche il foglio da appendere alla porta) e la **vista docente**. Con la didattica tradizionale restano utili le stesse viste, ma nella classe l'aula compare solo quando non è la sua (palestra, laboratori).
 <!-- /permesso -->
 
 
@@ -313,7 +315,7 @@ Ogni orario è una **scheda** con tre blocchi: **Consulta** (le viste per classe
 
 Da questa pagina puoi inoltre:
 
-- aprire la griglia di una classe (modificabile) o di un docente (sola lettura), con le **select di ricerca**: scrivi parte del nome per trovare la voce;
+- aprire la griglia di una classe (modificabile), di un docente o di un'**aula** (sola lettura), con le **select di ricerca**: scrivi parte del nome per trovare la voce. Nella griglia di classe e di docente, sotto ogni lezione compare l'**aula** quando è diversa dall'aula base della classe (sempre, con la didattica DADA). La **vista aula** mostra, ora per ora, quale classe e quale docente ci sono (anche in aule con più classi insieme, come la palestra) e quando l'aula è **libera**; comprende le lezioni delle classi che hanno quell'aula come aula base;
 - scaricare il **tabellone generale in PDF**;
 <!-- permesso: gestisci-anagrafica -->
 - eliminare un orario selezionandolo con la casella in alto a sinistra della sua scheda (o con **Seleziona tutti**): si eliminano solo gli orari in **bozza** o **archiviati** (la generazione resta nello storico).
@@ -337,7 +339,7 @@ Sopra la griglia di ogni classe c'è il riquadro **Controllo dell'orario**: è l
 - un **docente in due posti** nello stesso momento (con le due classi);
 - un docente **indisponibile** in quell'ora;
 - una classe con **due lezioni** nello stesso momento, o una lezione in un'ora **fuori scansione**;
-- un'**aula** richiesta da più lezioni di quante ne possa contenere;
+- un'**aula usata da più classi insieme** di quante ne possa ospitare (la capienza dell'aula è il numero di classi contemporanee), una lezione che richiede un tipo di aula ma **non ne ha una assegnata**, o è in un'aula di **tipo diverso**;
 - **ore diverse** da quelle previste per una cattedra;
 - **ore senza lezione** (avviso).
 
@@ -357,6 +359,7 @@ I conflitti provvisori non permettono mai di spostare una lezione bloccata o in 
 
 - **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Un foglio A4 orizzontale con il titolo al centro e tutta la settimana; le righe delle ore dopo l'ultima usata non compaiono.
 - **Tutte le classi** (pulsante **Tutte le classi** nella pagina *Orari*, "Classi PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.
+- **Tutte le aule** (pulsante **Tutte le aule** nella pagina *Orari*) e **una sola aula** ("Esporta PDF" della vista aula): un PDF A4 orizzontale con **un foglio per aula**, in ordine alfabetico, con classe, materia e docente di ogni ora: è il foglio da appendere alla porta. Compaiono solo le aule usate in quell'orario. Nei PDF per classe e per docente l'aula è scritta sotto ogni lezione, con le stesse regole delle griglie.
 - **Tutti i docenti** (pulsante **Tutti i docenti** nella pagina *Orari*, "Docenti PDF" nella dashboard): un solo PDF A4 orizzontale con **un foglio per docente**, in ordine alfabetico, ciascuno con il titolo centrale, tutta la settimana e in ogni ora classe e materia. Le ore di **sostegno in compresenza** compaiono come "S classe". Compaiono solo i docenti che hanno almeno un'ora in quell'orario. Comodo per consegnare a ciascuno il proprio orario.
 - **Tabellone generale**: un solo foglio A3, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 

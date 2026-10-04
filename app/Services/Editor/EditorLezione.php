@@ -46,6 +46,10 @@ class EditorLezione
 
         $lezione->update(['slot_id' => $slotDestinazioneId]);
         $lezioneEsistente?->update(['slot_id' => $slotOrigineId]);
+        $this->riassegnaAula($lezione);
+        if ($lezioneEsistente) {
+            $this->riassegnaAula($lezioneEsistente);
+        }
 
         AuditLog::query()->create([
             'user_id' => $utenteId,
@@ -178,7 +182,7 @@ class EditorLezione
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
-            'aula_id' => $this->risolviAula($nuovaCattedra, $orarioId, $lezione->slot_id, [$lezione->id]),
+            'aula_id' => $this->risolviAula($nuovaCattedra, $orarioId, $lezione->slot_id, [$lezione->id], $lezione->aula_id),
         ]);
 
         AuditLog::query()->create([
@@ -271,7 +275,7 @@ class EditorLezione
             'spostamento', 'scambio' => $this->riportaSlot($lezione, $stato, $altro),
             'cambio_cattedra' => $lezione->update([
                 'cattedra_id' => $stato['cattedra_id'],
-                'aula_id' => $this->risolviAula(Cattedra::query()->findOrFail($stato['cattedra_id']), $lezione->orario_id, $lezione->slot_id, [$lezione->id]),
+                'aula_id' => $this->risolviAula(Cattedra::query()->findOrFail($stato['cattedra_id']), $lezione->orario_id, $lezione->slot_id, [$lezione->id], $lezione->aula_id),
             ]),
             'blocco' => $lezione->update(['bloccata' => $stato['bloccata']]),
         };
@@ -292,6 +296,11 @@ class EditorLezione
         // In uno scambio l'altra lezione va dove si trovava la prima nell'altro stato.
         if (! empty($stato['scambiata_con'])) {
             Lezione::query()->where('id', $stato['scambiata_con'])->update(['slot_id' => $altro['slot_id']]);
+        }
+        // L'aula dipende dall'ora: va ricalcolata anche annullando o ripetendo.
+        $this->riassegnaAula($lezione);
+        if (! empty($stato['scambiata_con']) && ($altra = Lezione::query()->find($stato['scambiata_con']))) {
+            $this->riassegnaAula($altra);
         }
     }
 
@@ -334,27 +343,41 @@ class EditorLezione
         return $avvisi;
     }
 
-    /** Aula coerente con il tipo richiesto dalla disciplina della cattedra, se serve. */
-    private function risolviAula(Cattedra $cattedra, int $orarioId, int $slotId, array $lezioniEscluse): ?int
+    /**
+     * Aula per la lezione nello slot: nessuna se la disciplina non richiede un tipo di aula (la classe resta nella sua);
+     * altrimenti un'aula di quel tipo con posto libero (capienza = lezioni contemporanee), preferendo $preferita se
+     * è ancora disponibile, così le lezioni di una disciplina restano nella stessa aula quando possibile.
+     */
+    private function risolviAula(Cattedra $cattedra, int $orarioId, int $slotId, array $lezioniEscluse, ?int $preferita = null): ?int
     {
-        $cattedra->loadMissing('classe', 'disciplina');
+        $cattedra->loadMissing('disciplina');
+        $tipo = $cattedra->disciplina->tipo_aula_richiesto;
 
-        if (! $cattedra->disciplina->tipo_aula_richiesto) {
-            return $cattedra->classe->aula_base_id;
+        if (! $tipo) {
+            return null;
         }
 
-        $occupate = Lezione::query()
+        $occupazione = Lezione::query()
             ->where('orario_id', $orarioId)
             ->where('slot_id', $slotId)
             ->whereNotIn('id', $lezioniEscluse)
-            ->pluck('aula_id')
-            ->filter()
-            ->all();
+            ->whereNotNull('aula_id')
+            ->with('cattedra')
+            ->get()
+            ->groupBy('aula_id')
+            ->map(fn ($gruppo) => $gruppo->pluck('cattedra.classe_id')->unique()->count());
 
-        return Aula::query()
-            ->where('tipo', $cattedra->disciplina->tipo_aula_richiesto)
-            ->whereNotIn('id', $occupate)
-            ->value('id');
+        $libere = Aula::query()->where('tipo', $tipo)->orderBy('id')->get()
+            ->filter(fn (Aula $a) => ($occupazione[$a->id] ?? 0) < $a->capienza);
+
+        return ($preferita && $libere->contains('id', $preferita)) ? $preferita : $libere->first()?->id;
+    }
+
+    /** Dopo uno spostamento ricalcola l'aula della lezione (in DADA l'aula dipende da ora e disponibilità). */
+    private function riassegnaAula(Lezione $lezione): void
+    {
+        $lezione->refresh()->loadMissing('cattedra.disciplina');
+        $lezione->update(['aula_id' => $this->risolviAula($lezione->cattedra, $lezione->orario_id, $lezione->slot_id, [$lezione->id], $lezione->aula_id)]);
     }
 
     /** @return string[] messaggi di violazione (vuoto = posizionamento valido) */

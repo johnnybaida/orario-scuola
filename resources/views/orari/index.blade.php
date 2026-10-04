@@ -6,7 +6,7 @@
     <h1 class="text-xl font-semibold mb-6">Orari generati</h1>
 
     <x-guida>
-        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe o di un docente, oppure
+        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe, di un docente o di un'aula, oppure
         esporti i PDF. Ogni orario ha uno <strong>stato</strong>: bozza → in revisione → approvato → pubblicato → archiviato.
         Solo la <strong>bozza</strong> si modifica (la griglia di una classe è modificabile soltanto allora); con
         <strong>Duplica</strong> crei una copia in bozza per provare una variante. Si eliminano solo gli orari in bozza
@@ -78,6 +78,12 @@
                                         <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
                                     @endforeach
                                 </select>
+                                <select data-ricerca class="js-vai-classe w-full text-sm" data-base="/orari/{{ $orario->id }}/aula" aria-label="Vista aula">
+                                    <option value="">Vista aula…</option>
+                                    @foreach ($aule as $aula)
+                                        <option value="{{ $aula->id }}">{{ $aula->nome }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </section>
 
@@ -87,6 +93,7 @@
                                 <a href="{{ route('orari.export.generale', $orario) }}" class="{{ $pulsante }}">Tabellone</a>
                                 <a href="{{ route('orari.export.classi', $orario) }}" class="{{ $pulsante }}">Tutte le classi</a>
                                 <a href="{{ route('orari.export.docenti', $orario) }}" class="{{ $pulsante }}">Tutti i docenti</a>
+                                <a href="{{ route('orari.export.aule', $orario) }}" class="{{ $pulsante }}">Tutte le aule</a>
                             </div>
                         </section>
 

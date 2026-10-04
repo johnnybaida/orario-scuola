@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Aula;
 use App\Models\Cattedra;
 use App\Models\CompresenzaSostegno;
 use App\Models\Classe;
@@ -35,6 +36,7 @@ class OrarioController extends Controller
             }),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
             'docenti' => Docente::query()->orderBy('cognome')->get(),
+            'aule' => Aula::query()->orderBy('nome')->get(),
         ]);
     }
 
@@ -99,6 +101,25 @@ class OrarioController extends Controller
             'orario' => $orario,
             'docente' => $docente,
             // Solo fino all'ultima ora in cui il docente ha lezione.
+            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
+            'lezioni' => $lezioni,
+        ]);
+    }
+
+    /** Occupazione di un'aula (anche quella base di una classe): chi c'è a ogni ora. Vista in sola lettura. */
+    public function aula(Orario $orario, Aula $aula): View
+    {
+        $lezioni = Lezione::query()
+            ->where('orario_id', $orario->id)
+            ->inAula($aula)
+            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente')
+            ->get()
+            ->groupBy('slot_id');
+
+        return view('orari.aula', [
+            'orario' => $orario,
+            'aula' => $aula->load('sede'),
+            // Solo fino all'ultima ora in cui l'aula è usata.
             'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
         ]);
@@ -299,7 +320,7 @@ class OrarioController extends Controller
         return Lezione::query()
             ->where('orario_id', $orario->id)
             ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-            ->with('cattedra.disciplina', 'cattedra.docente', 'aula')
+            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'aula')
             ->get()
             ->keyBy('slot_id');
     }

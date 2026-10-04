@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Aula;
 use App\Models\Classe;
 use App\Models\Docente;
 use App\Models\Orario;
@@ -28,6 +29,16 @@ class ExportController extends Controller
     public function docenti(Orario $orario, OrarioPdfExporter $exporter): Response
     {
         return $exporter->docenti($orario)->stream('orario-tutti-i-docenti.pdf');
+    }
+
+    public function aula(Orario $orario, Aula $aula, OrarioPdfExporter $exporter): Response
+    {
+        return $exporter->aule($orario, collect([$aula]))->stream("orario-{$aula->nome}.pdf");
+    }
+
+    public function aule(Orario $orario, OrarioPdfExporter $exporter): Response
+    {
+        return $exporter->aule($orario)->stream('orario-tutte-le-aule.pdf');
     }
 
     public function generale(Orario $orario, OrarioPdfExporter $exporter): Response

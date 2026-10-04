@@ -9,7 +9,8 @@
     </div>
 
     <x-guida>
-        Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.
+        Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata. Sotto ogni lezione compare l'aula,
+        se non è l'aula base della classe.
     </x-guida>
 
     <div class="bg-white border border-gray-200 rounded-lg">
@@ -38,6 +39,9 @@
                                         <div class="rounded px-2 py-1 text-xs bg-blue-50 border border-blue-200">
                                             <div class="font-medium">{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->disciplina->nome }}</div>
+                                            @if ($aulaLezione = $lezione->aulaDaMostrare())
+                                                <div class="text-[10px] font-medium text-blue-800" title="Aula">{{ $aulaLezione->nome }}</div>
+                                            @endif
                                         </div>
                                     @else
                                         <div class="text-[10px] text-gray-300 text-center">—</div>

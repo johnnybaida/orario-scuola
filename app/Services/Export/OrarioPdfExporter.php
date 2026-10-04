@@ -2,6 +2,7 @@
 
 namespace App\Services\Export;
 
+use App\Models\Aula;
 use App\Models\Classe;
 use App\Models\Docente;
 use App\Models\Lezione;
@@ -36,7 +37,7 @@ class OrarioPdfExporter
                 ->with('cattedra.disciplina', 'cattedra.docente', 'aula')
                 ->get()
                 ->keyBy('slot_id'),
-            'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
+            'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
             'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
                 ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
         ])->all();
@@ -71,12 +72,44 @@ class OrarioPdfExporter
                 'titolo' => "Orario docente {$docente->nomeCompleto()}",
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome,
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
             ];
         })->all();
 
         return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+    }
+
+    /**
+     * Un foglio A4 orizzontale per aula (il foglio da appendere alla porta): per ogni ora la classe, la disciplina e il
+     * docente. Comprende anche l'aula base delle classi. Senza argomento: tutte le aule usate in questo orario.
+     */
+    public function aule(Orario $orario, ?Collection $aule = null): PdfDocument
+    {
+        $lezioni = Lezione::query()->where('orario_id', $orario->id)
+            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'aula')->get();
+
+        $aule ??= Aula::query()->orderBy('nome')->get()->filter(fn (Aula $a) => $lezioni->contains(fn (Lezione $l) => $this->inAula($l, $a)))->values();
+
+        $fogli = $aule->map(function (Aula $aula) use ($lezioni) {
+            $sue = $lezioni->filter(fn (Lezione $l) => $this->inAula($l, $aula))->groupBy('slot_id');
+
+            return [
+                'titolo' => "Orario aula {$aula->nome}",
+                'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys())->max('ordine')),
+                'lezioni' => $sue,
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
+                'sostegni' => [],
+            ];
+        })->all();
+
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+    }
+
+    /** Stessa regola di Lezione::scopeInAula, su lezioni già caricate. */
+    private function inAula(Lezione $l, Aula $aula): bool
+    {
+        return $l->aula_id === $aula->id || ($l->aula_id === null && $l->cattedra->classe->aula_base_id === $aula->id);
     }
 
     /**
