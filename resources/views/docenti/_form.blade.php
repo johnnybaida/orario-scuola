@@ -62,10 +62,12 @@
 <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Classi di concorso abilitanti</label>
     @php($scelte = old('classi_concorso', $docente?->relationLoaded('classiConcorso') ? $docente->classiConcorso->pluck('classe_concorso')->all() : []))
-    <div class="flex flex-wrap gap-3">
-        @forelse (collect($classiConcorso)->merge($scelte)->unique()->sort() as $cc)
+    <p class="text-xs text-gray-500 mb-2">Il codice dell'abilitazione, con accanto le discipline che permette di insegnare.</p>
+    <div class="flex flex-wrap gap-x-5 gap-y-2">
+        @forelse (collect(array_keys($classiConcorso))->merge($scelte)->unique()->sort() as $cc)
             <label class="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" name="classi_concorso[]" value="{{ $cc }}" @checked(in_array($cc, $scelte))> {{ $cc }}
+                <input type="checkbox" name="classi_concorso[]" value="{{ $cc }}" @checked(in_array($cc, $scelte))>
+                <span><strong>{{ $cc }}</strong>@if (! empty($classiConcorso[$cc])) <span class="text-gray-500">— {{ implode(', ', $classiConcorso[$cc]) }}</span>@endif</span>
             </label>
         @empty
             <p class="text-xs text-gray-500">Nessuna classe di concorso censita: indicale nelle discipline.</p>

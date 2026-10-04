@@ -89,9 +89,11 @@ class DocenteController extends Controller
         return redirect()->route('docenti.index')->with('successo', 'Docente eliminato.');
     }
 
+    /** Classi di concorso censite nelle discipline, con i nomi delle discipline che ciascuna abilita (codice => nomi). */
     private function classiConcorso(): array
     {
-        return Disciplina::query()->whereNotNull('classe_concorso')->distinct()->pluck('classe_concorso')->all();
+        return Disciplina::query()->whereNotNull('classe_concorso')->orderBy('nome')->get()
+            ->groupBy('classe_concorso')->map(fn ($discipline) => $discipline->pluck('nome')->all())->all();
     }
 
     private function salva(Docente $docente, DocenteRequest $request): Docente

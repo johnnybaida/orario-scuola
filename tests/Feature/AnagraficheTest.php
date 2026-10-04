@@ -394,4 +394,16 @@ class AnagraficheTest extends TestCase
         $this->actingAs($this->referente())->get('/vincoli/create')
             ->assertOk()->assertSee('MAR-3ª')->assertDontSee('G2-3ª');
     }
+
+    public function test_le_classi_di_concorso_del_docente_mostrano_le_discipline_collegate(): void
+    {
+        Disciplina::factory()->create(['nome' => 'Italiano', 'classe_concorso' => 'A022']);
+        Disciplina::factory()->create(['nome' => 'Geografia', 'classe_concorso' => 'A022']);
+        Disciplina::factory()->create(['nome' => 'Matematica', 'classe_concorso' => 'A028']);
+
+        $this->actingAs($this->referente())->get('/docenti/create')->assertOk()
+            ->assertSee('A022')
+            ->assertSee('Geografia, Italiano') // ordinate per nome
+            ->assertSee('Matematica');
+    }
 }
