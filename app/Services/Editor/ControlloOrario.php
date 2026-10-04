@@ -44,6 +44,22 @@ class ControlloOrario
         return array_values(array_filter($problemi, fn ($p) => in_array($classeId, $p['classi'])));
     }
 
+    /**
+     * @param  list<array{testo: string, lezioni: int[]}>  $problemi
+     * @return array<int, string[]> id lezione => testi dei problemi che la riguardano (per colorare i riquadri)
+     */
+    public function mappaPerLezione(array $problemi): array
+    {
+        $mappa = [];
+        foreach ($problemi as $problema) {
+            foreach ($problema['lezioni'] as $id) {
+                $mappa[$id][] = $problema['testo'];
+            }
+        }
+
+        return $mappa;
+    }
+
     /** I problemi che toccano un docente. */
     public function perDocente(array $problemi, int $docenteId): array
     {

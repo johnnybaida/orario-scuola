@@ -84,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Scorciatoie: Ctrl/Cmd+Z annulla, Ctrl/Cmd+Maiusc+Z (o Ctrl+Y) ripete; solo nella griglia modificabile e non mentre si scrive in un campo.
 document.addEventListener('keydown', (evento) => {
-    const griglia = document.querySelector('#griglia-orario');
-    if (!griglia || griglia.dataset.editabile !== '1') return;
+    // Vale in ogni vista modificabile: la griglia della classe, il tabellone, la vista docente e la vista aula.
+    if (!document.querySelector('#griglia-orario[data-editabile="1"], [data-modifica][data-editabile="1"]')) return;
     if (!(evento.ctrlKey || evento.metaKey) || evento.target.closest('input, textarea, select, [contenteditable]')) return;
 
     const tasto = evento.key.toLowerCase();

@@ -11,4 +11,4 @@ import './scansione-oraria.js';
 import './guida-pannello.js';
 import './toast.js';
 import './aggiornamenti.js';
-import './tabellone-aule.js';
+import './modifica-viste.js';

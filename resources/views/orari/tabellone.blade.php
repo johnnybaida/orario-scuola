@@ -17,11 +17,8 @@
                 <a href="{{ route('orari.tabellone', [$orario, 'per' => 'classe']) }}" class="{{ $segmento(! $aulaMode) }}" @if (! $aulaMode) aria-current="true" @endif>Per classe</a>
                 <a href="{{ route('orari.tabellone', [$orario, 'per' => 'aula']) }}" class="{{ $segmento($aulaMode) }} border-l border-gray-300" @if ($aulaMode) aria-current="true" @endif>Per aula</a>
             </div>
-            @if ($modificabile && $aulaMode)
-                <label class="inline-flex items-center gap-1.5 text-sm text-gray-700">
-                    <input type="checkbox" id="conflitti-provvisori" class="rounded border-gray-300"> Conflitti provvisori
-                    <x-info testo="Spento (consigliato): le modifiche che creano un conflitto (aula piena, docente occupato) vengono rifiutate. Acceso: vengono accettate e il conflitto resta segnalato nel Controllo finché non lo risolvi." />
-                </label>
+            @if ($modificabile)
+                @include('orari._barra-modifica')
             @endif
             <a href="{{ route('orari.controllo', $orario) }}" class="text-sm underline text-gray-600">Controllo</a>
             <a href="{{ route('orari.export.generale', [$orario, 'per' => $per]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
@@ -35,9 +32,10 @@
         <strong>cambia aula</strong> rispetto all'ora precedente; nella vista per classe l'ultima colonna conta i cambi di
         ciascuna classe. Un riquadro con il bordo rosso ha un conflitto (passaci sopra per leggerlo).
         @if ($modificabile)
-            Nella vista per aula puoi <strong>trascinare</strong> una lezione: su un'altra aula nella stessa ora per cambiarle aula,
-            su un'altra ora per spostarla. Durante il trascinamento le celle si colorano (verde: si può, ambra: crea un conflitto,
-            rosso: non ammesso).
+            Puoi <strong>trascinare</strong> le lezioni. Nella vista per aula: su un'altra aula nella stessa ora per cambiarle
+            aula, su un'altra ora per spostarla. Nella vista per classe: lungo la riga della classe, su un'altra ora (se c'è
+            un'altra lezione le due si scambiano). Durante il trascinamento le celle si colorano (verde: si può, ambra: crea un
+            conflitto e serve «Conflitti provvisori», rosso: non ammesso).
         @endif
     </x-guida>
 
@@ -48,8 +46,8 @@
         <p class="rounded-lg border border-gray-200 bg-white px-4 py-6 text-center text-gray-500">Questo orario non ha ancora lezioni da mostrare.</p>
     @else
         <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-            <table id="tabellone" class="border-collapse text-xs" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
-                   data-editabile="{{ $modificabile && $aulaMode ? '1' : '0' }}">
+            <table id="tabellone" class="border-collapse text-xs" data-modifica data-modo="{{ $aulaMode ? 'aula' : 'slot' }}" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
+                   data-editabile="{{ $modificabile ? '1' : '0' }}">
                 <thead class="bg-gray-50 text-gray-600">
                     <tr>
                         <th class="sticky left-0 z-10 bg-gray-50 border border-gray-200 px-2 py-1 text-left" rowspan="2">{{ $aulaMode ? 'Aula' : 'Classe' }}</th>
@@ -85,7 +83,8 @@
                                     @php($s = $slot->get($giorno.'-'.$ora))
                                     <td @class(['border border-gray-200 p-0.5 align-top min-w-14 h-px', 'border-l-2 border-l-gray-500' => $loop->first])
                                         @if ($s) data-slot-id="{{ $s->id }}" @endif
-                                        @if ($s && $aulaMode && $riga['id']) data-aula-id="{{ $riga['id'] }}" @endif>
+                                        @if ($s && $aulaMode && $riga['id']) data-aula-id="{{ $riga['id'] }}" @endif
+                                        @if (! $aulaMode) data-riga="{{ $riga['id'] }}" @endif>
                                         {{-- Altezza minima = (altezza di un riquadro) × (numero di lezioni nella cella): 72px per riquadro nella vista per aula,
                                              56px in quella per classe, anche per le celle vuote. Il contenitore cresce con i riquadri (nessuna altezza fissa
                                              sui riquadri, che non si comprimono) e questi si dividono lo spazio in più, così si leggono sempre. --}}
@@ -95,7 +94,7 @@
                                             @php($d = $lezione->cattedra->disciplina)
                                             @php($conflitti = $problemiPerLezione[$lezione->id] ?? [])
                                             @php($cambio = $cambi[$lezione->id] ?? null)
-                                            @php($trascinabile = $modificabile && $aulaMode && ! $lezione->bloccata)
+                                            @php($trascinabile = $modificabile && ! $lezione->bloccata)
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
                                                  title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->cattedra->docente->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"

@@ -165,8 +165,10 @@ class TabelloneAuleTest extends TestCase
         $this->assertStringContainsString('STO', $html);
         $this->assertStringContainsString(ColoriDiscipline::mappa()[$this->ita->id][0], $html);   // colore della disciplina
         $this->assertStringContainsString('→ Italiano 1', $html);                                  // freccia sul cambio
-        $this->assertSame(0, substr_count($html, 'draggable="true"'));                             // per classe è di sola lettura
-        $this->assertStringContainsString('data-editabile="0"', $html);
+        $this->assertSame(4, substr_count($html, 'draggable="true"'));                             // anche per classe si trascina (lungo la riga)
+        $this->assertStringContainsString('data-editabile="1"', $html);
+        $this->assertStringContainsString('data-modo="slot"', $html);
+        $this->assertStringContainsString('data-riga="'.$this->y->id.'"', $html);
         $this->assertMatchesRegularExpression('/>\s*1\s*<\/td>\s*<\/tr>/', $html);                 // 1 cambio per la classe B
     }
 

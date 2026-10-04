@@ -365,6 +365,18 @@ Ogni riga dice classe, giorno e ora e, quando il problema coinvolge altre classi
 
 ### Fare modifiche all'orario
 
+**Da dove si modifica.** Si modifica da **qualunque vista con i riquadri delle lezioni**, scegliendo quella più comoda per ciò che vuoi fare (l'orario deve essere in **bozza**; nelle altre viste restano gli stessi comportamenti, il Controllo e il registro):
+
+| Vista | Cosa puoi trascinare |
+| --- | --- |
+| **Griglia della classe** | una lezione su un'altra ora; inoltre cambi docente o materia dal menu della lezione, blocchi e sblocchi |
+| **Vista docente** | una lezione su un'altra ora (le ore libere del docente sono destinazioni valide): è la vista giusta per «Rossi deve spostare il martedì» |
+| **Vista aula** | una lezione su un'altra ora, restando in quell'aula se è libera |
+| **Tabellone per classe** | una lezione su un'altra ora **lungo la riga della sua classe** (rilasciarla in un'altra riga non fa nulla) |
+| **Tabellone per aula** | su un'altra aula nella stessa ora (cambio di aula) o su un'altra ora (spostamento) |
+
+In ogni vista trovi in alto gli stessi strumenti: **Conflitti provvisori**, **Annulla** e **Ripeti** (e le scorciatoie Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z), che valgono per tutte le modifiche, comunque fatte; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima a ogni vista. Quando due lezioni della stessa classe si trovano a scambiarsi di posto, lo scambio è un'unica modifica.
+
 1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **ambra** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
 2. **Cambiare docente o materia di una lezione**: scegli un'altra cattedra della **stessa classe** dal menu della lezione.
 3. **Scambi tra classi** (per esempio due docenti che devono scambiarsi le ore, o un docente che deve lasciare una lezione): spesso il primo spostamento crea un conflitto con l'altra classe e va completato lì. Accendi **Conflitti provvisori** (sopra la griglia): le modifiche con conflitti di docente o aula vengono accettate e il conflitto resta **segnalato in rosso nel Controllo**, con il link alla classe da sistemare. Apri quella classe, sposta le sue lezioni e il controllo si svuota da solo quando tutto torna coerente. Spegni l'interruttore a fine lavoro per tornare alla modalità prudente, che rifiuta ogni conflitto.

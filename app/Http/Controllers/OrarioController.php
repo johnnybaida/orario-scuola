@@ -56,12 +56,7 @@ class OrarioController extends Controller
     {
         $lezioniClasse = $this->lezioniPerSlot($orario, $classe);
         $problemi = $controllo->perClasse($controllo->problemi($orario), $classe->id);
-        $perLezione = [];
-        foreach ($problemi as $problema) {
-            foreach ($problema['lezioni'] as $id) {
-                $perLezione[$id][] = $problema['testo'];
-            }
-        }
+        $perLezione = $controllo->mappaPerLezione($problemi);
 
         $compresenze = $orario->compresenzeSostegno()
             ->where('classe_id', $classe->id)
@@ -92,7 +87,7 @@ class OrarioController extends Controller
         ]);
     }
 
-    public function docente(Orario $orario, Docente $docente, ControlloOrario $controllo): View
+    public function docente(Orario $orario, Docente $docente, ControlloOrario $controllo, EditorLezione $servizio): View
     {
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
@@ -100,23 +95,42 @@ class OrarioController extends Controller
             ->with('cattedra.classe', 'cattedra.disciplina', 'aula')
             ->get()
             ->keyBy('slot_id');
+        $problemi = $controllo->problemi($orario);
 
         return view('orari.docente', [
             'orario' => $orario,
             'docente' => $docente,
-            // Solo fino all'ultima ora in cui il docente ha lezione.
-            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
+            // Tutte le ore in uso nella scuola: le lezioni si possono trascinare anche in un'ora ancora libera del docente.
+            'slotPerGiorno' => Slot::perGiorno($this->oreUsate($orario)),
             'lezioni' => $lezioni,
-            'problemi' => $controllo->perDocente($controllo->problemi($orario), $docente->id),
+            'problemi' => $controllo->perDocente($problemi, $docente->id),
+            'problemiPerLezione' => $controllo->mappaPerLezione($problemi),
             'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
-        ]);
+        ] + $this->datiModifica($orario, $servizio));
+    }
+
+    /** L'ora più alta in cui c'è almeno una lezione dell'orario (null se vuoto). */
+    private function oreUsate(Orario $orario): ?int
+    {
+        return Slot::query()->whereIn('id', Lezione::query()->where('orario_id', $orario->id)->select('slot_id'))->max('ordine');
+    }
+
+    /** Ciò che serve alle viste con riquadri trascinabili: permesso di modifica, Annulla/Ripeti e registro degli esiti. */
+    private function datiModifica(Orario $orario, EditorLezione $servizio): array
+    {
+        return [
+            'modificabile' => $orario->modificabile() && (bool) request()->user()?->can('gestisci-anagrafica'),
+            'puoAnnullare' => $servizio->puoAnnullare($orario),
+            'puoRipetere' => $servizio->puoRipetere($orario),
+            'avvisi' => $orario->avvisi,
+        ];
     }
 
     /**
      * Tabellone a schermo: tutte le classi (o tutte le aule) per tutte le ore, con un colore per disciplina e gli
      * spostamenti d'aula. Nella vista per aula, con l'orario in bozza, le lezioni si trascinano tra aule e ore.
      */
-    public function tabellone(Request $request, Orario $orario, ControlloOrario $controllo, SpostamentiAula $spostamenti): View
+    public function tabellone(Request $request, Orario $orario, ControlloOrario $controllo, SpostamentiAula $spostamenti, EditorLezione $servizio): View
     {
         $classi = Classe::query()->with('aulaBase')->orderBy('anno_corso')->orderBy('sezione')->get();
         // Senza indicazione: «per aula» se la scuola lavora (in prevalenza) senza aule base, cioè in DADA.
@@ -127,12 +141,7 @@ class OrarioController extends Controller
             ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'slot', 'aula')->get();
         $usati = $lezioni->pluck('slot')->unique('id');
         $problemi = $controllo->problemi($orario);
-        $perLezione = [];
-        foreach ($problemi as $problema) {
-            foreach ($problema['lezioni'] as $id) {
-                $perLezione[$id][] = $problema['testo'];
-            }
-        }
+        $perLezione = $controllo->mappaPerLezione($problemi);
 
         $cambi = [];
         $cambiPerClasse = [];
@@ -172,13 +181,11 @@ class OrarioController extends Controller
             'problemiPerLezione' => $perLezione,
             'problemi' => $problemi,
             'classiOrario' => $classi->keyBy('id'),
-            'avvisi' => $orario->avvisi,
-            'modificabile' => $orario->modificabile() && (bool) $request->user()?->can('gestisci-anagrafica'),
-        ]);
+        ] + $this->datiModifica($orario, $servizio));
     }
 
-    /** Occupazione di un'aula (anche quella base di una classe): chi c'è a ogni ora. Vista in sola lettura. */
-    public function aula(Orario $orario, Aula $aula, ControlloOrario $controllo): View
+    /** Occupazione di un'aula (anche quella base di una classe): chi c'è a ogni ora; con l'orario in bozza si trascina. */
+    public function aula(Orario $orario, Aula $aula, ControlloOrario $controllo, EditorLezione $servizio): View
     {
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
@@ -186,16 +193,18 @@ class OrarioController extends Controller
             ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente')
             ->get()
             ->groupBy('slot_id');
+        $problemi = $controllo->problemi($orario);
 
         return view('orari.aula', [
             'orario' => $orario,
             'aula' => $aula->load('sede'),
-            // Solo fino all'ultima ora in cui l'aula è usata.
-            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
+            // Tutte le ore in uso nella scuola: così una lezione si può trascinare anche in un'ora in cui l'aula è libera.
+            'slotPerGiorno' => Slot::perGiorno($this->oreUsate($orario)),
             'lezioni' => $lezioni,
-            'problemi' => $controllo->perLezioni($controllo->problemi($orario), $lezioni->flatten()->pluck('id')->all()),
+            'problemi' => $controllo->perLezioni($problemi, $lezioni->flatten()->pluck('id')->all()),
+            'problemiPerLezione' => $controllo->mappaPerLezione($problemi),
             'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
-        ]);
+        ] + $this->datiModifica($orario, $servizio));
     }
 
     public function spostaLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
