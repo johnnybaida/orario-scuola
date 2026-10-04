@@ -17,3 +17,6 @@ solver/.venv
 .phpunit.cache
 tests
 *.log
+*.bat
+*.command
+INSTALLAZIONE.txt

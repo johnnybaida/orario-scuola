@@ -49,6 +49,12 @@ solver/.venv/bin/pip install -r solver/requirements.txt
 
 ---
 
+## Installazione semplice per Windows e Mac
+
+Per chi non è uno sviluppatore: dopo aver installato **Docker Desktop**, basta un doppio clic su `Avvia-Orario-Scuola.bat` (Windows) o `Avvia-Orario-Scuola.command` (Mac). Il file controlla che Docker sia acceso, avvia l'applicazione (`docker compose up -d --build`, vedi sotto), attende che risponda e apre il browser su <http://localhost:8080>. Per spegnere: `Ferma-Orario-Scuola.bat` / `.command` (i dati restano). Istruzioni passo passo per gli utenti, con le soluzioni ai problemi più comuni: [`INSTALLAZIONE.txt`](INSTALLAZIONE.txt).
+
+---
+
 ## Avvio con Docker
 
 Con Docker (e Docker Compose) si avvia tutto con un comando, senza installare PHP, Node, Python o il database:

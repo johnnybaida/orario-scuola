@@ -9,3 +9,12 @@
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+
+# Fine riga fissa: i file .bat devono avere CRLF per funzionare su Windows; gli script per Linux/Mac e quelli
+# copiati nell'immagine Docker devono avere LF (con CRLF "#!/bin/sh^M" non parte il container).
+*.bat text eol=crlf
+*.command text eol=lf
+*.sh text eol=lf
+docker/** text eol=lf
+Dockerfile text eol=lf
+compose.yaml text eol=lf

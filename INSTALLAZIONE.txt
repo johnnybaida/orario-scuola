@@ -1,0 +1,92 @@
+ORARIO SCUOLA - COME INSTALLARLO E AVVIARLO
+===========================================
+
+Non serve essere esperti di informatica. Bastano 3 passi, e il secondo si fa una volta sola.
+
+
+COSA SERVE
+----------
+- Un computer Windows 10/11 (64 bit) oppure un Mac (Intel o Apple Silicon).
+- Almeno 8 GB di memoria e circa 5 GB di spazio libero.
+- Una connessione a internet, soltanto la prima volta (scarica i componenti).
+
+
+PASSO 1 - Installare Docker Desktop (una volta sola)
+----------------------------------------------------
+Docker e' il programma che fa funzionare Orario Scuola. E' gratuito per scuole e istruzione.
+
+1. Vai su  https://www.docker.com/products/docker-desktop/  e scarica la versione per il tuo computer.
+2. Installalo e, se te lo chiede, riavvia il computer.
+3. Apri "Docker Desktop" una volta, accetta le condizioni e aspetta che sia pronto
+   (l'icona della balena in alto/in basso smette di muoversi).
+
+Se tutto questo ti sembra complicato, chiedi aiuto a chi gestisce i computer della scuola:
+dopo il passo 1 il resto e' semplicissimo.
+
+
+PASSO 2 - Preparare la cartella
+-------------------------------
+Se hai ricevuto un file ZIP, estrailo (su Windows: tasto destro -> "Estrai tutto").
+Non avviare i file direttamente dentro lo ZIP: estraili prima in una cartella normale,
+ad esempio sul Desktop o in Documenti.
+
+
+PASSO 3 - Avviare Orario Scuola
+-------------------------------
+WINDOWS
+  Fai doppio clic su  Avvia-Orario-Scuola.bat
+  - Se compare "Windows ha protetto il PC": clicca "Ulteriori informazioni" e poi "Esegui comunque".
+
+MAC
+  Fai doppio clic su  Avvia-Orario-Scuola.command
+  - Se dice che non puo' essere aperto perche' di uno sviluppatore non identificato:
+    clic con il tasto destro sul file -> "Apri" -> "Apri".
+    In alternativa: Impostazioni di Sistema -> Privacy e sicurezza -> "Apri comunque".
+  - Se dice "permesso negato": apri l'app "Terminale", scrivi  chmod +x  (con uno spazio dopo),
+    trascina nel Terminale i due file .command, premi Invio e riprova.
+
+Si apre una finestra nera con le istruzioni. La PRIMA volta ci vogliono alcuni minuti (anche 10):
+non chiuderla. Alla fine si apre da solo il browser su  http://localhost:8080
+
+PRIMO ACCESSO
+  Email:     amministratore@scuola.test
+  Password:  password
+  Appena entri, cambia la password dalla voce "Utenze" del menu.
+  Nella scuola di esempio ci sono anche altri utenti di prova (referente orario, segreteria, ...):
+  sono elencati nel file README.md.
+
+
+USO QUOTIDIANO
+--------------
+- Se Docker Desktop e' aperto, Orario Scuola e' gia' acceso: basta aprire il browser su
+  http://localhost:8080  (puoi salvarlo tra i preferiti).
+- Se non si apre, fai doppio clic su "Avvia-Orario-Scuola" come al passo 3.
+- Per spegnerlo: doppio clic su "Ferma-Orario-Scuola". I dati (docenti, classi, orari, ...)
+  NON vengono cancellati.
+- Chiudere la finestra nera non spegne l'applicazione.
+
+
+USARLO DA ALTRI COMPUTER DELLA SCUOLA
+-------------------------------------
+Il computer dove e' installato deve restare acceso con Docker aperto. Dagli altri computer
+collegati alla stessa rete si apre il browser su  http://INDIRIZZO-DEL-COMPUTER:8080
+(l'indirizzo del computer lo trova chi gestisce la rete). Se compare un avviso del firewall,
+consenti l'accesso alle reti private.
+
+
+AGGIORNARE A UNA NUOVA VERSIONE
+-------------------------------
+Sostituisci la cartella con quella nuova e rifai doppio clic su "Avvia-Orario-Scuola".
+I dati restano: sono conservati da Docker, non nella cartella.
+
+
+SE QUALCOSA NON VA
+------------------
+- "Docker non e' acceso" / non parte: apri Docker Desktop a mano e aspetta che sia pronto.
+  Su Windows serve la virtualizzazione attiva (se Docker lo segnala, chiedi assistenza).
+- "Porta occupata" o il browser mostra un altro sito: crea nella stessa cartella un file di testo
+  chiamato  .env  con dentro una riga  APP_PORT=8081  e rilancia l'avvio (l'indirizzo diventa :8081).
+- L'applicazione e' lenta al primo avvio: e' normale, attendi.
+- Altri problemi: copia o fotografa il testo della finestra nera e mandalo a chi gestisce l'installazione.
+
+ATTENZIONE: il comando  docker compose down -v  CANCELLA tutti i dati. Non usarlo se non sei sicuro.

@@ -41,6 +41,7 @@ php artisan queue:work          # necessario per la generazione; l'app lo avvia/
 # tutto su Docker (app + database + worker, con la scuola di esempio): http://localhost:8080
 docker compose up -d --build
 docker compose down -v          # ferma e cancella i dati
+# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola.bat (Windows) o .command (Mac); istruzioni in INSTALLAZIONE.txt
 
 # test
 php artisan test
@@ -83,6 +84,8 @@ docs/
   guida-utente.md                  # manuale mostrato nel pannello Aiuto (dipende dal ruolo)
 design-system/            # design system dell'interfaccia (MASTER.md + regole per tipo di pagina)
 docker/                   # entrypoint, Caddyfile e script di avvio del container; vedi anche Dockerfile e compose.yaml
+Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
+INSTALLAZIONE.txt         # istruzioni passo passo per gli utenti
 ```
 
 ---
