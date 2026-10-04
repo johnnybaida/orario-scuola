@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Vincolo extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'vincoli';
 

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['docente_id', 'classe_id', 'disciplina_id', 'ore', 'compresenza'])]
 class Cattedra extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'cattedre';
 
@@ -40,5 +40,10 @@ class Cattedra extends Model
     public function lezioni(): HasMany
     {
         return $this->hasMany(Lezione::class);
+    }
+
+    public function etichettaAudit(): ?string
+    {
+        return collect([$this->disciplina?->nome, $this->docente?->nomeCompleto(), $this->classe?->nomeCompleto()])->filter()->implode(' – ');
     }
 }

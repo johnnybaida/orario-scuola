@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Docente extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'docenti';
 

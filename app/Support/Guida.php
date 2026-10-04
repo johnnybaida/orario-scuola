@@ -22,6 +22,7 @@ class Guida
         'generazioni.*' => 'genera-orario',
         'orari.*' => 'orari-e-modifica-manuale',
         'utenze.*' => 'utenze',
+        'audit.*' => 'registro-attivita',
     ];
 
     public static function sezionePer(?string $nomeRotta): ?string

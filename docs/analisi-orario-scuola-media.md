@@ -504,6 +504,8 @@ Import: anagrafiche docenti/classi da CSV/Excel (evitare l'inserimento manuale).
 - **Autenticazione**: solo account locali (utenti e ruoli nel database dell'applicazione).
 - **Prestazioni**: scuola tipo 15–30 classi, 40–70 docenti; generazione completa entro 1–5 minuti con time limit configurabile.
 - **Audit log** di tutte le modifiche a orario, vincoli e sostituzioni.
+
+> **Implementazione.** L'audit log copre creazione, modifica ed eliminazione di sedi, aule, discipline, quadri orari (e righe), docenti, classi, cattedre, sostegno, vincoli e utenze (trait `Auditable`, valori prima/dopo, password mascherate, nome leggibile conservato dopo l'eliminazione), le generazioni (richiesta, stato e orario prodotto), i cambi di stato, le duplicazioni, la scansione oraria e le modifiche manuali alla griglia con annullamenti e ripristini. Pagina **Registro attività** in sola lettura (DS e amministratore) con filtri per elemento, azione, utente, periodo e nome. Non registrati: i `sync()` di relazioni a casella (sedi e indisponibilità del docente, slot attivi delle classi) e il caricamento della scuola di esempio. Le sostituzioni (Fase 2) non esistono ancora.
 - Accessibilità WCAG 2.1 AA per le viste pubbliche.
 
 > **Implementazione.** Interfaccia responsive con sidebar (barra orizzontale su schermi stretti), notifiche come toast, **guida in-app** (pulsante Aiuto / F1) in un unico file Markdown, con apertura sulla pagina corrente, ricerca e contenuti filtrati per ruolo. L'**audit log** oggi copre le modifiche all'orario fatte dall'editor e l'eliminazione degli orari: vincoli, utenze e anagrafiche non sono ancora registrati. Distribuzione con Docker Compose (vedi §14).

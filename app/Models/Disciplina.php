@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre_id'])]
 class Disciplina extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'discipline';
 

@@ -73,7 +73,7 @@ class GenerateTimetable implements ShouldQueue
 
     public function failed(\Throwable $e): void
     {
-        Generazione::query()->where('id', $this->generazioneId)->update([
+        Generazione::query()->find($this->generazioneId)?->update([
             'stato' => 'fallita',
             'progresso' => 100,
             'diagnostica' => [$e->getMessage()],

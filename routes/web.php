@@ -102,6 +102,9 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/orari/{orario}/avvisi/azzera', [OrarioController::class, 'azzeraAvvisi'])->name('orari.avvisi.azzera');
     });
 
+    // Registro delle attività: chi può approvare gli orari (amministratore, DS).
+    Route::get('/audit', [\App\Http\Controllers\AuditController::class, 'index'])->middleware('can:approva-orari')->name('audit.index');
+
     // Utenze con accesso al sistema: solo l'amministratore.
     Route::middleware('ruolo:'.Ruoli::AMMINISTRATORE)->group(function () {
         Route::resource('utenze', UtenzaController::class)->parameters(['utenze' => 'utenza'])->except(['show']);

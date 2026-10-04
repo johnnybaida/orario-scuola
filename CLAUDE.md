@@ -97,7 +97,7 @@ Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non �
 - Parametri dei vincoli in colonna JSON, validati dalla definizione del tipo in `app/Constraints/`.
 - Logica di dominio nei Service, non nei controller.
 - JavaScript: moduli ES, niente variabili globali, `fetch` verso endpoint JSON.
-- Ogni modifica a orario, vincoli e sostituzioni va nell'audit log.
+- Ogni modifica va nell'audit log. I modelli di anagrafica, vincoli, utenze, cattedre, sostegno e generazioni usano il trait `App\Models\Concerns\Auditable` (creazione/modifica/eliminazione con valori prima/dopo, nome leggibile in `etichetta`, password come `***`); un nuovo modello di dominio deve usarlo. Gli eventi si generano solo con le operazioni per modello: **non** usare `Model::query()->update()/delete()` in blocco sui modelli auditati (usa `->get()->each->...`, come `SincronizzaRighe`). Le operazioni senza evento (generazione, cambi di stato, duplicazioni) si registrano con `AuditLog::registra()`; i seeder girano dentro `AuditLog::senza()`. Non sono registrati i `sync()` di pivot (sedi, indisponibilità, slot attivi). Pagina `/audit` (gate `approva-orari`), sola lettura; il registro non si modifica né si cancella dall'app.
 
 ### Interfaccia
 

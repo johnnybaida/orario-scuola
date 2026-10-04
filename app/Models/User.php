@@ -15,6 +15,8 @@ use Illuminate\Notifications\Notifiable;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    use \App\Models\Concerns\Auditable;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 

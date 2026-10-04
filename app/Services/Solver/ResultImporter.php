@@ -26,6 +26,10 @@ class ResultImporter
             'creato_da' => $creatoDa,
         ]);
 
+        \App\Models\AuditLog::registra('Orario', $orario->id, 'generazione', null,
+            ['periodo' => $periodo->nome, 'versione' => $versione, 'seed' => $seed, 'punteggio' => $risultato['punteggio'], 'lezioni' => count($risultato['assegnazioni'])],
+            "{$periodo->nome} v{$versione}", $creatoDa);
+
         foreach ($risultato['assegnazioni'] as $assegnazione) {
             Lezione::query()->create([
                 'orario_id' => $orario->id,

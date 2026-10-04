@@ -334,10 +334,10 @@ Stai usando l'applicazione come **{ruolo}**. Il ruolo decide quali voci del menu
 
 | Ruolo | Cosa può fare |
 | --- | --- |
-| Amministratore | Tutto, comprese le utenze e l'approvazione degli orari |
+| Amministratore | Tutto, comprese le utenze, l'approvazione degli orari e il registro attività |
 | Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
 | Segreteria | Consulta tutto; gestisce docenti e classi |
-| Dirigente Scolastico | Consulta tutto; approva, pubblica e archivia gli orari |
+| Dirigente Scolastico | Consulta tutto; approva, pubblica e archivia gli orari; consulta il registro attività |
 | Referente Sostituzioni | Consulta tutto |
 | Docente | Accesso base, collegato alla propria anagrafica |
 
@@ -357,6 +357,18 @@ Campi di un'utenza:
 - **Password**: almeno 8 caratteri. In modifica, lasciandola vuota, quella esistente non cambia.
 
 Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
+
+## Registro attività
+<!-- sezione: approva-orari -->
+
+Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore) elenca **tutto ciò che viene fatto** nell'applicazione: ogni **creazione**, **modifica** ed **eliminazione** di sedi, aule, discipline, quadri orari, docenti, classi, cattedre, sostegno, vincoli e utenze; ogni **generazione** dell'orario; i cambi di stato, le duplicazioni e le modifiche manuali alla griglia (con annullamenti e ripristini).
+
+- Per ogni voce vedi **quando**, **chi** (le operazioni automatiche risultano come *Sistema*), l'**azione**, l'**elemento** con il suo nome e il **dettaglio**: per le modifiche i valori *prima → dopo*.
+- Il nome dell'elemento resta leggibile anche dopo che è stato eliminato.
+- Puoi filtrare per elemento, azione, utente, periodo e nome. Le voci più recenti stanno in cima.
+- Le password non vengono mai registrate (compare solo `***`).
+- Il registro **non si può modificare né cancellare** dall'applicazione.
+- Non sono registrate le scelte multiple fatte con le caselle (per esempio le sedi di un docente o le indisponibilità) e il caricamento della scuola di esempio.
 
 ## Consigli d'uso
 <!-- sezione: gestisci-docenti-classi -->
@@ -381,6 +393,7 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 - **DADA**: didattica per ambienti di apprendimento: le classi non hanno un'aula fissa, gli alunni si spostano nell'aula della disciplina.
 - **Indisponibilità**: slot in cui un docente non può avere lezione.
 - **IRC**: Insegnamento della Religione Cattolica.
+- **Registro attività**: l'elenco, non modificabile, di chi ha fatto che cosa e quando.
 - **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot. Ha uno **stato** (bozza, in revisione, approvato, pubblicato, archiviato) e una **versione**.
 - **Ore a disposizione**: ore dovute dal docente non coperte da lezioni (ore dovute − ore di cattedra); servono ad esempio per le sostituzioni.
 - **Ore dovute**: ore settimanali di lezione previste dal contratto del docente.

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Classe extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'classi';
 

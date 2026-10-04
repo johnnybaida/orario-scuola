@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Generazione extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'generazioni';
 
@@ -36,5 +36,15 @@ class Generazione extends Model
     public function creatoDa(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creato_da');
+    }
+
+    protected function auditEsclusi(): array
+    {
+        return ['progresso', 'diagnostica'];
+    }
+
+    public function etichettaAudit(): ?string
+    {
+        return 'Generazione #'.$this->id;
     }
 }

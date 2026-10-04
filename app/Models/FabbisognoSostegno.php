@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['classe_id', 'codice_anonimo', 'ore_settimanali', 'docente_unico'])]
 class FabbisognoSostegno extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\Auditable;
 
     protected $table = 'fabbisogni_sostegno';
 
@@ -24,5 +24,10 @@ class FabbisognoSostegno extends Model
     public function classe(): BelongsTo
     {
         return $this->belongsTo(Classe::class);
+    }
+
+    public function etichettaAudit(): ?string
+    {
+        return $this->codice_anonimo;
     }
 }

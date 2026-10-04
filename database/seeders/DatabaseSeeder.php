@@ -12,7 +12,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
+        // La scuola di esempio non è attività degli utenti: non va nell'audit log.
+        \App\Models\AuditLog::senza(fn () => $this->call([
             ImpostazioniSeeder::class,
             SedeAulaSeeder::class,
             SlotSeeder::class,
@@ -22,6 +23,6 @@ class DatabaseSeeder extends Seeder
             ClasseSeeder::class,
             CattedraSeeder::class,
             UserSeeder::class,
-        ]);
+        ]));
     }
 }

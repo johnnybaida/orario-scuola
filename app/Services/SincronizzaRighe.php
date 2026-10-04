@@ -19,14 +19,15 @@ class SincronizzaRighe
         $base = fn () => $relazione->getRelated()->newQuery()
             ->where($relazione->getForeignKeyName(), $relazione->getParentKey());
 
-        $base()->whereNotIn('id', array_filter(array_column($righe, 'id')))->delete();
+        // Per modello (non in blocco): così creazione, modifica ed eliminazione finiscono nell'audit log.
+        $base()->whereNotIn('id', array_filter(array_column($righe, 'id')))->get()->each->delete();
 
         foreach ($righe as $riga) {
             $dati = [];
             foreach ($campi as $campo) {
                 $dati[$campo] = $riga[$campo] ?? false;
             }
-            empty($riga['id']) ? $relazione->create($dati) : $base()->whereKey($riga['id'])->update($dati);
+            empty($riga['id']) ? $relazione->create($dati) : $base()->whereKey($riga['id'])->first()?->update($dati);
         }
     }
 
