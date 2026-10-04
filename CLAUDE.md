@@ -205,6 +205,7 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 
 ## Versione e rilasci
 
+- **Ad ogni cambiamento la versione deve cambiare**: prima di committare aggiorna `VERSION` (patch `0.1.0 → 0.1.1` per correzioni e ritocchi, minor `0.1.x → 0.2.0` per una nuova funzione, major per modifiche incompatibili) e, in caso di dubbio sul livello, chiedi. Non committare modifiche al codice o ai documenti dell'applicazione senza aver aggiornato `VERSION`.
 - La versione è nel file `VERSION` (radice, `MAJOR.MINOR.PATCH`), letta in `config('app.versione')` e mostrata in fondo alla sidebar. Per pubblicare una versione: aggiorna `VERSION`, committa, poi `git tag vX.Y.Z` e `git push --tags` (e, se vuoi le note, crea la release su GitHub con lo stesso tag).
 - `App\Services\ControlloAggiornamenti` confronta `VERSION` con il tag `vX.Y.Z` più alto del repository (API pubblica GitHub, in cache 6 ore, 1 ora se fallisce, timeout 3 s); la sidebar lo chiede via `GET /aggiornamenti` (gate `gestisci-utenze`, `resources/js/aggiornamenti.js`) dopo il caricamento, quindi non rallenta le pagine. È l'unica chiamata verso l'esterno: si spegne con `CONTROLLO_AGGIORNAMENTI=false`.
 
@@ -234,5 +235,6 @@ Non anticipare funzionalità di fasi successive; se servono predisposizioni nel 
 - Ogni nuovo tipo di vincolo si implementa su entrambi i lati (definizione in `app/Constraints/` + modulo in `solver/constraints/`), con un test PHP di validazione e un test pytest con un caso fattibile e uno infattibile.
 - Scrivi i test per pre-validazione, solver e proposta sostituzioni; usa i casi limite del §16 dell'analisi come fixture.
 - Migrazioni sempre reversibili; seeder con una scuola di esempio realistica (circa 15 classi, 40 docenti, quadro a 30 ore).
+- Ogni commit che cambia l'applicazione porta con sé l'aggiornamento di `VERSION` (vedi «Versione e rilasci»).
 - Dopo ogni modifica visibile all'utente aggiorna `docs/guida-utente.md` (con i marcatori di ruolo) e, se cambiano struttura o convenzioni, questo file e `README.md`.
 - Non modificare `docs/analisi-orario-scuola-media.md` senza chiedere; se una decisione la cambia, proponi l'aggiornamento.
