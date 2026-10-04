@@ -406,4 +406,57 @@ class AnagraficheTest extends TestCase
             ->assertSee('Geografia, Italiano') // ordinate per nome
             ->assertSee('Matematica');
     }
+
+    public function test_la_scansione_oraria_aggiorna_orari_e_ricreazioni_per_tutti_i_giorni(): void
+    {
+        foreach ([1, 2] as $giorno) {
+            Slot::factory()->create(['giorno' => $giorno, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+            Slot::factory()->create(['giorno' => $giorno, 'ordine' => 2, 'inizio' => '08:50:00', 'fine' => '09:40:00']);
+        }
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/scansione-oraria')->assertOk()->assertSee('Ricreazione dopo');
+
+        $utente->put('/scansione-oraria', ['ore' => [
+            1 => ['inizio' => '08:00', 'fine' => '08:55', 'ricreazione' => '1'],
+            2 => ['inizio' => '09:05', 'fine' => '10:00'],
+        ]])->assertRedirect(route('scansione.index'));
+
+        foreach ([1, 2] as $giorno) {
+            $this->assertDatabaseHas('slot', ['giorno' => $giorno, 'ordine' => 1, 'fine' => '08:55:00', 'intervallo_dopo' => true]);
+            $this->assertDatabaseHas('slot', ['giorno' => $giorno, 'ordine' => 2, 'inizio' => '09:05:00', 'intervallo_dopo' => false]);
+        }
+        $this->assertDatabaseHas('audit_log', ['entita' => 'ScansioneOraria', 'azione' => 'modifica']);
+    }
+
+    public function test_la_scansione_oraria_rifiuta_orari_incoerenti(): void
+    {
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '08:50:00', 'fine' => '09:40:00']);
+        $utente = $this->actingAs($this->referente());
+
+        // fine prima dell'inizio
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '09:00', 'fine' => '08:00'], 2 => ['inizio' => '09:10', 'fine' => '10:00']]])
+            ->assertSessionHasErrors('ore.1.fine');
+        // sovrapposizione con l'ora precedente
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '09:00'], 2 => ['inizio' => '08:50', 'fine' => '10:00']]])
+            ->assertSessionHasErrors('ore.2.inizio');
+        // ricreazione senza pausa tra le due ore
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => '1'], 2 => ['inizio' => '08:50', 'fine' => '09:40']]])
+            ->assertSessionHasErrors('ore.1.ricreazione');
+        // ricreazione dopo l'ultima ora
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50'], 2 => ['inizio' => '09:00', 'fine' => '09:50', 'ricreazione' => '1']]])
+            ->assertSessionHasErrors('ore.2.ricreazione');
+
+        $this->assertDatabaseHas('slot', ['ordine' => 1, 'fine' => '08:50:00']); // niente è stato salvato
+    }
+
+    public function test_solo_chi_gestisce_lanagrafica_modifica_la_scansione_oraria_ma_tutti_i_ruoli_operativi_la_vedono(): void
+    {
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get('/scansione-oraria')->assertOk();
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50']]])->assertForbidden();
+        $this->actingAs(User::factory()->create(['ruolo' => 'docente']))->get('/scansione-oraria')->assertForbidden();
+    }
 }

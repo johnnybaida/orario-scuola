@@ -10,8 +10,9 @@
         th, td { border: 1px solid #999; padding: 4px; text-align: center; vertical-align: middle; }
         th { background: #eee; font-size: 13px; padding: 7px; }
         .ordine { width: 64px; background: #f5f5f5; font-weight: bold; font-size: 13px; }
-        .orario { font-weight: normal; font-size: 9px; color: #555; }
+        .orario { font-weight: normal; font-size: 10px; color: #555; }
         .cella { white-space: pre-line; }
+        .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 11px; padding: 3px; }
         .sostegno { color: #047857; font-size: 11px; }
     </style>
 </head>
@@ -35,10 +36,12 @@
                 </thead>
                 <tbody>
                     @php($maxOrdine = $slotPerGiorno->flatten()->max('ordine'))
+                    {{-- Ricreazioni: ore seguite da una pausa (intervallo_dopo), con orario e durata; il loro spazio si toglie all'altezza delle ore. --}}
+                    @php($nRicreazioni = collect(range(1, max(1, $maxOrdine) - 1))->filter(fn ($o) => $slotPerGiorno->flatten()->firstWhere('ordine', $o)?->intervallo_dopo)->count())
                     @for ($ordine = 1; $ordine <= $maxOrdine; $ordine++)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
                         {{-- Celle alte quanto serve perché la settimana riempia il foglio A4 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
-                        @php($altezza = (int) floor(400 / max(1, $maxOrdine)))
+                        @php($altezza = (int) floor((400 - 20 * $nRicreazioni) / max(1, $maxOrdine)))
                         <tr>
                             <td class="ordine" style="height: {{ $altezza }}pt">{{ $ordine }}ª@if ($primoSlot)<br><span class="orario">{{ substr($primoSlot->inizio, 0, 5) }}-{{ substr($primoSlot->fine, 0, 5) }}</span>@endif</td>
                             @foreach ($slotPerGiorno as $giorno => $slotGiorno)
@@ -54,6 +57,14 @@
                                 </td>
                             @endforeach
                         </tr>
+                        @if ($primoSlot?->intervallo_dopo && $ordine < $maxOrdine && ($prossimoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine + 1)))
+                            <tr class="ricreazione">
+                                <td colspan="{{ $slotPerGiorno->count() + 1 }}">
+                                    Ricreazione {{ substr($primoSlot->fine, 0, 5) }}-{{ substr($prossimoSlot->inizio, 0, 5) }}
+                                    ({{ \App\Models\Slot::minutiTra($primoSlot->fine, $prossimoSlot->inizio) }} minuti)
+                                </td>
+                            </tr>
+                        @endif
                     @endfor
                 </tbody>
             </table>

@@ -11,7 +11,7 @@ In fondo trovi il **Glossario** (cosa significano i termini scolastici usati) e 
 
 L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine:
 
-1. **Sedi** e **Aule**: i plessi dell'istituto e le loro aule (due voci separate del menu).
+1. **Sedi** e **Aule**: i plessi dell'istituto e le loro aule (due voci separate del menu). Poi la **Scansione oraria**: gli orari delle ore e le ricreazioni.
 2. **Discipline**: le materie, con classe di concorso e aula richiesta.
 3. **Quadri orari**: quante ore settimanali di ogni disciplina fa una classe.
 4. **Docenti** e **Classi**: le anagrafiche.
@@ -68,6 +68,21 @@ Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spo
 4. Nelle classi lascia vuoto il campo **Aula base**.
 <!-- /permesso -->
 
+
+## Scansione oraria
+<!-- sezione: consulta -->
+
+La scansione oraria definisce **a che ora inizia e finisce ogni ora di lezione** e dove sono le **ricreazioni**. È unica per tutta la scuola e uguale per tutti i giorni.
+
+- **Ora**: 1ª–9ª (le ore 7ª–9ª sono quelle del pomeriggio).
+- **Inizio** e **Fine**: gli orari dell'ora. Le ore non possono sovrapporsi e ognuna deve finire dopo il suo inizio. La **durata** si calcola da sola.
+- **Ricreazione dopo**: spunta le ore seguite da una ricreazione; puoi indicarne quante ne servono. La ricreazione dura **dalla fine di quell'ora all'inizio della successiva**: per averne una di 10 minuti, la 3ª ora finisce alle 10:30 e la 4ª inizia alle 10:40.
+
+<!-- permesso: gestisci-anagrafica -->
+Modifica gli orari e salva una volta sola con il pulsante in basso a destra. Un errore ti dice quale ora non torna (per esempio una ricreazione senza pausa tra le due ore).
+<!-- /permesso -->
+
+Gli orari delle ore e le ricreazioni compaiono nei **PDF**: nelle griglie di classe e di docente come orario accanto a ogni ora e come riga «Ricreazione 10:30-10:40 (10 minuti)» al posto giusto; nel tabellone generale in una riga di legenda in fondo.
 
 ## Discipline
 <!-- sezione: consulta -->
@@ -270,17 +285,36 @@ Prima del calcolo l'applicazione controlla i dati: ore delle cattedre contro qua
 ## Orari e modifica manuale
 <!-- sezione: consulta -->
 
-La pagina **Orari** elenca gli orari prodotti, con **periodo**, **versione**, **stato** (oggi gli orari nascono in *bozza*) e **punteggio**. Da lì puoi:
+La pagina **Orari** elenca gli orari prodotti, con **periodo**, **versione**, **stato** e **punteggio**. Ogni orario nasce in *bozza*.
+
+### Stato di un orario
+
+Un orario segue questo percorso: **Bozza → In revisione → Approvato → Pubblicato → Archiviato**.
+
+- **Bozza**: l'unico stato in cui si può modificare la griglia (trascinare, scambiare, bloccare, cambiare docente o materia). Chi gestisce l'anagrafica la prepara e usa **Invia in revisione**.
+- **In revisione**: sola lettura. Il dirigente può **Approvare** oppure rimandare in bozza con **Riporta in bozza**.
+- **Approvato**: sola lettura. Chi approva può **Pubblicare** l'orario o riportarlo in bozza.
+- **Pubblicato**: è l'orario in vigore. Per ogni periodo ce n'è **uno solo**: pubblicandone un altro, il precedente passa da solo in **Archiviato**.
+- **Archiviato**: resta consultabile ed esportabile.
+
+I pulsanti dello stato compaiono nella riga dell'orario solo per i passaggi che il tuo ruolo può fare: **approvare, pubblicare e archiviare** spetta all'amministratore e al dirigente scolastico; **inviare in revisione** a chi gestisce l'anagrafica. Ogni cambio di stato resta nel registro delle modifiche.
+
+### Duplicare un orario
+
+**Duplica** (per chi gestisce l'anagrafica) crea una **copia in bozza** di qualunque orario, qualunque sia il suo stato: stesse lezioni, stesse compresenze di sostegno e stesso periodo, versione successiva. Gli avvisi non si copiano. Serve per provare una variante senza toccare l'orario approvato o pubblicato. L'originale non cambia.
+
+Da questa pagina puoi inoltre:
 
 - aprire la griglia di una classe (modificabile) o di un docente (sola lettura), con le **select di ricerca**: scrivi parte del nome per trovare la voce;
 - scaricare il **tabellone generale in PDF**;
 <!-- permesso: gestisci-anagrafica -->
-- eliminare un orario selezionandolo con la casella a sinistra (la generazione resta nello storico).
+- eliminare un orario selezionandolo con la casella a sinistra: si eliminano solo gli orari in **bozza** o **archiviati** (la generazione resta nello storico).
 <!-- /permesso -->
 
 <!-- permesso: gestisci-anagrafica -->
 ### Griglia della classe
 
+- La griglia si modifica solo se l'orario è in **bozza**: negli altri stati compare un avviso azzurro e la griglia è in sola lettura.
 - **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**.
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
@@ -300,10 +334,10 @@ Stai usando l'applicazione come **{ruolo}**. Il ruolo decide quali voci del menu
 
 | Ruolo | Cosa può fare |
 | --- | --- |
-| Amministratore | Tutto, comprese le utenze |
+| Amministratore | Tutto, comprese le utenze e l'approvazione degli orari |
 | Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
 | Segreteria | Consulta tutto; gestisce docenti e classi |
-| Dirigente Scolastico | Consulta tutto |
+| Dirigente Scolastico | Consulta tutto; approva, pubblica e archivia gli orari |
 | Referente Sostituzioni | Consulta tutto |
 | Docente | Accesso base, collegato alla propria anagrafica |
 
@@ -347,13 +381,14 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 - **DADA**: didattica per ambienti di apprendimento: le classi non hanno un'aula fissa, gli alunni si spostano nell'aula della disciplina.
 - **Indisponibilità**: slot in cui un docente non può avere lezione.
 - **IRC**: Insegnamento della Religione Cattolica.
-- **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot.
+- **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot. Ha uno **stato** (bozza, in revisione, approvato, pubblicato, archiviato) e una **versione**.
 - **Ore a disposizione**: ore dovute dal docente non coperte da lezioni (ore dovute − ore di cattedra); servono ad esempio per le sostituzioni.
 - **Ore dovute**: ore settimanali di lezione previste dal contratto del docente.
 - **Part-time orizzontale / verticale / misto**: orario ridotto tutti i giorni / lavoro solo in alcuni giorni / combinazione delle due forme.
 - **Potenziamento**: organico dell'autonomia; ore per progetti e sostituzioni.
 - **Quadro orario**: il monte ore settimanale per disciplina di una classe.
 - **Rientro pomeridiano**: giorno in cui una classe a tempo prolungato fa lezione anche il pomeriggio.
+- **Ricreazione**: pausa tra due ore di lezione (nella scansione oraria si spunta «Ricreazione dopo» sull'ora che la precede); compare nei PDF con orario e durata.
 - **Seed**: numero che rende riproducibile una generazione.
 - **Slot**: una singola ora della settimana (giorno + ora, es. martedì 3ª ora). La scansione oraria di istituto è l'insieme di tutti gli slot.
 - **Sostegno**: supporto agli alunni con disabilità; nell'applicazione si indicano solo il fabbisogno orario (con codici anonimi) e i docenti assegnati.
@@ -375,6 +410,9 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 <!-- /permesso -->
 <!-- permesso: gestisci-docenti-classi -->
 - **Ho eliminato un docente o una classe per errore.** Con loro vengono eliminate anche le cattedre collegate e le lezioni degli orari già generati che le usavano. Controlla sempre la conferma prima di eliminare.
+<!-- /permesso -->
+<!-- permesso: consulta -->
+- **Non riesco a modificare la griglia di un orario.** Si modifica solo in stato *Bozza*: se l'orario è in revisione, approvato, pubblicato o archiviato usa **Duplica** (nasce una nuova bozza) oppure, se ne hai il permesso, riportalo in bozza.
 <!-- /permesso -->
 - **Non vedo un pulsante o una voce del menu.** Dipendono dal tuo ruolo: chiedi all'amministratore se ti serve un ruolo diverso.
 <!-- permesso: gestisci-docenti-classi -->

@@ -75,7 +75,7 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
 
 **Multi-plesso**: una scuola (o Istituto Comprensivo) può avere più plessi/sedi. Il sistema deve modellare le sedi e i tempi di spostamento tra esse.
 
-> **Implementazione.** Ruoli come account locali (`/utenze`, gestiti solo dall'amministratore, con docente collegato per il ruolo Docente). Permessi realizzati come gate: `consulta` (amministratore, DS, referente orario, referente sostituzioni, segreteria), `gestisci-anagrafica` (amministratore, referente orario), `gestisci-docenti-classi` (in più la segreteria), `gestisci-utenze` (amministratore). Il ruolo Docente vede solo dashboard e guida (non ancora il proprio orario né desiderata). Menu, pulsanti e guida seguono il ruolo. L'approvazione/pubblicazione da parte del DS e la consultazione pubblica non sono realizzate (vedi §9.2).
+> **Implementazione.** Ruoli come account locali (`/utenze`, gestiti solo dall'amministratore, con docente collegato per il ruolo Docente). Permessi realizzati come gate: `consulta` (amministratore, DS, referente orario, referente sostituzioni, segreteria), `gestisci-anagrafica` (amministratore, referente orario), `gestisci-docenti-classi` (in più la segreteria), `gestisci-utenze` (amministratore). Il ruolo Docente vede solo dashboard e guida (non ancora il proprio orario né desiderata). Menu, pulsanti e guida seguono il ruolo. Il DS (e l'amministratore) ha anche `approva-orari`: approva, pubblica e archivia gli orari (vedi §9.2). La consultazione pubblica non è realizzata.
 
 ---
 
@@ -90,6 +90,8 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
     - Le classi a tempo prolungato usano anche gli slot pomeridiani della stessa griglia; le altre ne usano un sottoinsieme.
     - Gli intervalli non sono slot. Di default un blocco di due ore **può stare a cavallo dell'intervallo**; il vincolo D7 permette di vietarlo per singole discipline.
 - **Recupero minuti** (unità oraria < 60'): solo calcolo e report del debito orario di docenti e classi; nessuna pianificazione del recupero.
+
+> **Implementazione.** Pagina **Scansione oraria**: inizio e fine di ciascuna ora e ricreazioni (anche più d'una, flag «ricreazione dopo» sull'ora che le precede), uguali per tutti i giorni; la ricreazione dura dalla fine dell'ora all'inizio della successiva. Gli orari non si sovrappongono e una ricreazione richiede una pausa vera. Le modifiche vanno nell'audit log. Orari delle ore e ricreazioni compaiono nei PDF (griglie di classe e docente, legenda nel tabellone). Durata dell'ora e giorni non sono ancora configurabili per singolo giorno e il report dei minuti da recuperare non è realizzato.
 
 ### 5.2 Sedi, aule e risorse
 
@@ -430,7 +432,7 @@ Requisiti comuni a ogni opzione:
 - Più **versioni** per anno scolastico; una sola pubblicata per periodo di validità.
 - **Confronto tra versioni** (diff per classe/docente) per comunicare le variazioni.
 
-> **Implementazione.** La colonna `stato` esiste e ogni orario generato nasce in `bozza`; non c'è ancora un pulsante per cambiare stato, né versioni a confronto. Un orario si può eliminare (con audit log; la generazione resta nello storico). **Valutata e rimandata** l'idea di un orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata), con pulsante «Approva» che blocchi modifica ed eliminazione e con un'impronta dei dati per segnalare che i censimenti sono cambiati: oggi eliminare un docente o una classe elimina a cascata le lezioni dei suoi orari.
+> **Implementazione.** Ogni orario generato nasce in `bozza`; il ciclo è realizzato con pulsanti nella pagina Orari: *Invia in revisione* (referente orario), *Approva*, *Pubblica*, *Archivia* e *Riporta in bozza* (amministratore e dirigente scolastico, gate `approva-orari`), con una sola versione pubblicata per periodo (la precedente passa in archivio). Solo la bozza è modificabile; gli altri stati sono in sola lettura ed eliminabili solo se in bozza o archiviati. **Duplica** crea una nuova bozza (versione successiva) con lezioni e compresenze dell'orario di partenza, per provare varianti. Cambi di stato e duplicazioni vanno nell'audit log. Non sono realizzati il confronto (diff) tra versioni e l'orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata, impronta dei dati): oggi eliminare un docente o una classe elimina a cascata le lezioni anche degli orari approvati o pubblicati.
 
 ---
 
@@ -621,4 +623,5 @@ Requisiti del server: PHP, MariaDB, Python 3 con il pacchetto `ortools`, un work
 | Interfaccia | Modali per le schede semplici, pagina intera per docenti e classi; un solo Salva/Annulla fisso; eliminazione solo da selezione multipla; controlli condizionati disabilitati con spiegazione |
 | Guida | Un solo file Markdown (`docs/guida-utente.md`), mostrato nel pannello Aiuto in funzione del ruolo |
 | Distribuzione | Docker Compose con FrankenPHP e MariaDB; scuola di esempio al primo avvio |
-| Orario come snapshot e approvazione | Valutata e rimandata (vedi §9.2) |
+| Stati dell'orario | Bozza → in revisione → approvato → pubblicato → archiviato; modificabile solo la bozza; approva e pubblica il DS (e l'amministratore); una sola versione pubblicata per periodo; duplicazione come nuova bozza |
+| Orario come snapshot | Valutata e rimandata (vedi §9.2) |

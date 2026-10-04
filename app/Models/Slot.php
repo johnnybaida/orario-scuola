@@ -23,6 +23,12 @@ class Slot extends Model
     /** Le ore con ordine > 6 sono i rientri pomeridiani (stessa convenzione degli slot mattutini di default). */
     public const ULTIMA_ORA_MATTINA = 6;
 
+    /** Minuti tra due orari "H:i" o "H:i:s" (positivi se $a è dopo $da). */
+    public static function minutiTra(string $da, string $a): int
+    {
+        return (int) \Carbon\Carbon::createFromTimeString($da)->diffInMinutes(\Carbon\Carbon::createFromTimeString($a), false);
+    }
+
     /** Slot raggruppati per giorno, fino all'ora $ordineMax (null = tutte): niente righe vuote oltre l'ultima ora usata. */
     public static function perGiorno(?int $ordineMax = null)
     {

@@ -122,7 +122,7 @@ Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non �
 - **Alunni non censiti.** Per classe solo `n_alunni`; per gruppo solo `n_partecipanti`.
 - **Sostegno** (implementato, anticipato rispetto alla Fase 3 originale su richiesta esplicita): per classe, fabbisogni anonimi in `fabbisogni_sostegno` (`codice_anonimo`, es. `1B-S1`, + ore settimanali + `docente_unico` = S4). Docenti assegnati in `assegnazioni_sostegno` (docente + classe + ore). Conteggio in `Impostazioni.conteggio_sostegno` (default istituto) con override opzionale per classe (`Classe.conteggio_sostegno`, nullable = eredita il default). Le ore di sostegno sono **compresenze**, modellate nel solver (`solver/sostegno.py`) e persistite in `compresenze_sostegno` dopo la generazione. **Non implementati**: S1 (discipline preferite), S2 (discipline escluse), S3 (distribuzione minima su più giorni) come vincoli configurabili dedicati.
 - **DADA** (implementato, non nella specifica originale): `aule.tipo` e `discipline.tipo_aula_richiesto` sono stringhe libere, non enum. Oltre ai tipi base, una scuola può censire un'aula dedicata a una disciplina con un tipo a piacere (es. `dada_italiano`) e collegarla dalla scheda della disciplina; riusa il meccanismo esistente di capienza/scelta aula (nessuna modifica al solver necessaria). In UI il tipo aula si sceglie da select: "DADA · disciplina" crea il tipo `dada_{codice}` e lo collega alla disciplina; in DADA le classi non hanno aula base (si spostano gli alunni).
-- **Scansione oraria unica di istituto**, ereditata da tutte le classi: da lunedì a venerdì, ore 1ª–6ª al mattino e 7ª–9ª al pomeriggio **ogni giorno** (migrazione e `SlotSeeder`); ciascuna classe attiva solo i propri slot (`classe_slot`, il numero deve coincidere con le ore del quadro orario). La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare. Le ore dopo l'ultima usata non si mostrano nelle griglie e nei PDF.
+- **Scansione oraria unica di istituto**, ereditata da tutte le classi: da lunedì a venerdì, ore 1ª–6ª al mattino e 7ª–9ª al pomeriggio **ogni giorno** (migrazione e `SlotSeeder`); ciascuna classe attiva solo i propri slot (`classe_slot`, il numero deve coincidere con le ore del quadro orario). La durata dell'ora è unica e configurabile (default 50'), con numero e posizione degli intervalli. Se la durata è < 60' il sistema calcola solo il report dei minuti da recuperare. Le ore dopo l'ultima usata non si mostrano nelle griglie e nei PDF. Orari di inizio/fine di ogni ora e ricreazioni (`intervallo_dopo`, anche più d'una) si impostano nella pagina **Scansione oraria** (`ScansioneOrariaController`, uguali per tutti i giorni, audit log); i PDF mostrano gli orari delle ore e le ricreazioni (riga «Ricreazione hh:mm-hh:mm» nelle griglie, legenda nel tabellone).
 - **Docenti**: tipo posto (comune, sostegno, potenziamento, IRC, strumento), regime (tempo pieno, part-time orizzontale/verticale/misto), contratto, ore dovute (cattedra intera = 18), indisponibilità. Per i COE si gestiscono solo le indisponibilità. **Contratto, regime, COE, classi di concorso, `n_alunni` e il flag `compresenza` delle cattedre sono oggi dati informativi: il solver non li usa**; i giorni/ore di assenza si impongono con le indisponibilità.
 - **Rientri pomeridiani** (tempo prolungato): scelti per giorno e per classe nel form della classe (spuntano le ore 7ª–9ª del giorno negli slot attivi); in modifica la griglia degli slot prevale.
 - **Gruppi interclasse** per seconda lingua articolata, alternativa IRC, LEL (latino opzionale), strumento: le classi coinvolte devono essere compatibili nello stesso slot.
@@ -133,16 +133,18 @@ Account locali (`/utenze`, solo amministratore); ruolo e docente collegato (solo
 
 | Ruolo | Gate |
 |---|---|
-| `amministratore` | `consulta`, `gestisci-anagrafica`, `gestisci-docenti-classi`, `gestisci-utenze` |
+| `amministratore` | `consulta`, `gestisci-anagrafica`, `gestisci-docenti-classi`, `gestisci-utenze`, `approva-orari` |
 | `referente_orario` | `consulta`, `gestisci-anagrafica`, `gestisci-docenti-classi` |
 | `segreteria` | `consulta`, `gestisci-docenti-classi` (docenti e classi) |
-| `ds`, `referente_sostituzioni` | `consulta` (sola lettura) |
+| `ds` | `consulta`, `approva-orari` |
+| `referente_sostituzioni` | `consulta` (sola lettura) |
 | `docente` | nessuno: vede solo dashboard e guida |
 
 Non si elimina la propria utenza né si toglie a se stessi il ruolo di amministratore.
 
 ### Worker di coda e orari
 - Il worker (`queue:work`) lo gestisce `App\Services\QueueWorker` (processo figlio con PID file): "Avvia/Ferma" in **Genera orario** e dashboard; l'arresto è graceful (`queue:restart`, stato "in arresto"); **Avvia generazione** lo avvia da solo se è fermo (non con coda `sync`). Su Docker parte al boot del container.
+- **Stati dell'orario** (`App\Support\StatiOrario`): `bozza` → `in_revisione` → `approvato` → `pubblicato` → `archiviato`. Solo la bozza è modificabile (`Orario::modificabile()`: l'editor risponde 422 e la griglia è in sola lettura altrimenti). Inviare in revisione o rimandare in bozza una revisione spetta a `gestisci-anagrafica`; approvare, pubblicare, archiviare e riaprire un approvato a `approva-orari`. Una sola versione `pubblicato` per periodo (pubblicando, la precedente va in `archiviato`). **Duplica** (`gestisci-anagrafica`) copia lezioni e compresenze in una nuova bozza (versione successiva). Si elimina solo da `bozza` o `archiviato`. Stati e duplicazioni vanno nell'audit log.
 - Un orario nasce in stato `bozza`; la tabella **Orari** permette di consultarlo, esportare i PDF (griglia classe/docente, tabellone generale su un foglio A3: classi in riga, giorni a larghezza uguale, sostegno visibile) ed eliminarlo (audit log; le generazioni restano come storico).
 - L'orario dipende ancora dai censimenti (cattedre, docenti, ...): eliminarli elimina a cascata le lezioni. Valutata e **rimandata** l'idea di orario come snapshot con approvazione (vedi Roadmap).
 
@@ -205,14 +207,14 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 | Fase | Contenuto |
 |---|---|
 | **MVP** | Anagrafiche + import CSV, scansione oraria di istituto, quadri orari, cattedre manuali e proposta automatica, vincoli H1–H10 + D1, D3, D6, T1, T2, T3, generazione con seed, editor griglia, export PDF — **completo** |
-| Anticipato | Su richiesta esplicita: sostegno (fabbisogni, assegnazioni, compresenze, S4 docente unico), DADA (aula per disciplina), utenze e ruoli, dashboard operativa, guida utente in-app (F1, per ruolo), gestione del worker da interfaccia, Docker Compose |
+| Anticipato | Su richiesta esplicita: sostegno (fabbisogni, assegnazioni, compresenze, S4 docente unico), DADA (aula per disciplina), utenze e ruoli, dashboard operativa, guida utente in-app (F1, per ruolo), gestione del worker da interfaccia, Docker Compose, stati e approvazione degli orari con duplicazione |
 | Fase 2 | Assenze e sostituzioni con proposta automatica, recupero permessi, versioni e diff |
 | Fase 3 | Gruppi interclasse, S1–S3 (vincoli sostegno su discipline/distribuzione), multi-sede e indisponibilità COE |
 | Fase 4 | Varianti multiple e confronto, rilassamento guidato dei vincoli, export Excel |
 
 Non anticipare funzionalità di fasi successive; se servono predisposizioni nel modello dati, segnalale.
 
-**Idee valutate e rimandate**: orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata), con pulsante di approvazione (`bozza` → `approvato`) che blocca modifica ed eliminazione e con impronta dei dati per segnalare che i censimenti sono cambiati. Tocca versioni e stati della Fase 2: riprenderla solo su richiesta.
+**Idee valutate e rimandate**: orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata) con impronta dei dati per segnalare che i censimenti sono cambiati; oggi eliminare un docente o una classe elimina a cascata le lezioni anche degli orari approvati o pubblicati. Il confronto (diff) tra versioni resta in Fase 2.
 
 ---
 

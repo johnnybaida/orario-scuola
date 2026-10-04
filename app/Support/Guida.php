@@ -12,6 +12,7 @@ class Guida
         'dashboard' => 'per-iniziare',
         'sedi.*' => 'sedi-e-aule',
         'aule.*' => 'sedi-e-aule',
+        'scansione.*' => 'scansione-oraria',
         'discipline.*' => 'discipline',
         'quadri-orari.*' => 'quadri-orari',
         'docenti.*' => 'docenti',

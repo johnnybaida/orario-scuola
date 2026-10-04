@@ -60,6 +60,18 @@
         </tbody>
     </table>
 
+    {{-- Orari delle ore e ricreazioni (scansione oraria di istituto) --}}
+    <p class="legenda">
+        <strong>Orari:</strong>
+        @foreach ($legendaOre as $ora)
+            {{ $ora['ordine'] }}ª {{ $ora['inizio'] }}-{{ $ora['fine'] }}
+            @if ($ora['ricreazione'])
+                &middot; <strong>ricreazione</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}')
+            @endif
+            @unless ($loop->last) &middot; @endunless
+        @endforeach
+    </p>
+
     <p class="legenda">
         @foreach ($discipline as $disciplina)
             <strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}@unless ($loop->last) &middot; @endunless

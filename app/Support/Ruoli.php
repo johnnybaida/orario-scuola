@@ -22,6 +22,9 @@ class Ruoli
     /** Chi, in più, gestisce anche docenti e classi (la segreteria inserisce le anagrafiche di base). */
     const GESTIONE_DOCENTI_CLASSI = [self::AMMINISTRATORE, self::REFERENTE_ORARIO, self::SEGRETERIA];
 
+    /** Chi approva, pubblica e archivia gli orari. */
+    const APPROVAZIONE = [self::AMMINISTRATORE, self::DS];
+
     /** Chi può consultare tutto in sola lettura. */
     const CONSULTAZIONE = [
         self::AMMINISTRATORE, self::DS, self::REFERENTE_ORARIO, self::REFERENTE_SOSTITUZIONI, self::SEGRETERIA,

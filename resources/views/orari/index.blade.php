@@ -6,8 +6,11 @@
     <h1 class="text-xl font-semibold mb-6">Orari generati</h1>
 
     <x-guida>
-        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe (modificabile) o di un
-        docente (sola lettura), oppure esporti il tabellone generale in PDF.
+        Elenco degli orari prodotti dalle generazioni. Da qui apri la griglia di una classe o di un docente, oppure
+        esporti i PDF. Ogni orario ha uno <strong>stato</strong>: bozza → in revisione → approvato → pubblicato → archiviato.
+        Solo la <strong>bozza</strong> si modifica (la griglia di una classe è modificabile soltanto allora); con
+        <strong>Duplica</strong> crei una copia in bozza per provare una variante. Si eliminano solo gli orari in bozza
+        o archiviati.
     </x-guida>
 
     <x-barra-selezione />
@@ -30,7 +33,7 @@
                         @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $orario->periodo->nome }}</td>
                         <td class="px-4 py-2">{{ $orario->versione }}</td>
-                        <td class="px-4 py-2">{{ $orario->stato }}</td>
+                        <td class="px-4 py-2"><x-stato-orario :orario="$orario" /></td>
                         <td class="px-4 py-2">{{ $orario->punteggio }}</td>
                         <td class="px-4 py-2 text-right space-x-3">
                             <a href="{{ route('orari.export.generale', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Tabellone PDF</a>
@@ -47,6 +50,25 @@
                                     <option value="{{ $docente->id }}">{{ $docente->nomeCompleto() }}</option>
                                 @endforeach
                             </select>
+                            @php($consentite = \App\Support\StatiOrario::consentite($orario, auth()->user()))
+                            @if ($consentite || auth()->user()->can('gestisci-anagrafica'))
+                                {{-- Ciclo di vita: i pulsanti compaiono solo per i passaggi che il ruolo può fare; duplicare crea una nuova bozza. --}}
+                                <div class="mt-2 flex flex-wrap justify-end gap-x-4 gap-y-1">
+                                    @foreach ($consentite as $nuovoStato)
+                                        <form method="POST" action="{{ route('orari.stato', $orario) }}">
+                                            @csrf
+                                            <input type="hidden" name="stato" value="{{ $nuovoStato }}">
+                                            <button type="submit" class="underline text-primary cursor-pointer">{{ \App\Support\StatiOrario::AZIONI[$nuovoStato] }}</button>
+                                        </form>
+                                    @endforeach
+                                    @can('gestisci-anagrafica')
+                                        <form method="POST" action="{{ route('orari.duplica', $orario) }}">
+                                            @csrf
+                                            <button type="submit" class="underline text-gray-600 hover:text-gray-900 cursor-pointer">Duplica</button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            @endif
                         </td>
                     </tr>
                 @endforeach

@@ -86,17 +86,31 @@ class OrarioPdfExporter
         $fontPx = max(6, min(10, (int) floor(($larghezzaColonna - 3) / 3.6)));
         $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.4 * $fontPx)));
 
+        // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
+        $tuttiGliSlot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
+        $legendaOre = collect(range(1, max(1, $oreMax)))->map(function (int $ordine) use ($tuttiGliSlot) {
+            $ora = $tuttiGliSlot->first(fn (Slot $s) => $s->ordine === $ordine);
+            $prossima = $tuttiGliSlot->first(fn (Slot $s) => $s->ordine === $ordine + 1);
+
+            return $ora ? [
+                'ordine' => $ordine, 'inizio' => substr($ora->inizio, 0, 5), 'fine' => substr($ora->fine, 0, 5),
+                'ricreazione' => $ora->intervallo_dopo && $prossima
+                    ? ['fine' => substr($prossima->inizio, 0, 5), 'minuti' => Slot::minutiTra($ora->fine, $prossima->inizio)] : null,
+            ] : null;
+        })->filter()->values()->all();
+
         return Pdf::loadView('orari.pdf.tabellone', [
             'titolo' => 'Quadro generale orario',
             'classi' => $classi,
             'giorni' => $giorni,
             'ore' => $oreMax ? range(1, $oreMax) : [],
-            'slot' => Slot::query()->get()->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
+            'slot' => $tuttiGliSlot->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
             'lezioni' => $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id),
             'sostegni' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->classe_id),
             'discipline' => $lezioni->pluck('cattedra.disciplina')->unique('id')->sortBy('codice'),
             'limite' => $limite,
             'fontPx' => $fontPx,
+            'legendaOre' => $legendaOre,
         ])->setPaper('a3', 'landscape');
     }
 }

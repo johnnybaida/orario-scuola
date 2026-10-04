@@ -4,25 +4,32 @@
 
 @section('contenuto')
     <div class="flex items-center justify-between mb-2 flex-wrap gap-3">
-        <h1 class="text-xl font-semibold">Orario {{ $classe->nomeCompleto() }}</h1>
+        <h1 class="text-xl font-semibold">Orario {{ $classe->nomeCompleto() }} <x-stato-orario :orario="$orario" class="align-middle ml-2" /></h1>
         <div class="flex items-center gap-3">
             <a href="{{ route('orari.export.classe', [$orario, $classe]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
-            @can('gestisci-anagrafica')
+            @if ($modificabile)
                 <form method="POST" action="{{ route('orari.annulla-ultima', $orario) }}">
                     @csrf
                     <button type="submit" class="text-sm underline text-gray-600">Annulla ultima modifica</button>
                 </form>
-            @endcan
+            @endif
         </div>
     </div>
 
-    @can('gestisci-anagrafica')
+    @if ($modificabile)
         <x-guida>
             Trascina una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si scambiano.
             Usa il menu nella lezione per cambiarne docente e/o materia. Una lezione bloccata non può essere
             spostata, scambiata né modificata: sbloccala prima con il pulsante "Blocca/Sblocca".
         </x-guida>
-    @endcan
+    @endif
+
+    @unless ($orario->modificabile())
+        <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+            Questo orario è <strong>{{ strtolower($orario->etichettaStato()) }}</strong> e si può solo consultare. Per modificarlo
+            <strong>duplicalo</strong> dalla pagina Orari (nasce una nuova bozza) oppure, se ne hai il permesso, riportalo in bozza.
+        </div>
+    @endunless
 
     @if ($avvisi->isNotEmpty())
         <div class="mb-4 rounded-lg border px-4 py-3 text-sm {{ $avvisi->contains('tipo', 'errore') ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200' }}">
@@ -49,7 +56,7 @@
 
     <div class="bg-white border border-gray-200 rounded-lg">
         <table class="w-full table-fixed text-sm border-collapse" id="griglia-orario" data-url-lezioni="{{ url('/orari/'.$orario->id.'/lezioni') }}"
-               data-editabile="{{ auth()->user()->can('gestisci-anagrafica') ? '1' : '0' }}">
+               data-editabile="{{ $modificabile ? '1' : '0' }}">
             <thead class="bg-gray-50 text-gray-500">
                 <tr>
                     <th class="p-2 border border-gray-200 w-16">Ora</th>
@@ -74,10 +81,10 @@
                                     @if ($lezione)
                                         <div class="rounded px-2 py-1 text-xs {{ $lezione->bloccata ? 'bg-amber-100 border border-amber-300' : 'bg-blue-50 border border-blue-200' }}"
                                              data-lezione-id="{{ $lezione->id }}"
-                                             draggable="{{ auth()->user()->can('gestisci-anagrafica') && ! $lezione->bloccata ? 'true' : 'false' }}">
+                                             draggable="{{ $modificabile && ! $lezione->bloccata ? 'true' : 'false' }}">
                                             <div class="font-medium">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
-                                            @can('gestisci-anagrafica')
+                                            @if ($modificabile)
                                                 @unless ($lezione->bloccata)
                                                     <select data-ricerca="compatta" class="js-cambia-cattedra w-full mt-1 text-[10px] border-gray-300 rounded" data-lezione-id="{{ $lezione->id }}" draggable="false">
                                                         @foreach ($cattedre as $cattedra)
@@ -90,7 +97,7 @@
                                                 <button type="button" class="js-blocca-lezione text-[10px] underline text-gray-500 mt-1" draggable="false">
                                                     {{ $lezione->bloccata ? 'Sblocca' : 'Blocca' }}
                                                 </button>
-                                            @endcan
+                                            @endif
                                             @if ($compresenze->get($slot->id))
                                                 <div class="mt-1 pt-1 border-t border-blue-200 text-[10px] text-green-700">
                                                     @foreach ($compresenze->get($slot->id)->unique('docente_id') as $compresenza)

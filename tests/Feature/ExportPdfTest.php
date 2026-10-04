@@ -135,4 +135,27 @@ class ExportPdfTest extends TestCase
         $risposta->assertOk();
         $this->assertSame('application/pdf', $risposta->headers->get('Content-Type'));
     }
+
+    public function test_i_pdf_mostrano_orari_delle_ore_e_ricreazioni(): void
+    {
+        $classe = Classe::factory()->create();
+        $prima = Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '09:40:00', 'fine' => '10:30:00', 'intervallo_dopo' => true]);
+        $seconda = Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '10:40:00', 'fine' => '11:30:00']);
+        $classe->slotAttivi()->attach([$prima->id, $seconda->id]);
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        foreach ([$prima, $seconda] as $slot) {
+            Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot->id]);
+        }
+        $esporta = app(\App\Services\Export\OrarioPdfExporter::class);
+
+        $griglia = $esporta->classe($orario, $classe)->getDomPDF()->outputHtml();
+        $this->assertStringContainsString('09:40-10:30', $griglia);
+        $this->assertStringContainsString('Ricreazione 10:30-10:40', $griglia);
+        $this->assertStringContainsString('10 minuti', $griglia);
+
+        $tabellone = $esporta->generale($orario)->getDomPDF()->outputHtml();
+        $this->assertStringContainsString('1&ordf; 09:40-10:30', $tabellone);
+        $this->assertStringContainsString('ricreazione</strong> 10:30-10:40 (10\')', $tabellone);
+    }
 }

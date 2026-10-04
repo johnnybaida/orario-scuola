@@ -15,6 +15,17 @@ class Orario extends Model
 
     protected $table = 'orari';
 
+    /** Solo una bozza si modifica; negli altri stati l'orario è in sola lettura (si può duplicare). */
+    public function modificabile(): bool
+    {
+        return $this->stato === 'bozza';
+    }
+
+    public function etichettaStato(): string
+    {
+        return \App\Support\StatiOrario::ETICHETTE[$this->stato] ?? $this->stato;
+    }
+
     public function periodo(): BelongsTo
     {
         return $this->belongsTo(Periodo::class);

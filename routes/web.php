@@ -12,6 +12,7 @@ use App\Http\Controllers\GenerazioneController;
 use App\Http\Controllers\GuidaController;
 use App\Http\Controllers\OrarioController;
 use App\Http\Controllers\QuadroOrarioController;
+use App\Http\Controllers\ScansioneOrariaController;
 use App\Http\Controllers\SedeController;
 use App\Http\Controllers\UtenzaController;
 use App\Http\Controllers\VincoloController;
@@ -65,7 +66,10 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('generazioni', GenerazioneController::class)->parameters($parametriRisorse['generazioni'])->only(['index', 'show']);
         Route::get('/generazioni/{generazione}/stato', [GenerazioneController::class, 'stato'])->name('generazioni.stato');
 
+        Route::get('/scansione-oraria', [ScansioneOrariaController::class, 'index'])->name('scansione.index');
+
         Route::get('/orari', [OrarioController::class, 'index'])->name('orari.index');
+        Route::post('/orari/{orario}/stato', [OrarioController::class, 'cambiaStato'])->name('orari.stato');
         Route::get('/orari/{orario}/classe/{classe}', [OrarioController::class, 'classe'])->name('orari.classe');
         Route::get('/orari/{orario}/docente/{docente}', [OrarioController::class, 'docente'])->name('orari.docente');
         Route::get('/orari/{orario}/export/classe/{classe}', [ExportController::class, 'classe'])->name('orari.export.classe');
@@ -83,10 +87,13 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
 
+        Route::put('/scansione-oraria', [ScansioneOrariaController::class, 'update'])->name('scansione.update');
+
         Route::post('/worker/avvia', [WorkerController::class, 'avvia'])->name('worker.avvia');
         Route::post('/worker/ferma', [WorkerController::class, 'ferma'])->name('worker.ferma');
 
         Route::delete('/orari/{orario}', [OrarioController::class, 'destroy'])->name('orari.destroy');
+        Route::post('/orari/{orario}/duplica', [OrarioController::class, 'duplica'])->name('orari.duplica');
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');

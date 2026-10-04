@@ -359,4 +359,96 @@ class EditorOrarioTest extends TestCase
         $this->actingAs($this->referente())->get("/orari/{$orario->id}/classe/{$classe->id}")
             ->assertOk()->assertSeeInOrder(['Arte - ', 'Italiano - ', 'Scienze - ']);
     }
+
+    private function orarioConLezione(string $stato = 'bozza'): array
+    {
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create(['stato' => $stato, 'versione' => 1]);
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id, 'bloccata' => true]);
+
+        return [$orario, $lezione, $classe, $slot1, $slot2];
+    }
+
+    public function test_duplica_un_orario_come_nuova_bozza_con_lezioni_e_sostegno_ma_senza_avvisi(): void
+    {
+        [$orario, $lezione, $classe, $slot1] = $this->orarioConLezione('approvato');
+        $sostegno = Docente::factory()->create();
+        \App\Models\CompresenzaSostegno::query()->create(['orario_id' => $orario->id, 'docente_id' => $sostegno->id, 'classe_id' => $classe->id, 'slot_id' => $slot1->id]);
+        \App\Models\AvvisoOrario::query()->create(['orario_id' => $orario->id, 'tipo' => 'avviso', 'messaggio' => 'prova']);
+
+        $this->actingAs($this->referente())->post("/orari/{$orario->id}/duplica")->assertRedirect(route('orari.index'))->assertSessionHas('successo');
+
+        $copia = Orario::query()->where('id', '!=', $orario->id)->firstOrFail();
+        $this->assertSame('bozza', $copia->stato);
+        $this->assertSame(2, $copia->versione);
+        $this->assertSame($orario->periodo_id, $copia->periodo_id);
+        $this->assertDatabaseHas('lezioni', ['orario_id' => $copia->id, 'cattedra_id' => $lezione->cattedra_id, 'slot_id' => $slot1->id, 'bloccata' => true]);
+        $this->assertDatabaseHas('compresenze_sostegno', ['orario_id' => $copia->id, 'docente_id' => $sostegno->id]);
+        $this->assertDatabaseMissing('avvisi_orario', ['orario_id' => $copia->id]);
+        $this->assertSame('approvato', $orario->fresh()->stato); // l'originale non cambia
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Orario', 'entita_id' => $copia->id, 'azione' => 'duplicazione']);
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->post("/orari/{$orario->id}/duplica")->assertForbidden();
+    }
+
+    public function test_il_ciclo_di_stato_rispetta_i_permessi_e_pubblicare_archivia_il_precedente(): void
+    {
+        [$orario] = $this->orarioConLezione();
+        $vecchio = Orario::factory()->create(['periodo_id' => $orario->periodo_id, 'stato' => 'pubblicato', 'versione' => 0]);
+        $referente = $this->referente();
+        $dirigente = User::factory()->create(['ruolo' => 'ds']);
+
+        $this->actingAs($referente)->post("/orari/{$orario->id}/stato", ['stato' => 'in_revisione'])->assertRedirect();
+        $this->assertSame('in_revisione', $orario->fresh()->stato);
+
+        // il referente non approva; il dirigente sì
+        $this->actingAs($referente)->post("/orari/{$orario->id}/stato", ['stato' => 'approvato'])->assertForbidden();
+        $this->actingAs($dirigente)->post("/orari/{$orario->id}/stato", ['stato' => 'approvato'])->assertRedirect();
+        // un passaggio fuori dal ciclo è rifiutato
+        $this->actingAs($dirigente)->post("/orari/{$orario->id}/stato", ['stato' => 'archiviato'])->assertStatus(422);
+        // il referente non può riaprire un orario approvato
+        $this->actingAs($referente)->post("/orari/{$orario->id}/stato", ['stato' => 'bozza'])->assertForbidden();
+
+        $this->actingAs($dirigente)->post("/orari/{$orario->id}/stato", ['stato' => 'pubblicato'])->assertRedirect();
+        $this->assertSame('pubblicato', $orario->fresh()->stato);
+        $this->assertSame('archiviato', $vecchio->fresh()->stato); // una sola pubblicata per periodo
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Orario', 'entita_id' => $orario->id, 'azione' => 'cambio_stato']);
+
+        // la segreteria non cambia stati
+        $this->actingAs(User::factory()->create(['ruolo' => 'segreteria']))->post("/orari/{$orario->id}/stato", ['stato' => 'archiviato'])->assertForbidden();
+    }
+
+    public function test_solo_la_bozza_si_modifica_e_si_elimina_solo_se_bozza_o_archiviato(): void
+    {
+        [$orario, $lezione, $classe, $slot1, $slot2] = $this->orarioConLezione('approvato');
+        $lezione->update(['bloccata' => false]);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->patch("/orari/{$orario->id}/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot2->id])->assertStatus(422);
+        $this->assertSame($slot1->id, $lezione->fresh()->slot_id);
+        $utente->post("/orari/{$orario->id}/lezioni/{$lezione->id}/blocca")->assertStatus(422);
+        $utente->post("/orari/{$orario->id}/annulla-ultima")->assertStatus(422);
+
+        $utente->get("/orari/{$orario->id}/classe/{$classe->id}")->assertOk()
+            ->assertSee('data-editabile="0"', false)->assertSee('si può solo consultare');
+
+        $utente->delete("/orari/{$orario->id}")->assertStatus(422);
+        $this->assertModelExists($orario);
+
+        $orario->update(['stato' => 'archiviato']);
+        $utente->delete("/orari/{$orario->id}")->assertRedirect();
+        $this->assertModelMissing($orario);
+    }
+
+    public function test_lelenco_orari_mostra_stato_e_solo_i_pulsanti_permessi(): void
+    {
+        [$orario] = $this->orarioConLezione('in_revisione');
+
+        $duplica = route('orari.duplica', $orario);
+
+        $this->actingAs($this->referente())->get('/orari')->assertOk()->assertSee('In revisione')->assertSee($duplica, false)
+            ->assertSee('Riporta in bozza')->assertDontSee('>Approva<', false);
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get('/orari')->assertOk()->assertSee('>Approva<', false)->assertDontSee($duplica, false);
+    }
 }
