@@ -9,24 +9,39 @@ use App\Models\Orario;
 use App\Models\Slot;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocument;
+use Illuminate\Support\Collection;
 
 class OrarioPdfExporter
 {
     public function classe(Orario $orario, Classe $classe): PdfDocument
     {
-        $lezioni = Lezione::query()
-            ->where('orario_id', $orario->id)
-            ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-            ->with('cattedra.disciplina', 'cattedra.docente', 'aula')
-            ->get()
-            ->keyBy('slot_id');
+        return $this->classi($orario, collect([$classe]));
+    }
 
-        return Pdf::loadView('orari.pdf.griglia', [
+    /**
+     * Un foglio A4 orizzontale per classe, con il titolo centrato e tutta la settimana (anche i docenti di sostegno
+     * in compresenza). Senza argomento: tutte le classi, in ordine.
+     */
+    public function classi(Orario $orario, ?Collection $classi = null): PdfDocument
+    {
+        $classi ??= Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
+        $sostegni = $orario->compresenzeSostegno()->with('docente')->get()->groupBy('classe_id');
+
+        $fogli = $classi->map(fn (Classe $classe) => [
             'titolo' => "Orario classe {$classe->nomeCompleto()}",
             'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
-            'lezioni' => $lezioni,
+            'lezioni' => Lezione::query()
+                ->where('orario_id', $orario->id)
+                ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
+                ->with('cattedra.disciplina', 'cattedra.docente', 'aula')
+                ->get()
+                ->keyBy('slot_id'),
             'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
-        ])->setPaper('a4', 'landscape');
+            'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
+                ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
+        ])->all();
+
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
     }
 
     public function docente(Orario $orario, Docente $docente): PdfDocument
@@ -38,12 +53,13 @@ class OrarioPdfExporter
             ->get()
             ->keyBy('slot_id');
 
-        return Pdf::loadView('orari.pdf.griglia', [
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => [[
             'titolo' => "Orario docente {$docente->nomeCompleto()}",
             'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
             'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome,
-        ])->setPaper('a4', 'landscape');
+            'sostegni' => [],
+        ]]])->setPaper('a4', 'landscape');
     }
 
     /**

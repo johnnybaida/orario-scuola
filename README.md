@@ -29,7 +29,14 @@ Se ti sembra complicato, chiedi aiuto a chi gestisce i computer della scuola: do
 
 ### Passo 2 - Preparare la cartella
 
-Se hai ricevuto un file ZIP, **estrailo** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
+Ti serve la cartella del progetto, con dentro i file di avvio. Puoi averla in due modi:
+
+- **Scaricarla da GitHub** (consigliato): vai su **<https://github.com/johnnybaida/orario-scuola>**, clicca il pulsante verde **Code** e poi **Download ZIP**. Il file scaricato è lo ZIP da estrarre qui sotto. I file di avvio (`Avvia-Orario-Scuola.bat`, `Avvia-Orario-Scuola.command` e i due `Ferma-…`) sono nella cartella principale del progetto.
+- **Ricevere un file ZIP** da chi gestisce l'installazione: è lo stesso contenuto.
+
+In entrambi i casi, **estrai lo ZIP** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
+
+Per **aggiornare** a una nuova versione basta riscaricare lo ZIP da GitHub (o riceverne uno nuovo) e ripetere questo passo e il successivo: i dati non si perdono. Chi usa Git può anche clonare il progetto con `git clone https://github.com/johnnybaida/orario-scuola.git` e aggiornarlo con `git pull`.
 
 ### Passo 3 - Avviare Orario Scuola
 

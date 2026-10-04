@@ -104,4 +104,35 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('2&ordf;', $html);
         $this->assertStringNotContainsString('7&ordf;', $html);
     }
+
+    public function test_il_pdf_delle_classi_ha_un_foglio_per_classe_con_il_titolo_centrato(): void
+    {
+        $prima = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'A']);
+        $seconda = Classe::factory()->create(['anno_corso' => 2, 'sezione' => 'B']);
+        $slot = Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        $prima->slotAttivi()->attach($slot->id);
+        $seconda->slotAttivi()->attach($slot->id);
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $prima->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot->id]);
+        $sostegno = Docente::factory()->create(['cognome' => 'Verdi']);
+        \App\Models\CompresenzaSostegno::query()->create([
+            'orario_id' => $orario->id, 'docente_id' => $sostegno->id, 'classe_id' => $prima->id, 'slot_id' => $slot->id,
+        ]);
+
+        $pdf = app(\App\Services\Export\OrarioPdfExporter::class)->classi($orario);
+        $html = $pdf->getDomPDF()->outputHtml();
+
+        // dompdf scrive la "ª" come entità HTML
+        $html = str_replace('&ordf;', 'ª', $html);
+        $this->assertStringContainsString('Orario classe '.$prima->nomeCompleto(), $html);
+        $this->assertStringContainsString('Orario classe '.$seconda->nomeCompleto(), $html);
+        $this->assertSame(1, substr_count($html, 'page-break-after: always')); // 2 classi = 1 interruzione di pagina
+        $this->assertStringContainsString('text-align: center', $html);          // titolo centrato
+        $this->assertStringContainsString('S Verdi', $html);                     // sostegno nella classe
+
+        $risposta = $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get("/orari/{$orario->id}/export/classi");
+        $risposta->assertOk();
+        $this->assertSame('application/pdf', $risposta->headers->get('Content-Type'));
+    }
 }

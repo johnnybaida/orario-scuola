@@ -15,6 +15,11 @@ class ExportController extends Controller
         return $exporter->classe($orario, $classe)->stream("orario-{$classe->nomeCompleto()}.pdf");
     }
 
+    public function classi(Orario $orario, OrarioPdfExporter $exporter): Response
+    {
+        return $exporter->classi($orario)->stream('orario-tutte-le-classi.pdf');
+    }
+
     public function docente(Orario $orario, Docente $docente, OrarioPdfExporter $exporter): Response
     {
         return $exporter->docente($orario, $docente)->stream("orario-{$docente->nomeCompleto()}.pdf");

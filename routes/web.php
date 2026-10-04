@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::get('/orari/{orario}/classe/{classe}', [OrarioController::class, 'classe'])->name('orari.classe');
         Route::get('/orari/{orario}/docente/{docente}', [OrarioController::class, 'docente'])->name('orari.docente');
         Route::get('/orari/{orario}/export/classe/{classe}', [ExportController::class, 'classe'])->name('orari.export.classe');
+        Route::get('/orari/{orario}/export/classi', [ExportController::class, 'classi'])->name('orari.export.classi');
         Route::get('/orari/{orario}/export/docente/{docente}', [ExportController::class, 'docente'])->name('orari.export.docente');
         Route::get('/orari/{orario}/export/generale', [ExportController::class, 'generale'])->name('orari.export.generale');
     });

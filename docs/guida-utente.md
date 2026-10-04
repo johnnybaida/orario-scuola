@@ -290,7 +290,8 @@ La pagina **Orari** elenca gli orari prodotti, con **periodo**, **versione**, **
 
 ### Esportare in PDF
 
-- **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Le righe delle ore dopo l'ultima usata non compaiono.
+- **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Un foglio A4 orizzontale con il titolo al centro e tutta la settimana; le righe delle ore dopo l'ultima usata non compaiono.
+- **Tutte le classi** ("Classi PDF" nella pagina *Orari* e nella dashboard): un solo PDF A4 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.
 - **Tabellone generale**: un solo foglio A3, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
 ## Ruoli e permessi
