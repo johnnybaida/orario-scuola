@@ -323,12 +323,35 @@ Da questa pagina puoi inoltre:
 ### Griglia della classe
 
 - La griglia si modifica solo se l'orario è in **bozza**: negli altri stati compare un avviso azzurro e la griglia è in sola lettura.
-- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**.
+- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**. Gli slot si colorano durante il trascinamento per dirti dove si può (verde), dove creerebbe un conflitto (ambra) e dove non è ammesso (rosso).
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
 - **Annulla** e **Ripeti** (in alto sopra la griglia) tornano indietro e avanti **su più livelli**: spostamenti, scambi, cambi di docente o materia e blocchi/sblocchi. Scorciatoie: **Ctrl/Cmd + Z** per annullare, **Ctrl/Cmd + Maiusc + Z** (o Ctrl + Y) per ripetere. I pulsanti sono grigi quando non c'è nulla da annullare o da ripetere. Dopo una **nuova** modifica le modifiche annullate non si possono più ripetere. Annullamenti e ripristini restano nel registro delle modifiche. La cronologia riguarda le modifiche fatte da questa versione in poi e non passa a una copia: un orario duplicato riparte senza cronologia.
-- L'esito delle modifiche resta nel **pannello degli avvisi** sopra la griglia finché non lo azzeri. Ogni messaggio dice **dove** sta il problema: la **classe**, il **giorno e l'ora** (es. «martedì, 3ª ora (09:40–10:30)») e, quando il conflitto è con un'altra lezione, anche **quale** (per esempio «il docente Rossi Anna è già impegnato in 2ª B con Storia»). Quando cambi docente o materia di una lezione, gli avvisi sul monte ore sono due e dicono quale è la **cattedra lasciata** (quella che perde un'ora) e quale la **cattedra scelta** (quella che ne guadagna una): l'avviso sul docente che hai appena sostituito non significa che la scelta sia sbagliata. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
+- L'esito dei tentativi di modifica resta nel **Registro delle modifiche** sopra la griglia finché non lo azzeri (**Azzera registro**). È una **cronologia**, non lo stato attuale: una riga «**modifica rifiutata**» vuol dire che l'editor ha detto no e **nulla è cambiato**, quindi può comparire accanto a un Controllo senza problemi. Lo stato vero dell'orario è nel riquadro **Controllo dell'orario**. Ogni messaggio dice **dove** sta il problema: la **classe**, il **giorno e l'ora** (es. «martedì, 3ª ora (09:40–10:30)») e, quando il conflitto è con un'altra lezione, anche **quale** (per esempio «il docente Rossi Anna è già impegnato in 2ª B con Storia»). Se una modifica viene **rifiutata**, la lezione interessata resta com'era (la select torna sulla cattedra reale) e il suo riquadro nella griglia diventa **rosso** con la scritta «Modifica rifiutata: vedi gli avvisi», finché non azzeri gli avvisi. Quando cambi docente o materia di una lezione, gli avvisi sul monte ore sono due e dicono quale è la **cattedra lasciata** (quella che perde un'ora) e quale la **cattedra scelta** (quella che ne guadagna una): l'avviso sul docente che hai appena sostituito non significa che la scelta sia sbagliata. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
 <!-- /permesso -->
+
+### Controllo dell'orario
+
+Sopra la griglia di ogni classe c'è il riquadro **Controllo dell'orario**: è lo **stato reale** dell'orario, **ricalcolato ogni volta che apri o ricarichi la pagina** (non si aggiorna da solo mentre la tieni aperta, e se un collega modifica devi ricaricare). Segnala:
+
+- un **docente in due posti** nello stesso momento (con le due classi);
+- un docente **indisponibile** in quell'ora;
+- una classe con **due lezioni** nello stesso momento, o una lezione in un'ora **fuori scansione**;
+- un'**aula** richiesta da più lezioni di quante ne possa contenere;
+- **ore diverse** da quelle previste per una cattedra;
+- **ore senza lezione** (avviso).
+
+Ogni riga dice classe, giorno e ora e, quando il problema coinvolge altre classi, c'è il link **Apri 2ª B** per correggerlo lì. I riquadri delle lezioni coinvolte nella griglia sono **rossi**, con il dettaglio passandoci sopra. **Tutto l'orario** apre l'elenco completo; nella pagina *Orari* ogni scheda mostra il riepilogo («Controllo: 2 errori, 1 avviso»). A differenza del registro delle modifiche, un problema **sparisce da solo** quando lo risolvi.
+
+### Fare modifiche all'orario
+
+1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **ambra** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
+2. **Cambiare docente o materia di una lezione**: scegli un'altra cattedra della **stessa classe** dal menu della lezione.
+3. **Scambi tra classi** (per esempio due docenti che devono scambiarsi le ore, o un docente che deve lasciare una lezione): spesso il primo spostamento crea un conflitto con l'altra classe e va completato lì. Accendi **Conflitti provvisori** (sopra la griglia): le modifiche con conflitti di docente o aula vengono accettate e il conflitto resta **segnalato in rosso nel Controllo**, con il link alla classe da sistemare. Apri quella classe, sposta le sue lezioni e il controllo si svuota da solo quando tutto torna coerente. Spegni l'interruttore a fine lavoro per tornare alla modalità prudente, che rifiuta ogni conflitto.
+4. **Annulla / Ripeti** vale per tutti i passaggi, anche quelli provvisori.
+5. Per **provare una variante** o un cambio temporaneo senza toccare l'orario in vigore, **duplica** l'orario (vedi sopra) e lavora sulla copia.
+
+I conflitti provvisori non permettono mai di spostare una lezione bloccata o in un'ora che non fa parte della classe. Un orario con errori nel Controllo non va mandato in revisione.
 
 ### Esportare in PDF
 
@@ -450,7 +473,7 @@ In fondo alla barra laterale, sotto il tuo nome, compare la **versione** install
 - **Un campo è grigio e non posso modificarlo.** Passa il mouse sull'icona **i** accanto: dice cosa impostare per attivarlo (per esempio il peso di un vincolo richiede Severità = Preferenziale).
 <!-- /permesso -->
 <!-- permesso: gestisci-anagrafica -->
-- **Una modifica all'orario ha prodotto un errore o un avviso.** Leggi il pannello sopra la griglia: un errore vuol dire che la modifica non è stata fatta, un avviso che è stata fatta ma va controllata. Restano lì finché non li azzeri.
+- **Una modifica all'orario ha prodotto un errore o un avviso.** Leggi il Registro sopra la griglia: «modifica rifiutata» vuol dire che la modifica non è stata fatta, un avviso che è stata fatta ma va controllata. Restano lì finché non li azzeri.
 <!-- /permesso -->
 <!-- permesso: consulta -->
 - **Il PDF non mostra le ore del pomeriggio.** Le ore senza lezioni non compaiono: se nessuna classe ha lezione il pomeriggio, le colonne sono nascoste.

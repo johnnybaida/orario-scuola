@@ -21,16 +21,63 @@ async function chiamaApi(url, method, corpo) {
     return { ok: risposta.ok, dati: await risposta.json() };
 }
 
+// Modalità «conflitti provvisori»: ricordata nel browser, inviata con ogni modifica.
+const CHIAVE_PROVVISORIO = 'orario.conflitti-provvisori';
+const leggiProvvisorio = () => { try { return localStorage.getItem(CHIAVE_PROVVISORIO) === '1'; } catch { return false; } };
+
+// Durante il trascinamento ogni slot della classe si colora in base all'esito dello spostamento (verde = possibile,
+// ambra = possibile solo con i conflitti provvisori, rosso = non ammesso); il motivo è nel tooltip.
+const STILI = {
+    ok: ['ring-2', 'ring-inset', 'ring-green-500', 'bg-green-50'],
+    conflitto: ['ring-2', 'ring-inset', 'ring-amber-500', 'bg-amber-50'],
+    vietato: ['ring-2', 'ring-inset', 'ring-red-300', 'bg-red-50', 'opacity-70'],
+};
+const TUTTI_GLI_STILI = [...new Set(Object.values(STILI).flat())];
+
+function coloraDestinazioni(griglia, esiti, provvisorio) {
+    griglia.querySelectorAll('td[data-slot-id]').forEach((cella) => {
+        const esito = esiti[cella.dataset.slotId];
+        if (!esito) return;
+        // Con i conflitti provvisori spenti un «conflitto» equivale a un divieto.
+        const stato = esito.stato === 'conflitto' && !provvisorio ? 'vietato' : esito.stato;
+        cella.classList.add(...STILI[stato]);
+        if (esito.motivi.length) cella.title = esito.motivi.join('\n');
+    });
+}
+
+function pulisciDestinazioni(griglia) {
+    griglia.querySelectorAll('td[data-slot-id]').forEach((cella) => {
+        cella.classList.remove(...TUTTI_GLI_STILI);
+        cella.removeAttribute('title');
+    });
+}
+
 function inizializzaGriglia(griglia) {
     const urlLezioni = griglia.dataset.urlLezioni;
     let lezioneTrascinataId = null;
+
+    const interruttore = document.querySelector('#conflitti-provvisori');
+    if (interruttore) {
+        interruttore.checked = leggiProvvisorio();
+        interruttore.addEventListener('change', () => {
+            try { localStorage.setItem(CHIAVE_PROVVISORIO, interruttore.checked ? '1' : '0'); } catch { /* senza storage vale solo per questa pagina */ }
+        });
+    }
+    const provvisorio = () => Boolean(interruttore?.checked);
 
     griglia.addEventListener('dragstart', (evento) => {
         const carta = evento.target.closest('[data-lezione-id]');
         if (!carta) return;
         lezioneTrascinataId = carta.dataset.lezioneId;
         evento.dataTransfer.effectAllowed = 'move';
+
+        const id = lezioneTrascinataId;
+        chiamaApi(`${urlLezioni}/${id}/destinazioni`, 'GET')
+            .then(({ ok, dati }) => { if (ok && lezioneTrascinataId === id) coloraDestinazioni(griglia, dati, provvisorio()); })
+            .catch(() => {}); // senza suggerimenti si può comunque trascinare
     });
+
+    griglia.addEventListener('dragend', () => pulisciDestinazioni(griglia));
 
     griglia.addEventListener('dragover', (evento) => {
         if (lezioneTrascinataId && evento.target.closest('[data-slot-id]')) {
@@ -46,7 +93,7 @@ function inizializzaGriglia(griglia) {
         const lezioneId = lezioneTrascinataId;
         lezioneTrascinataId = null;
 
-        await chiamaApi(`${urlLezioni}/${lezioneId}/sposta`, 'PATCH', { slot_id: cella.dataset.slotId }).catch(() => null);
+        await chiamaApi(`${urlLezioni}/${lezioneId}/sposta`, 'PATCH', { slot_id: cella.dataset.slotId, provvisorio: provvisorio() }).catch(() => null);
         window.location.reload();
     });
 
@@ -63,7 +110,9 @@ function inizializzaGriglia(griglia) {
         const select = evento.target.closest('.js-cambia-cattedra');
         if (!select) return;
 
-        await chiamaApi(`${urlLezioni}/${select.dataset.lezioneId}/cattedra`, 'PATCH', { cattedra_id: select.value }).catch(() => null);
+        // Se il server rifiuta la modifica la select torna alla cattedra reale (poi la pagina si ricarica mostrando l'errore).
+        const risposta = await chiamaApi(`${urlLezioni}/${select.dataset.lezioneId}/cattedra`, 'PATCH', { cattedra_id: select.value, provvisorio: provvisorio() }).catch(() => null);
+        if (!risposta?.ok) select.value = select.dataset.attuale;
         window.location.reload();
     });
 }

@@ -49,6 +49,16 @@
                                 {{ $orario->periodo->nome }} · versione {{ $orario->versione }} · creato il {{ $orario->created_at?->format('d/m/Y H:i') }}@if ($orario->creatoDa) da {{ $orario->creatoDa->name }}@endif
                                 · punteggio {{ $orario->punteggio }}
                             </p>
+                            @php($c = $conteggi[$orario->id] ?? ['errori' => 0, 'avvisi' => 0])
+                            <p class="mt-1 text-sm">
+                                <a href="{{ route('orari.controllo', $orario) }}" class="underline {{ $c['errori'] ? 'text-red-700' : ($c['avvisi'] ? 'text-amber-700' : 'text-green-700') }}">
+                                    @if ($c['errori'] || $c['avvisi'])
+                                        Controllo: {{ $c['errori'] }} {{ $c['errori'] === 1 ? 'errore' : 'errori' }}, {{ $c['avvisi'] }} {{ $c['avvisi'] === 1 ? 'avviso' : 'avvisi' }}
+                                    @else
+                                        Controllo: nessun problema
+                                    @endif
+                                </a>
+                            </p>
                         </div>
                     </header>
 

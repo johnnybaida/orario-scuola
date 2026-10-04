@@ -10,6 +10,7 @@ use App\Models\Docente;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
+use App\Services\Editor\ControlloOrario;
 use App\Services\Editor\EditorLezione;
 use App\Support\StatiOrario;
 use Illuminate\Http\JsonResponse;
@@ -20,17 +21,43 @@ use Illuminate\View\View;
 
 class OrarioController extends Controller
 {
-    public function index(): View
+    public function index(ControlloOrario $controllo): View
     {
+        $orari = Orario::query()->with('periodo', 'creatoDa')->orderByDesc('id')->get();
+
         return view('orari.index', [
-            'orari' => Orario::query()->with('periodo')->orderByDesc('id')->get(),
+            'orari' => $orari,
+            // Errori e avvisi reali di ciascun orario (ricalcolati a ogni apertura della pagina).
+            'conteggi' => $orari->mapWithKeys(function (Orario $o) use ($controllo) {
+                $p = collect($controllo->problemi($o));
+
+                return [$o->id => ['errori' => $p->where('gravita', 'errore')->count(), 'avvisi' => $p->where('gravita', 'avviso')->count()]];
+            }),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
             'docenti' => Docente::query()->orderBy('cognome')->get(),
         ]);
     }
 
-    public function classe(Orario $orario, Classe $classe, EditorLezione $servizio): View
+    /** Tutti i problemi reali dell'orario, con il link alla classe dove correggerli. */
+    public function controllo(Orario $orario, ControlloOrario $controllo): View
     {
+        return view('orari.controllo', [
+            'orario' => $orario,
+            'problemi' => $controllo->problemi($orario),
+            'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
+        ]);
+    }
+
+    public function classe(Orario $orario, Classe $classe, EditorLezione $servizio, ControlloOrario $controllo): View
+    {
+        $problemi = $controllo->perClasse($controllo->problemi($orario), $classe->id);
+        $perLezione = [];
+        foreach ($problemi as $problema) {
+            foreach ($problema['lezioni'] as $id) {
+                $perLezione[$id][] = $problema['testo'];
+            }
+        }
+
         $compresenze = $orario->compresenzeSostegno()
             ->where('classe_id', $classe->id)
             ->with('docente')
@@ -47,7 +74,11 @@ class OrarioController extends Controller
             // In ordine alfabetico per materia (poi docente): più facili da trovare nella select.
             'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()
                 ->sortBy(fn (Cattedra $c) => mb_strtolower($c->disciplina->nome.'|'.$c->docente->nomeCompleto()), SORT_NATURAL)->values(),
+            'problemi' => $problemi,
+            'problemiPerLezione' => $perLezione,
+            'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
             'avvisi' => $orario->avvisi,
+            'lezioniInErrore' => $orario->avvisi->where('tipo', 'errore')->pluck('lezione_id')->filter()->unique()->all(),
             'puoAnnullare' => $servizio->puoAnnullare($orario),
             'puoRipetere' => $servizio->puoRipetere($orario),
             'modificabile' => $orario->modificabile() && (bool) request()->user()?->can('gestisci-anagrafica'),
@@ -81,9 +112,18 @@ class OrarioController extends Controller
 
         abort_if($lezione->orario_id !== $orario->id, 404);
 
-        $risultato = $servizio->esegui($lezione, $dati['slot_id'], $request->user()->id);
+        $risultato = $servizio->esegui($lezione, $dati['slot_id'], $request->user()->id, $request->boolean('provvisorio'));
 
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
+    }
+
+    /** Dove si può mettere la lezione (ok / conflitto / vietato per ogni slot della classe): colora la griglia durante il trascinamento. */
+    public function destinazioniLezione(Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+
+        return response()->json($servizio->destinazioni($lezione));
     }
 
     public function cambiaCattedraLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
@@ -94,7 +134,7 @@ class OrarioController extends Controller
 
         abort_if($lezione->orario_id !== $orario->id, 404);
 
-        $risultato = $servizio->cambiaCattedra($lezione, $dati['cattedra_id'], $request->user()->id);
+        $risultato = $servizio->cambiaCattedra($lezione, $dati['cattedra_id'], $request->user()->id, $request->boolean('provvisorio'));
 
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
     }

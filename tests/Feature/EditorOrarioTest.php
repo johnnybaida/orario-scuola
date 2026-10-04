@@ -362,6 +362,35 @@ class EditorOrarioTest extends TestCase
         $this->assertStringContainsString('lunedì, 1ª ora', $lasciata);
     }
 
+    public function test_una_modifica_rifiutata_segna_in_errore_il_riquadro_e_la_select_resta_sulla_cattedra_reale(): void
+    {
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $italiano = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $arte = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $storia = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $arte->docente->indisponibilita()->attach($slot1->id);   // Arte non può essere in quello slot
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $italiano->id, 'slot_id' => $slot1->id]);
+        $altra = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $storia->id, 'slot_id' => $slot2->id]);
+        $referente = $this->actingAs($this->referente());
+
+        $referente->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $arte->id])->assertStatus(422);
+        $this->assertSame($italiano->id, $lezione->fresh()->cattedra_id); // niente è cambiato
+        $this->assertDatabaseHas('avvisi_orario', ['orario_id' => $orario->id, 'lezione_id' => $lezione->id, 'tipo' => 'errore']);
+
+        $html = $referente->get("/orari/{$orario->id}/classe/{$classe->id}")->getContent();
+        $this->assertSame(1, substr_count($html, 'aria-invalid="true"'));                  // solo il riquadro interessato
+        $this->assertSame(1, substr_count($html, 'Modifica rifiutata'));
+        // la select di quella lezione ha selezionata la cattedra reale (Italiano), non Arte né Storia
+        preg_match('/data-lezione-id="'.$lezione->id.'" data-attuale="(\d+)".*?<\/select>/s', $html, $m);
+        $this->assertSame((string) $italiano->id, $m[1]);
+        $this->assertMatchesRegularExpression('/<option value="'.$italiano->id.'" selected>/', $m[0]);
+        $this->assertDoesNotMatchRegularExpression('/<option value="'.$arte->id.'" selected>/', $m[0]);
+
+        $referente->post("/orari/{$orario->id}/avvisi/azzera");
+        $this->assertStringNotContainsString('aria-invalid', $referente->get("/orari/{$orario->id}/classe/{$classe->id}")->getContent());
+    }
+
     public function test_azzera_avvisi_svuota_il_pannello(): void
     {
         [$classe, $slot1] = $this->classeConDueSlot();

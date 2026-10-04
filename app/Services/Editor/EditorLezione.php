@@ -25,38 +25,24 @@ use App\Models\Slot;
  */
 class EditorLezione
 {
-    public function esegui(Lezione $lezione, int $slotDestinazioneId, int $utenteId): array
+    /**
+     * Sposta (o scambia) una lezione. Con $provvisorio i conflitti con docenti e aule (H2/H6/H3/H7) non bloccano:
+     * lo spostamento avviene, il conflitto resta segnalato (avviso e Controllo orario) finché non lo si risolve.
+     * Restano sempre bloccanti le lezioni bloccate e gli slot fuori dalla scansione oraria della classe.
+     */
+    public function esegui(Lezione $lezione, int $slotDestinazioneId, int $utenteId, bool $provvisorio = false): array
     {
         $orarioId = $lezione->orario_id;
+        $valutazione = $this->valuta($lezione, $slotDestinazioneId);
 
-        if ($lezione->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di spostarla."], 'avvisi' => []]);
+        if ($valutazione['rigidi'] || ($valutazione['conflitti'] && ! $provvisorio)) {
+            return $this->persisti($orarioId, [
+                'ok' => false, 'errori' => array_values(array_unique([...$valutazione['rigidi'], ...$valutazione['conflitti']])), 'avvisi' => [],
+            ], $lezione->id);
         }
 
-        $lezione->load('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina');
-        $classe = $lezione->cattedra->classe;
-        $lezioneEsistente = Lezione::query()
-            ->where('orario_id', $orarioId)
-            ->where('slot_id', $slotDestinazioneId)
-            ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-            ->first();
-
-        if ($lezioneEsistente && $lezioneEsistente->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezioneEsistente)}: la lezione nello slot di destinazione è bloccata, non si può scambiare."], 'avvisi' => []]);
-        }
-
+        $lezioneEsistente = $valutazione['esistente'];
         $slotOrigineId = $lezione->slot_id;
-        $esclusioni = $lezioneEsistente ? [$lezione->id, $lezioneEsistente->id] : [$lezione->id];
-
-        $errori = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni);
-        if ($lezioneEsistente) {
-            $lezioneEsistente->load('cattedra');
-            $errori = array_merge($errori, $this->verificaPosizionamento($orarioId, $lezioneEsistente->cattedra, $slotOrigineId, $esclusioni));
-        }
-
-        if ($errori) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []]);
-        }
 
         $lezione->update(['slot_id' => $slotDestinazioneId]);
         $lezioneEsistente?->update(['slot_id' => $slotOrigineId]);
@@ -74,7 +60,77 @@ class EditorLezione
             ['slot_id' => $slotOrigineId, 'scambiata_con' => $lezioneEsistente?->id],
             ['slot_id' => $slotDestinazioneId, 'scambiata_con' => $lezioneEsistente?->id], $utenteId);
 
-        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => []]);
+        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $this->comeProvvisori($valutazione['conflitti'])], $lezione->id);
+    }
+
+    /**
+     * Valuta (senza modificare nulla) lo spostamento di una lezione in uno slot: l'eventuale lezione da scambiare e
+     * i problemi, divisi in rigidi (mai ammessi) e conflitti (ammessi solo in modalità provvisoria).
+     *
+     * @return array{esistente: ?Lezione, rigidi: string[], conflitti: string[]}
+     */
+    private function valuta(Lezione $lezione, int $slotDestinazioneId): array
+    {
+        $orarioId = $lezione->orario_id;
+        $lezione->load('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina', 'slot');
+        $nullo = ['esistente' => null, 'rigidi' => [], 'conflitti' => []];
+
+        if ($lezione->bloccata) {
+            return ['rigidi' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di spostarla."]] + $nullo;
+        }
+        if ($lezione->slot_id === $slotDestinazioneId) {
+            return ['rigidi' => ["{$this->descriviLezione($lezione)}: la lezione è già in questo slot."]] + $nullo;
+        }
+
+        $classe = $lezione->cattedra->classe;
+        $esistente = Lezione::query()
+            ->where('orario_id', $orarioId)
+            ->where('slot_id', $slotDestinazioneId)
+            ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
+            ->first();
+
+        if ($esistente && $esistente->bloccata) {
+            return ['rigidi' => ["{$this->descriviLezione($esistente)}: la lezione nello slot di destinazione è bloccata, non si può scambiare."]] + $nullo;
+        }
+
+        $esclusioni = $esistente ? [$lezione->id, $esistente->id] : [$lezione->id];
+        $verifica = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni);
+        if ($esistente) {
+            $esistente->load('cattedra');
+            $altra = $this->verificaPosizionamento($orarioId, $esistente->cattedra, $lezione->slot_id, $esclusioni);
+            $verifica = ['rigidi' => [...$verifica['rigidi'], ...$altra['rigidi']], 'conflitti' => [...$verifica['conflitti'], ...$altra['conflitti']]];
+        }
+
+        return ['esistente' => $esistente, 'rigidi' => array_values(array_unique($verifica['rigidi'])), 'conflitti' => array_values(array_unique($verifica['conflitti']))];
+    }
+
+    /**
+     * Per ogni slot della classe: dove si può mettere la lezione. Stati: «ok» (possibile), «conflitto» (possibile solo
+     * in modalità provvisoria), «vietato» (mai). Serve a colorare la griglia mentre si trascina.
+     *
+     * @return array<int, array{stato: string, motivi: string[]}>
+     */
+    public function destinazioni(Lezione $lezione): array
+    {
+        $lezione->loadMissing('cattedra.classe.slotAttivi');
+        $esiti = [];
+
+        foreach ($lezione->cattedra->classe->slotAttivi as $slot) {
+            if ($slot->id === $lezione->slot_id) {
+                continue;
+            }
+            $v = $this->valuta($lezione, $slot->id);
+            $esiti[$slot->id] = $v['rigidi'] ? ['stato' => 'vietato', 'motivi' => $v['rigidi']]
+                : ($v['conflitti'] ? ['stato' => 'conflitto', 'motivi' => $v['conflitti']] : ['stato' => 'ok', 'motivi' => []]);
+        }
+
+        return $esiti;
+    }
+
+    /** @param  string[]  $conflitti */
+    private function comeProvvisori(array $conflitti): array
+    {
+        return array_map(fn (string $c) => 'Conflitto provvisorio, da risolvere: '.$c, $conflitti);
     }
 
     /**
@@ -87,35 +143,38 @@ class EditorLezione
      * (non è più un semplice scambio di posizione): non blocchiamo per
      * questo, ma lo segnaliamo come avviso non bloccante.
      */
-    public function cambiaCattedra(Lezione $lezione, int $nuovaCattedraId, int $utenteId): array
+    public function cambiaCattedra(Lezione $lezione, int $nuovaCattedraId, int $utenteId, bool $provvisorio = false): array
     {
         $orarioId = $lezione->orario_id;
 
         if ($lezione->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di modificarla."], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di modificarla."], 'avvisi' => []], $lezione->id);
         }
 
         $lezione->load('cattedra.classe');
         $vecchiaCattedra = $lezione->cattedra;
 
         if ($nuovaCattedraId === $vecchiaCattedra->id) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: nessuna modifica, è già la cattedra assegnata."], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: nessuna modifica, è già la cattedra assegnata."], 'avvisi' => []], $lezione->id);
         }
 
         $nuovaCattedra = Cattedra::query()->with('classe', 'docente', 'disciplina')->find($nuovaCattedraId);
         if (! $nuovaCattedra) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Cattedra non trovata.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Cattedra non trovata.'], 'avvisi' => []], $lezione->id);
         }
         if ($nuovaCattedra->classe_id !== $vecchiaCattedra->classe_id) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: si può assegnare solo una cattedra della stessa classe ({$vecchiaCattedra->classe->nomeCompleto()})."], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: si può assegnare solo una cattedra della stessa classe ({$vecchiaCattedra->classe->nomeCompleto()})."], 'avvisi' => []], $lezione->id);
         }
 
-        $errori = $this->verificaPosizionamento($orarioId, $nuovaCattedra, $lezione->slot_id, [$lezione->id]);
-        if ($errori) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []]);
+        $verifica = $this->verificaPosizionamento($orarioId, $nuovaCattedra, $lezione->slot_id, [$lezione->id]);
+        if ($verifica['rigidi'] || ($verifica['conflitti'] && ! $provvisorio)) {
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => array_values(array_unique([...$verifica['rigidi'], ...$verifica['conflitti']])), 'avvisi' => []], $lezione->id);
         }
 
-        $avvisi = $this->avvisiSbilanciamentoOre($orarioId, $vecchiaCattedra, $nuovaCattedra, $lezione->loadMissing('slot'));
+        $avvisi = [
+            ...$this->comeProvvisori(array_values(array_unique($verifica['conflitti']))),
+            ...$this->avvisiSbilanciamentoOre($orarioId, $vecchiaCattedra, $nuovaCattedra, $lezione->loadMissing('slot')),
+        ];
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
@@ -133,7 +192,7 @@ class EditorLezione
 
         $this->registra($orarioId, 'cambio_cattedra', $lezione->id, ['cattedra_id' => $vecchiaCattedra->id], ['cattedra_id' => $nuovaCattedra->id], $utenteId);
 
-        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $avvisi]);
+        return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $avvisi], $lezione->id);
     }
 
     /** Blocca o sblocca una lezione (annullabile come le altre modifiche). */
@@ -236,13 +295,13 @@ class EditorLezione
         }
     }
 
-    private function persisti(int $orarioId, array $risultato): array
+    private function persisti(int $orarioId, array $risultato, int $lezioneId): array
     {
         foreach ($risultato['errori'] as $messaggio) {
-            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'tipo' => 'errore', 'messaggio' => $messaggio]);
+            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'lezione_id' => $lezioneId, 'tipo' => 'errore', 'messaggio' => $messaggio]);
         }
         foreach ($risultato['avvisi'] as $messaggio) {
-            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'tipo' => 'avviso', 'messaggio' => $messaggio]);
+            AvvisoOrario::query()->create(['orario_id' => $orarioId, 'lezione_id' => $lezioneId, 'tipo' => 'avviso', 'messaggio' => $messaggio]);
         }
 
         return $risultato;
@@ -310,13 +369,14 @@ class EditorLezione
     /**
      * Ogni messaggio dice classe, giorno e ora del conflitto e, dove serve, l'altra lezione coinvolta.
      *
-     * @return string[]
+     * @return array{rigidi: string[], conflitti: string[]} rigidi = slot fuori scansione; conflitti = docente/aula
      */
     private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse): array
     {
         $cattedra->loadMissing('classe.slotAttivi', 'docente.indisponibilita', 'disciplina');
 
-        $errori = [];
+        $rigidi = [];
+        $conflitti = [];
         $classe = $cattedra->classe;
         $docente = $cattedra->docente;
         $disciplina = $cattedra->disciplina;
@@ -324,11 +384,11 @@ class EditorLezione
         $prefisso = "{$classe->nomeCompleto()}, {$dove}: ";
 
         if (! $classe->slotAttivi->pluck('id')->contains($slotId)) {
-            $errori[] = $prefisso."{$disciplina->nome} non si può mettere qui, perché l'ora non fa parte della scansione oraria della classe.";
+            $rigidi[] = $prefisso."{$disciplina->nome} non si può mettere qui, perché l'ora non fa parte della scansione oraria della classe.";
         }
 
         if ($docente->indisponibilita->pluck('id')->contains($slotId)) {
-            $errori[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) non è disponibile in quell'ora.";
+            $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) non è disponibile in quell'ora.";
         }
 
         $altra = Lezione::query()
@@ -339,7 +399,7 @@ class EditorLezione
             ->with('cattedra.classe', 'cattedra.disciplina')
             ->first();
         if ($altra) {
-            $errori[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) è già impegnato in {$altra->cattedra->classe->nomeCompleto()} con {$altra->cattedra->disciplina->nome}.";
+            $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) è già impegnato in {$altra->cattedra->classe->nomeCompleto()} con {$altra->cattedra->disciplina->nome}.";
         }
 
         if ($disciplina->tipo_aula_richiesto) {
@@ -353,10 +413,10 @@ class EditorLezione
                 ->get();
             if ($occupanti->count() >= $capienzaTotale) {
                 $chi = $occupanti->map(fn ($l) => $l->cattedra->classe->nomeCompleto())->unique()->implode(', ');
-                $errori[] = $prefisso."nessuna aula di tipo '{$disciplina->tipo_aula_richiesto}' libera per {$disciplina->nome}".($chi ? " (occupata da {$chi})" : '').'.';
+                $conflitti[] = $prefisso."nessuna aula di tipo '{$disciplina->tipo_aula_richiesto}' libera per {$disciplina->nome}".($chi ? " (occupata da {$chi})" : '').'.';
             }
         }
 
-        return $errori;
+        return ['rigidi' => $rigidi, 'conflitti' => $conflitti];
     }
 }
