@@ -4,7 +4,7 @@
 
 @section('contenuto')
     <div class="flex items-center justify-between mb-2 flex-wrap gap-3">
-        <h1 class="text-xl font-semibold">Orario {{ $classe->nomeCompleto() }} <x-stato-orario :orario="$orario" class="align-middle ml-2" /></h1>
+        <h1 class="text-xl font-semibold">Orario {{ $classe->nomeCompleto() }} <span class="text-base font-normal text-gray-500">· {{ $orario->etichetta() }}</span> <x-stato-orario :orario="$orario" class="align-middle ml-2" /></h1>
         <div class="flex items-center gap-3">
             <a href="{{ route('orari.export.classe', [$orario, $classe]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
             @if ($modificabile)

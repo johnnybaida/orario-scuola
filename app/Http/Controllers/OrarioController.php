@@ -146,12 +146,36 @@ class OrarioController extends Controller
     }
 
     /** Copia di un orario (lezioni e compresenze di sostegno) come nuova versione in bozza, per provare varianti. */
+    public function duplicaForm(Orario $orario): View
+    {
+        return view('orari.duplica', ['orario' => $orario]);
+    }
+
+    public function nomeForm(Orario $orario): View
+    {
+        return view('orari.nome', ['orario' => $orario]);
+    }
+
+    public function aggiornaNome(Request $request, Orario $orario): RedirectResponse
+    {
+        $request->validate(['nome' => ['nullable', 'string', 'max:120']]);
+        $prima = $orario->nome;
+        $orario->update(['nome' => $request->input('nome') ?: null]);
+
+        AuditLog::registra('Orario', $orario->id, 'modifica', ['nome' => $prima], ['nome' => $orario->nome], $orario->etichetta());
+
+        return redirect()->route('orari.index')->with('successo', 'Nome dell\'orario aggiornato.');
+    }
+
     public function duplica(Request $request, Orario $orario): RedirectResponse
     {
+        $request->validate(['nome' => ['nullable', 'string', 'max:120']]);
+
         $copia = DB::transaction(function () use ($request, $orario) {
             $copia = Orario::query()->create([
                 'periodo_id' => $orario->periodo_id,
                 'versione' => (Orario::query()->where('periodo_id', $orario->periodo_id)->max('versione') ?? 0) + 1,
+                'nome' => $request->input('nome') ?: $orario->etichetta().' (copia)',
                 'stato' => 'bozza',
                 'seed' => $orario->seed,
                 'punteggio' => $orario->punteggio,
@@ -182,7 +206,7 @@ class OrarioController extends Controller
             return $copia;
         });
 
-        return redirect()->route('orari.index')->with('successo', "Orario duplicato: versione {$copia->versione} in bozza.");
+        return redirect()->route('orari.index')->with('successo', "Orario duplicato: «{$copia->nome}» in bozza.");
     }
 
     public function cambiaStato(Request $request, Orario $orario): RedirectResponse

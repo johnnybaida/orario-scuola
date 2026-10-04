@@ -94,7 +94,10 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/worker/ferma', [WorkerController::class, 'ferma'])->name('worker.ferma');
 
         Route::delete('/orari/{orario}', [OrarioController::class, 'destroy'])->name('orari.destroy');
+        Route::get('/orari/{orario}/duplica', [OrarioController::class, 'duplicaForm'])->name('orari.duplica.form');
         Route::post('/orari/{orario}/duplica', [OrarioController::class, 'duplica'])->name('orari.duplica');
+        Route::get('/orari/{orario}/nome', [OrarioController::class, 'nomeForm'])->name('orari.nome.form');
+        Route::put('/orari/{orario}', [OrarioController::class, 'aggiornaNome'])->name('orari.nome');
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');

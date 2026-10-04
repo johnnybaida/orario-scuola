@@ -46,7 +46,8 @@ function apri(select, bottone, aggiornaEtichetta) {
     const campo = pannello.querySelector('input');
     const lista = pannello.querySelector('ul');
     let visibili = [];
-    let evidenziata = 0;
+    // All'apertura la voce evidenziata è quella già selezionata (non la prima); cercando si riparte dalla prima.
+    let evidenziata = Math.max(0, opzioni.findIndex((o) => o.value === select.value));
 
     const disegna = () => {
         const parole = normalizza(campo.value).split(/\s+/).filter(Boolean);
@@ -57,7 +58,7 @@ function apri(select, bottone, aggiornaEtichetta) {
             li.setAttribute('role', 'option');
             li.setAttribute('aria-selected', String(o.value === select.value));
             li.textContent = o.textContent.trim();
-            li.className = `px-3 py-1.5 text-sm cursor-pointer ${i === evidenziata ? 'bg-gray-100' : ''} ${o.value === select.value ? 'font-medium' : ''}`;
+            li.className = `px-3 py-1.5 text-sm cursor-pointer ${i === evidenziata ? 'bg-gray-100' : ''} ${o.value === select.value ? 'font-semibold text-primary' : ''}`;
             li.addEventListener('mousedown', (e) => { e.preventDefault(); scegli(o); });
             return li;
         }));
@@ -106,6 +107,7 @@ function apri(select, bottone, aggiornaEtichetta) {
     window.addEventListener('scroll', alScroll, true);
     pannelloAperto = { chiudi };
     disegna();
+    lista.children[evidenziata]?.scrollIntoView({ block: 'nearest' }); // liste lunghe: la voce selezionata è visibile
     campo.focus();
 }
 

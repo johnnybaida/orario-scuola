@@ -70,6 +70,7 @@
                 @if ($ultimoOrario)
                     <dl class="text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 mb-3">
                         <dt class="text-gray-500">Periodo</dt><dd>{{ $ultimoOrario->periodo->nome }}</dd>
+                        <dt class="text-gray-500">Nome</dt><dd>{{ $ultimoOrario->etichetta() }}</dd>
                         <dt class="text-gray-500">Versione</dt><dd>{{ $ultimoOrario->versione }}</dd>
                         <dt class="text-gray-500">Stato</dt><dd><x-stato-orario :orario="$ultimoOrario" /></dd>
                         <dt class="text-gray-500">Punteggio</dt><dd>{{ $ultimoOrario->punteggio }}</dd>

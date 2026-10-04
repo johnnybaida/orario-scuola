@@ -62,6 +62,7 @@ class GenerateTimetable implements ShouldQueue
             $risultato,
             $problemBuilder->mappaLezioni(),
             $generazione->creato_da,
+            $generazione->nome,
         );
 
         $generazione->update([

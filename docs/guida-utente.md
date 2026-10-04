@@ -271,7 +271,8 @@ La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento
 1. Controlla in alto lo stato del **worker di coda**, il programma che esegue i calcoli. Se è "fermo", premi **Avvia**: senza worker le generazioni restano in coda. Quando premi **Avvia generazione** il worker, se è fermo, parte da solo (compare un messaggio); se non riesce a partire vedi il motivo. Per fermarlo usa **Ferma**: termina prima il job in corso. Se lo vedi "in arresto" puoi già riavviarlo.
 2. Premi **Nuova generazione** e compila:
    - **Tempo limite** (10–900 secondi): per quanto tempo il generatore può cercare un orario migliore. Più tempo, orari generalmente migliori.
-   - **Seed** (facoltativo): un numero che rende il risultato riproducibile. Stessi dati e stesso seed producono lo stesso orario. Vuoto = casuale; il seed usato viene sempre registrato.
+   - **Nome dell'orario** (facoltativo): per riconoscerlo poi nell'elenco (es. «Orario di base»). Senza nome si chiamerà «Orario v1», «Orario v2», …
+   - **Seed**: si sceglie da un elenco. **Casuale** produce un orario diverso a ogni generazione; scegliendo un seed già usato (elencato con il nome dell'orario che ha prodotto) e a dati invariati si **riottiene lo stesso orario**. Il seed usato viene sempre registrato.
 <!-- /permesso -->
 
 Lo **stato** di una generazione:
@@ -304,7 +305,11 @@ Ogni orario è una **scheda** con tre blocchi: **Consulta** (le viste per classe
 
 ### Duplicare un orario
 
-**Duplica** (per chi gestisce l'anagrafica) crea una **copia in bozza** di qualunque orario, qualunque sia il suo stato: stesse lezioni, stesse compresenze di sostegno e stesso periodo, versione successiva. Gli avvisi non si copiano. Serve per provare una variante senza toccare l'orario approvato o pubblicato. L'originale non cambia.
+**Duplica** (per chi gestisce l'anagrafica) crea una **copia in bozza** di qualunque orario, qualunque sia il suo stato: stesse lezioni, stesse compresenze di sostegno e stesso periodo, versione successiva. Ti chiede il **nome della copia** (proposto: «nome dell'originale (copia)»). Gli avvisi non si copiano. L'originale non cambia.
+
+**Cambi temporanei dell'orario** (una settimana con l'uscita didattica, un docente assente per qualche giorno, …): non modificare l'orario in vigore. **Duplicalo** dandogli un nome parlante (es. «Settimana 6–10 ottobre – uscita didattica»), apporta i cambi sulla copia in bozza, poi falla passare per revisione, approvazione e pubblicazione quando serve; l'orario di base resta intatto e tornerai a usarlo alla fine. Ricorda che pubblicando una versione la precedente dello stesso periodo passa in archivio: per tornare all'orario di base, **duplica quello archiviato** e ripubblicalo.
+
+**Rinomina** (accanto al nome, nella scheda) cambia il nome in qualsiasi momento.
 
 Da questa pagina puoi inoltre:
 
@@ -322,7 +327,7 @@ Da questa pagina puoi inoltre:
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
 - **Annulla** e **Ripeti** (in alto sopra la griglia) tornano indietro e avanti **su più livelli**: spostamenti, scambi, cambi di docente o materia e blocchi/sblocchi. Scorciatoie: **Ctrl/Cmd + Z** per annullare, **Ctrl/Cmd + Maiusc + Z** (o Ctrl + Y) per ripetere. I pulsanti sono grigi quando non c'è nulla da annullare o da ripetere. Dopo una **nuova** modifica le modifiche annullate non si possono più ripetere. Annullamenti e ripristini restano nel registro delle modifiche. La cronologia riguarda le modifiche fatte da questa versione in poi e non passa a una copia: un orario duplicato riparte senza cronologia.
-- L'esito delle modifiche resta nel **pannello degli avvisi** sopra la griglia finché non lo azzeri. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
+- L'esito delle modifiche resta nel **pannello degli avvisi** sopra la griglia finché non lo azzeri. Ogni messaggio dice **dove** sta il problema: la **classe**, il **giorno e l'ora** (es. «martedì, 3ª ora (09:40–10:30)») e, quando il conflitto è con un'altra lezione, anche **quale** (per esempio «il docente Rossi Anna è già impegnato in 2ª B con Storia»). Quando cambi docente o materia di una lezione, gli avvisi sul monte ore sono due e dicono quale è la **cattedra lasciata** (quella che perde un'ora) e quale la **cattedra scelta** (quella che ne guadagna una): l'avviso sul docente che hai appena sostituito non significa che la scelta sia sbagliata. Un **errore** significa che l'operazione è stata rifiutata (per esempio lo spostamento in uno slot in cui il docente è indisponibile); un **avviso** significa che è stata applicata ma da controllare.
 <!-- /permesso -->
 
 ### Esportare in PDF
@@ -415,7 +420,7 @@ In fondo alla barra laterale, sotto il tuo nome, compare la **versione** install
 - **Quadro orario**: il monte ore settimanale per disciplina di una classe.
 - **Rientro pomeridiano**: giorno in cui una classe a tempo prolungato fa lezione anche il pomeriggio.
 - **Ricreazione**: pausa tra due ore di lezione (nella scansione oraria si spunta «Ricreazione dopo» sull'ora che la precede); compare nei PDF con orario e durata.
-- **Seed**: numero che rende riproducibile una generazione.
+- **Seed**: numero che rende riproducibile una generazione; lo scegli da un elenco (casuale o uno già usato).
 - **Slot**: una singola ora della settimana (giorno + ora, es. martedì 3ª ora). La scansione oraria di istituto è l'insieme di tutti gli slot.
 - **Sostegno**: supporto agli alunni con disabilità; nell'applicazione si indicano solo il fabbisogno orario (con codici anonimi) e i docenti assegnati.
 - **Tabellone**: il PDF con l'orario di tutte le classi su un unico foglio.

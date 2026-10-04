@@ -9,6 +9,7 @@ use App\Models\Cattedra;
 use App\Models\Lezione;
 use App\Models\ModificaOrario;
 use App\Models\Orario;
+use App\Models\Slot;
 
 /**
  * Sposta (o scambia) una lezione nella griglia dell'orario, validando i
@@ -29,7 +30,7 @@ class EditorLezione
         $orarioId = $lezione->orario_id;
 
         if ($lezione->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di spostarla.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di spostarla."], 'avvisi' => []]);
         }
 
         $lezione->load('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina');
@@ -41,7 +42,7 @@ class EditorLezione
             ->first();
 
         if ($lezioneEsistente && $lezioneEsistente->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione nello slot di destinazione è bloccata.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezioneEsistente)}: la lezione nello slot di destinazione è bloccata, non si può scambiare."], 'avvisi' => []]);
         }
 
         $slotOrigineId = $lezione->slot_id;
@@ -91,14 +92,14 @@ class EditorLezione
         $orarioId = $lezione->orario_id;
 
         if ($lezione->bloccata) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['La lezione è bloccata: sbloccala prima di modificarla.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di modificarla."], 'avvisi' => []]);
         }
 
         $lezione->load('cattedra.classe');
         $vecchiaCattedra = $lezione->cattedra;
 
         if ($nuovaCattedraId === $vecchiaCattedra->id) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Nessuna modifica: è già la cattedra assegnata.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: nessuna modifica, è già la cattedra assegnata."], 'avvisi' => []]);
         }
 
         $nuovaCattedra = Cattedra::query()->with('classe', 'docente', 'disciplina')->find($nuovaCattedraId);
@@ -106,7 +107,7 @@ class EditorLezione
             return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Cattedra non trovata.'], 'avvisi' => []]);
         }
         if ($nuovaCattedra->classe_id !== $vecchiaCattedra->classe_id) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ['Puoi assegnare solo una cattedra della stessa classe.'], 'avvisi' => []]);
+            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: si può assegnare solo una cattedra della stessa classe ({$vecchiaCattedra->classe->nomeCompleto()})."], 'avvisi' => []]);
         }
 
         $errori = $this->verificaPosizionamento($orarioId, $nuovaCattedra, $lezione->slot_id, [$lezione->id]);
@@ -114,7 +115,7 @@ class EditorLezione
             return $this->persisti($orarioId, ['ok' => false, 'errori' => array_unique($errori), 'avvisi' => []]);
         }
 
-        $avvisi = $this->avvisiSbilanciamentoOre($orarioId, $vecchiaCattedra, $nuovaCattedra, $lezione->id);
+        $avvisi = $this->avvisiSbilanciamentoOre($orarioId, $vecchiaCattedra, $nuovaCattedra, $lezione->loadMissing('slot'));
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
@@ -247,19 +248,28 @@ class EditorLezione
         return $risultato;
     }
 
-    /** @return string[] */
-    private function avvisiSbilanciamentoOre(int $orarioId, Cattedra $vecchia, Cattedra $nuova, int $lezioneId): array
+    /**
+     * Cambiare cattedra sposta un'ora da una cattedra all'altra: se una delle due non torna più sul monte ore previsto
+     * si avvisa, dicendo chiaramente quale è quella lasciata e quale quella scelta.
+     *
+     * @return string[]
+     */
+    private function avvisiSbilanciamentoOre(int $orarioId, Cattedra $vecchia, Cattedra $nuova, Lezione $lezione): array
     {
         $avvisi = [];
+        $vecchia->loadMissing('classe', 'disciplina', 'docente');
+        $nuova->loadMissing('classe', 'disciplina', 'docente');
+        $nome = fn (Cattedra $c) => "{$c->disciplina->nome} ({$c->docente->nomeCompleto()})";
+        $prefisso = "{$vecchia->classe->nomeCompleto()}, {$lezione->slot->descrizione()}: ";
 
-        $oreAttualiVecchia = Lezione::query()->where('orario_id', $orarioId)->where('cattedra_id', $vecchia->id)->count();
-        if ($oreAttualiVecchia - 1 !== $vecchia->ore) {
-            $avvisi[] = "{$vecchia->disciplina->nome} ({$vecchia->docente->nomeCompleto()}) avrà ".($oreAttualiVecchia - 1)." ore invece delle {$vecchia->ore} previste.";
+        $oreVecchia = Lezione::query()->where('orario_id', $orarioId)->where('cattedra_id', $vecchia->id)->count() - 1;
+        if ($oreVecchia !== $vecchia->ore) {
+            $avvisi[] = $prefisso."cattedra lasciata, {$nome($vecchia)} avrà {$oreVecchia} ore invece delle {$vecchia->ore} previste.";
         }
 
-        $oreAttualiNuova = Lezione::query()->where('orario_id', $orarioId)->where('cattedra_id', $nuova->id)->where('id', '!=', $lezioneId)->count();
-        if ($oreAttualiNuova + 1 !== $nuova->ore) {
-            $avvisi[] = "{$nuova->disciplina->nome} ({$nuova->docente->nomeCompleto()}) avrà ".($oreAttualiNuova + 1)." ore invece delle {$nuova->ore} previste.";
+        $oreNuova = Lezione::query()->where('orario_id', $orarioId)->where('cattedra_id', $nuova->id)->where('id', '!=', $lezione->id)->count() + 1;
+        if ($oreNuova !== $nuova->ore) {
+            $avvisi[] = $prefisso."cattedra scelta, {$nome($nuova)} avrà {$oreNuova} ore invece delle {$nuova->ore} previste.";
         }
 
         return $avvisi;
@@ -289,6 +299,19 @@ class EditorLezione
     }
 
     /** @return string[] messaggi di violazione (vuoto = posizionamento valido) */
+    /** «Italiano – Rossi Anna, 1ª A, lunedì, 2ª ora (08:50–09:40)»: quale lezione è coinvolta. */
+    private function descriviLezione(Lezione $lezione): string
+    {
+        $lezione->loadMissing('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'slot');
+
+        return "{$lezione->cattedra->disciplina->nome} ({$lezione->cattedra->docente->nomeCompleto()}), {$lezione->cattedra->classe->nomeCompleto()}, {$lezione->slot->descrizione()}";
+    }
+
+    /**
+     * Ogni messaggio dice classe, giorno e ora del conflitto e, dove serve, l'altra lezione coinvolta.
+     *
+     * @return string[]
+     */
     private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse): array
     {
         $cattedra->loadMissing('classe.slotAttivi', 'docente.indisponibilita', 'disciplina');
@@ -297,23 +320,26 @@ class EditorLezione
         $classe = $cattedra->classe;
         $docente = $cattedra->docente;
         $disciplina = $cattedra->disciplina;
+        $dove = Slot::query()->find($slotId)?->descrizione() ?? 'slot sconosciuto';
+        $prefisso = "{$classe->nomeCompleto()}, {$dove}: ";
 
         if (! $classe->slotAttivi->pluck('id')->contains($slotId)) {
-            $errori[] = "Lo slot scelto non fa parte della scansione oraria di {$classe->nomeCompleto()}.";
+            $errori[] = $prefisso."{$disciplina->nome} non si può mettere qui, perché l'ora non fa parte della scansione oraria della classe.";
         }
 
         if ($docente->indisponibilita->pluck('id')->contains($slotId)) {
-            $errori[] = "Il docente {$docente->nomeCompleto()} non è disponibile in quello slot.";
+            $errori[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) non è disponibile in quell'ora.";
         }
 
-        $docenteOccupato = Lezione::query()
+        $altra = Lezione::query()
             ->where('orario_id', $orarioId)
             ->where('slot_id', $slotId)
             ->whereNotIn('id', $lezioniEscluse)
             ->whereHas('cattedra', fn ($q) => $q->where('docente_id', $docente->id))
-            ->exists();
-        if ($docenteOccupato) {
-            $errori[] = "Il docente {$docente->nomeCompleto()} ha già una lezione in quello slot.";
+            ->with('cattedra.classe', 'cattedra.disciplina')
+            ->first();
+        if ($altra) {
+            $errori[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) è già impegnato in {$altra->cattedra->classe->nomeCompleto()} con {$altra->cattedra->disciplina->nome}.";
         }
 
         if ($disciplina->tipo_aula_richiesto) {
@@ -323,9 +349,11 @@ class EditorLezione
                 ->where('slot_id', $slotId)
                 ->whereNotIn('id', $lezioniEscluse)
                 ->whereHas('cattedra.disciplina', fn ($q) => $q->where('tipo_aula_richiesto', $disciplina->tipo_aula_richiesto))
-                ->count();
-            if ($occupanti >= $capienzaTotale) {
-                $errori[] = "Nessuna aula di tipo '{$disciplina->tipo_aula_richiesto}' libera in quello slot.";
+                ->with('cattedra.classe')
+                ->get();
+            if ($occupanti->count() >= $capienzaTotale) {
+                $chi = $occupanti->map(fn ($l) => $l->cattedra->classe->nomeCompleto())->unique()->implode(', ');
+                $errori[] = $prefisso."nessuna aula di tipo '{$disciplina->tipo_aula_richiesto}' libera per {$disciplina->nome}".($chi ? " (occupata da {$chi})" : '').'.';
             }
         }
 

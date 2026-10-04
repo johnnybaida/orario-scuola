@@ -314,6 +314,54 @@ class EditorOrarioTest extends TestCase
         $this->assertDatabaseHas('avvisi_orario', ['orario_id' => $orario->id, 'tipo' => 'errore']);
     }
 
+    public function test_gli_avvisi_dicono_classe_giorno_ora_e_l_altra_lezione_in_conflitto(): void
+    {
+        $classeA = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'A']);
+        $classeB = Classe::factory()->create(['anno_corso' => 2, 'sezione' => 'B']);
+        $slot1 = Slot::factory()->create(['giorno' => 2, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+        $slot2 = Slot::factory()->create(['giorno' => 2, 'ordine' => 3, 'inizio' => '09:40:00', 'fine' => '10:30:00']);
+        $classeA->slotAttivi()->sync([$slot1->id, $slot2->id]);
+        $classeB->slotAttivi()->sync([$slot1->id, $slot2->id]);
+        $docente = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $orario = Orario::factory()->create();
+        $cattedraA = Cattedra::factory()->create(['classe_id' => $classeA->id, 'docente_id' => $docente->id]);
+        $cattedraB = Cattedra::factory()->create(['classe_id' => $classeB->id, 'docente_id' => $docente->id]);
+        $lezioneA = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraA->id, 'slot_id' => $slot1->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraB->id, 'slot_id' => $slot2->id]);
+
+        $this->actingAs($this->referente())->patchJson("/orari/{$orario->id}/lezioni/{$lezioneA->id}/sposta", ['slot_id' => $slot2->id]);
+
+        $messaggio = \App\Models\AvvisoOrario::query()->where('orario_id', $orario->id)->value('messaggio');
+        foreach ([$classeA->nomeCompleto(), 'martedì, 3ª ora (09:40–10:30)', 'Rossi Anna', $classeB->nomeCompleto()] as $atteso) {
+            $this->assertStringContainsString($atteso, $messaggio);
+        }
+
+        // il pannello della classe mostra il messaggio completo
+        $this->actingAs($this->referente())->get("/orari/{$orario->id}/classe/{$classeA->id}")->assertSee('martedì, 3ª ora (09:40–10:30)', false);
+    }
+
+    public function test_il_cambio_di_cattedra_distingue_nell_avviso_la_cattedra_lasciata_da_quella_scelta(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $vecchioDocente = Docente::factory()->create(['cognome' => 'Lasciato', 'nome' => 'Luca']);
+        $nuovoDocente = Docente::factory()->create(['cognome' => 'Scelto', 'nome' => 'Sara']);
+        $vecchia = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $vecchioDocente->id, 'ore' => 3]);
+        $nuova = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $nuovoDocente->id, 'ore' => 3]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $vecchia->id, 'slot_id' => $slot1->id]);
+
+        $this->actingAs($this->referente())->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $nuova->id])->assertOk();
+        $this->assertSame($nuova->id, $lezione->fresh()->cattedra_id); // la scelta è quella fatta
+
+        $messaggi = \App\Models\AvvisoOrario::query()->where('orario_id', $orario->id)->pluck('messaggio');
+        $lasciata = $messaggi->first(fn ($m) => str_contains($m, 'cattedra lasciata'));
+        $scelta = $messaggi->first(fn ($m) => str_contains($m, 'cattedra scelta'));
+        $this->assertStringContainsString('Lasciato Luca', $lasciata);
+        $this->assertStringContainsString('Scelto Sara', $scelta);
+        $this->assertStringContainsString($classe->nomeCompleto(), $lasciata);
+        $this->assertStringContainsString('lunedì, 1ª ora', $lasciata);
+    }
+
     public function test_azzera_avvisi_svuota_il_pannello(): void
     {
         [$classe, $slot1] = $this->classeConDueSlot();
@@ -543,5 +591,28 @@ class EditorOrarioTest extends TestCase
 
         $utente->post("/orari/{$orario->id}/annulla-ultima");
         $this->assertSame([true, false], $stato()); // ora si può ripetere
+    }
+
+    public function test_un_orario_si_nomina_si_rinomina_e_la_copia_propone_il_suo_nome(): void
+    {
+        $orario = Orario::factory()->create(['nome' => 'Orario di base', 'versione' => 3]);
+        $referente = $this->actingAs($this->referente());
+
+        $referente->get("/orari/{$orario->id}/duplica")->assertOk()->assertSee('Orario di base (copia)');
+        $referente->post("/orari/{$orario->id}/duplica", ['nome' => 'Settimana uscita didattica'])->assertRedirect(route('orari.index'));
+        $this->assertDatabaseHas('orari', ['nome' => 'Settimana uscita didattica', 'stato' => 'bozza']);
+
+        $referente->post("/orari/{$orario->id}/duplica", ['nome' => ''])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('orari', ['nome' => 'Orario di base (copia)']);
+
+        $referente->put("/orari/{$orario->id}", ['nome' => 'Orario definitivo'])->assertRedirect(route('orari.index'));
+        $this->assertSame('Orario definitivo', $orario->fresh()->nome);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Orario', 'entita_id' => $orario->id, 'azione' => 'modifica']);
+
+        $referente->put("/orari/{$orario->id}", ['nome' => ''])->assertSessionHasNoErrors();
+        $this->assertSame('Orario v3', $orario->fresh()->etichetta()); // senza nome: «Orario vN»
+        $referente->get('/orari')->assertOk()->assertSee('Orario v3')->assertSee('Settimana uscita didattica');
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->put("/orari/{$orario->id}", ['nome' => 'x'])->assertForbidden();
     }
 }

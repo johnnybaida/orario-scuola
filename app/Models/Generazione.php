@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'periodo_id', 'orario_id', 'seed', 'time_limit_s', 'stato', 'progresso', 'diagnostica', 'creato_da',
+    'periodo_id', 'orario_id', 'nome', 'seed', 'time_limit_s', 'stato', 'progresso', 'diagnostica', 'creato_da',
 ])]
 class Generazione extends Model
 {

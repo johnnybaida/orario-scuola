@@ -24,7 +24,11 @@ class GenerazioneController extends Controller
 
     public function create(): View
     {
-        return view('generazioni.create');
+        // Seed già usati, con l'orario che hanno prodotto: riusarne uno (a dati invariati) riproduce lo stesso orario.
+        $seedUsati = Generazione::query()->with('orario')->whereNotNull('orario_id')->orderByDesc('id')->get()
+            ->unique('seed')->map(fn (Generazione $g) => ['seed' => $g->seed, 'etichetta' => ($g->orario?->etichetta() ?? 'Generazione n. '.$g->id).' (seed '.$g->seed.')']);
+
+        return view('generazioni.create', ['seedUsati' => $seedUsati]);
     }
 
     public function store(GenerazioneRequest $request, QueueWorker $worker): RedirectResponse
@@ -32,7 +36,8 @@ class GenerazioneController extends Controller
         $generazione = Generazione::query()->create([
             'periodo_id' => Periodo::corrente()->id,
             // random_seed di OR-Tools è un int32: il seed deve starci dentro.
-            'seed' => $request->input('seed') ?? random_int(1, 2147483647),
+            'nome' => $request->input('nome') ?: null,
+            'seed' => $request->input('seed') ?: random_int(1, 2147483647),
             'time_limit_s' => $request->input('time_limit_s'),
             'stato' => 'in_coda',
             'creato_da' => $request->user()->id,

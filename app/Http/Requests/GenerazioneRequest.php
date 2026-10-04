@@ -15,6 +15,7 @@ class GenerazioneRequest extends FormRequest
     {
         return [
             'time_limit_s' => ['required', 'integer', 'min:10', 'max:900'],
+            'nome' => ['nullable', 'string', 'max:120'],
             'seed' => ['nullable', 'integer', 'min:0', 'max:2147483647'],
         ];
     }

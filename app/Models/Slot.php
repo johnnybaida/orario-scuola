@@ -23,6 +23,13 @@ class Slot extends Model
     /** Le ore con ordine > 6 sono i rientri pomeridiani (stessa convenzione degli slot mattutini di default). */
     public const ULTIMA_ORA_MATTINA = 6;
 
+    /** «lunedì, 3ª ora (09:40–10:30)»: dove cade una lezione, per i messaggi all'utente. */
+    public function descrizione(): string
+    {
+        return mb_strtolower(self::GIORNI[$this->giorno] ?? "giorno {$this->giorno}")
+            .", {$this->ordine}ª ora (".substr($this->inizio, 0, 5).'–'.substr($this->fine, 0, 5).')';
+    }
+
     /** Minuti tra due orari "H:i" o "H:i:s" (positivi se $a è dopo $da). */
     public static function minutiTra(string $da, string $a): int
     {

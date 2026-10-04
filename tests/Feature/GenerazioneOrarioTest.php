@@ -72,6 +72,25 @@ class GenerazioneOrarioTest extends TestCase
         );
     }
 
+    public function test_l_orario_prende_il_nome_della_generazione_e_i_seed_gia_usati_sono_in_una_select(): void
+    {
+        $this->scuolaMinima();
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+
+        $this->actingAs($referente)->post('/generazioni', ['time_limit_s' => 30, 'seed' => 42, 'nome' => 'Orario di base']);
+        $generazione = Generazione::query()->latest('id')->first();
+        $this->assertSame('Orario di base', $generazione->orario->nome);
+
+        $this->actingAs($referente)->get('/generazioni/create')->assertOk()
+            ->assertSee('Casuale', false)
+            ->assertSee('Come «Orario di base (seed 42)»', false)
+            ->assertDontSee('type="number" name="seed"', false); // niente campo libero
+
+        // senza seed (casuale) se ne sceglie uno nuovo
+        $this->actingAs($referente)->post('/generazioni', ['time_limit_s' => 30, 'seed' => '']);
+        $this->assertNotNull(Generazione::query()->latest('id')->first()->seed);
+    }
+
     public function test_la_pre_validazione_blocca_un_quadro_orario_incoerente(): void
     {
         $classe = $this->scuolaMinima();

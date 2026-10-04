@@ -13,8 +13,19 @@
                 <input type="number" name="time_limit_s" id="time_limit_s" min="10" max="900" value="{{ old('time_limit_s', 120) }}" required class="mt-1 block w-full">
             </div>
             <div>
-                <label for="seed" class="block text-sm font-medium text-gray-700">Seed (vuoto = casuale)</label>
-                <input type="number" name="seed" id="seed" min="0" value="{{ old('seed') }}" class="mt-1 block w-full">
+                <label for="nome" class="block text-sm font-medium text-gray-700">Nome dell'orario (facoltativo)</label>
+                <input type="text" name="nome" id="nome" maxlength="120" value="{{ old('nome') }}" class="mt-1 block w-full" placeholder="es. Orario di base">
+            </div>
+            <div>
+                <label for="seed" class="flex items-center gap-1.5 text-sm font-medium text-gray-700">Seed
+                    <x-info testo="Il seed decide il risultato: lo stesso seed con gli stessi dati dà lo stesso orario. Scegli uno dei seed già usati per riprodurre quell'orario." />
+                </label>
+                <select name="seed" id="seed" class="mt-1 block w-full">
+                    <option value="">Casuale (un orario diverso a ogni generazione)</option>
+                    @foreach ($seedUsati as $s)
+                        <option value="{{ $s['seed'] }}" @selected((string) old('seed') === (string) $s['seed'])>Come «{{ $s['etichetta'] }}»</option>
+                    @endforeach
+                </select>
             </div>
             <p class="text-xs text-gray-500">
                 La generazione viene eseguita in coda da un worker: se è fermo, lo avvio io quando premi "Avvia generazione".

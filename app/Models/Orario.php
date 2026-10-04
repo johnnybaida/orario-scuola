@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['periodo_id', 'versione', 'stato', 'seed', 'punteggio', 'creato_da'])]
+#[Fillable(['periodo_id', 'versione', 'nome', 'stato', 'seed', 'punteggio', 'creato_da'])]
 class Orario extends Model
 {
     use HasFactory;
@@ -19,6 +19,12 @@ class Orario extends Model
     public function modificabile(): bool
     {
         return $this->stato === 'bozza';
+    }
+
+    /** Nome dato dall'utente o, in mancanza, «Orario vN». */
+    public function etichetta(): string
+    {
+        return $this->nome ?: 'Orario v'.$this->versione;
     }
 
     public function etichettaStato(): string

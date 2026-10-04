@@ -44,6 +44,7 @@
                     <th class="px-4 py-2">#</th>
                     <th class="px-4 py-2">Stato</th>
                     <th class="px-4 py-2">Progresso</th>
+                    <th class="px-4 py-2">Orario</th>
                     <th class="px-4 py-2">Seed</th>
                     <th class="px-4 py-2">Punteggio</th>
                     <th class="px-4 py-2"></th>
@@ -55,6 +56,7 @@
                         <td class="px-4 py-2">{{ $g->id }}</td>
                         <td class="px-4 py-2">{{ $g->stato }}</td>
                         <td class="px-4 py-2">{{ $g->progresso }}%</td>
+                        <td class="px-4 py-2">{{ $g->orario?->etichetta() ?? $g->nome }}</td>
                         <td class="px-4 py-2">{{ $g->seed }}</td>
                         <td class="px-4 py-2">{{ $g->orario?->punteggio }}</td>
                         <td class="px-4 py-2 text-right">

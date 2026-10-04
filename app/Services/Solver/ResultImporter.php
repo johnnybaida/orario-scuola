@@ -13,13 +13,14 @@ use App\Models\Periodo;
  */
 class ResultImporter
 {
-    public function importa(Periodo $periodo, int $seed, array $risultato, array $mappaLezioni, ?int $creatoDa = null): Orario
+    public function importa(Periodo $periodo, int $seed, array $risultato, array $mappaLezioni, ?int $creatoDa = null, ?string $nome = null): Orario
     {
         $versione = (Orario::query()->where('periodo_id', $periodo->id)->max('versione') ?? 0) + 1;
 
         $orario = Orario::query()->create([
             'periodo_id' => $periodo->id,
             'versione' => $versione,
+            'nome' => $nome,
             'stato' => 'bozza',
             'seed' => $seed,
             'punteggio' => $risultato['punteggio'],
@@ -28,7 +29,7 @@ class ResultImporter
 
         \App\Models\AuditLog::registra('Orario', $orario->id, 'generazione', null,
             ['periodo' => $periodo->nome, 'versione' => $versione, 'seed' => $seed, 'punteggio' => $risultato['punteggio'], 'lezioni' => count($risultato['assegnazioni'])],
-            "{$periodo->nome} v{$versione}", $creatoDa);
+            $orario->nome ?: "{$periodo->nome} v{$versione}", $creatoDa);
 
         foreach ($risultato['assegnazioni'] as $assegnazione) {
             Lezione::query()->create([

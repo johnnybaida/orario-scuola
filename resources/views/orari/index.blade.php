@@ -35,15 +35,18 @@
                 <article data-riga class="rounded-lg border border-gray-200 border-l-4 {{ $bordo[$orario->stato] ?? 'border-l-gray-300' }} bg-white">
                     <header class="flex flex-wrap items-start gap-3 border-b border-gray-100 px-4 py-3">
                         @if ($puoEliminare)
-                            <input type="checkbox" class="js-sel mt-1" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona l'orario {{ $orario->periodo->nome }} versione {{ $orario->versione }}">
+                            <input type="checkbox" class="js-sel mt-1" value="{{ route('orari.destroy', $orario) }}" aria-label="Seleziona l'orario {{ $orario->etichetta() }}">
                         @endif
                         <div class="min-w-0 flex-1">
                             <h2 class="flex flex-wrap items-center gap-2 font-semibold">
-                                {{ $orario->periodo->nome }} <span class="font-normal text-gray-500">versione {{ $orario->versione }}</span>
+                                {{ $orario->etichetta() }}
                                 <x-stato-orario :orario="$orario" />
+                                @can('gestisci-anagrafica')
+                                    <a data-modale href="{{ route('orari.nome.form', $orario) }}" class="text-xs font-normal text-gray-500 underline hover:text-gray-900" title="Cambia il nome dell'orario">Rinomina</a>
+                                @endcan
                             </h2>
                             <p class="mt-0.5 text-sm text-gray-500">
-                                Creato il {{ $orario->created_at?->format('d/m/Y H:i') }}@if ($orario->creatoDa) da {{ $orario->creatoDa->name }}@endif
+                                {{ $orario->periodo->nome }} · versione {{ $orario->versione }} · creato il {{ $orario->created_at?->format('d/m/Y H:i') }}@if ($orario->creatoDa) da {{ $orario->creatoDa->name }}@endif
                                 · punteggio {{ $orario->punteggio }}
                             </p>
                         </div>
@@ -90,10 +93,7 @@
                                         </form>
                                     @endforeach
                                     @can('gestisci-anagrafica')
-                                        <form method="POST" action="{{ route('orari.duplica', $orario) }}">
-                                            @csrf
-                                            <button type="submit" class="{{ $pulsante }}">Duplica</button>
-                                        </form>
+                                        <a data-modale href="{{ route('orari.duplica.form', $orario) }}" class="{{ $pulsante }}">Duplica</a>
                                     @endcan
                                 </div>
                             </section>
