@@ -203,6 +203,13 @@ Qualsiasi modifica al contratto va applicata in modo coordinato su `ProblemBuild
 
 ---
 
+## Versione e rilasci
+
+- La versione è nel file `VERSION` (radice, `MAJOR.MINOR.PATCH`), letta in `config('app.versione')` e mostrata in fondo alla sidebar. Per pubblicare una versione: aggiorna `VERSION`, committa, poi `git tag vX.Y.Z` e `git push --tags` (e, se vuoi le note, crea la release su GitHub con lo stesso tag).
+- `App\Services\ControlloAggiornamenti` confronta `VERSION` con il tag `vX.Y.Z` più alto del repository (API pubblica GitHub, in cache 6 ore, 1 ora se fallisce, timeout 3 s); la sidebar lo chiede via `GET /aggiornamenti` (gate `gestisci-utenze`, `resources/js/aggiornamenti.js`) dopo il caricamento, quindi non rallenta le pagine. È l'unica chiamata verso l'esterno: si spegne con `CONTROLLO_AGGIORNAMENTI=false`.
+
+---
+
 ## Roadmap (fase corrente: **MVP**)
 
 | Fase | Contenuto |

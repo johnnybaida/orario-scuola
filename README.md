@@ -92,6 +92,7 @@ Per cambiare le impostazioni predefinite si possono aggiungere righe al file `.e
 | `DOCKER_APP_URL` | indirizzo pubblico dell'applicazione | `http://localhost:8080` |
 | `DOCKER_ADMIN_PASSWORD` | password dell'amministratore di esempio, impostata a ogni avvio | `password` |
 | `DOCKER_SEED_ESEMPIO` | `1` = carica la scuola di esempio al primo avvio, `0` = non carica nulla | `1` |
+| `DOCKER_CONTROLLO_AGGIORNAMENTI` | `false` = non controlla su GitHub se esiste una versione più recente | `true` |
 | `DOCKER_DB_PASSWORD`, `DOCKER_DB_ROOT_PASSWORD` | password del database | `orario`, `root` |
 | `DOCKER_APP_KEY` | chiave dell'applicazione (se vuota se ne genera una e si conserva nel volume) | vuota |
 
@@ -171,6 +172,19 @@ Password per tutti: `password`.
 | `segreteria@scuola.test` | Segreteria (gestisce docenti/classi) |
 | `docente@scuola.test` | Docente |
 | `ds@scuola.test` | Dirigente Scolastico |
+
+---
+
+## Versione e rilasci
+
+La versione è nel file `VERSION` e compare in fondo alla barra laterale. L'amministratore vede un avviso quando su GitHub esiste un tag `vX.Y.Z` più alto (controllo in sola lettura, ogni 6 ore al massimo; si spegne con `CONTROLLO_AGGIORNAMENTI=false`, su Docker `DOCKER_CONTROLLO_AGGIORNAMENTI=false`).
+
+Per pubblicare una nuova versione:
+
+```bash
+echo 0.2.0 > VERSION && git commit -am "Versione 0.2.0"
+git tag v0.2.0 && git push && git push --tags   # poi, facoltativo, crea la release su GitHub con le note
+```
 
 ---
 

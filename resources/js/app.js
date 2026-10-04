@@ -10,3 +10,4 @@ import './condizioni.js';
 import './scansione-oraria.js';
 import './guida-pannello.js';
 import './toast.js';
+import './aggiornamenti.js';

@@ -2,7 +2,8 @@
 # Variabili facoltative per cambiare le impostazioni predefinite: si scrivono nel file .env accanto a questo (o nell'ambiente).
 # Hanno il prefisso DOCKER_ perché le legge solo Docker e non si confondono con quelle di Laravel nello stesso .env:
 # DOCKER_APP_PORT, DOCKER_APP_URL, DOCKER_APP_KEY, DOCKER_DB_PASSWORD, DOCKER_DB_ROOT_PASSWORD, DOCKER_ADMIN_PASSWORD,
-# DOCKER_SEED_ESEMPIO (1 = carica la scuola di esempio al primo avvio, 0 = no).
+# DOCKER_SEED_ESEMPIO (1 = carica la scuola di esempio al primo avvio, 0 = no),
+# DOCKER_CONTROLLO_AGGIORNAMENTI (false = non controlla su GitHub se esiste una versione più recente).
 # Il .env di Laravel (APP_URL, DB_PASSWORD, APP_KEY, ...) NON influisce su Docker.
 name: orario-scuola
 
@@ -39,6 +40,7 @@ services:
       APP_URL: ${DOCKER_APP_URL:-http://localhost:8080}
       APP_KEY: ${DOCKER_APP_KEY:-}
       APP_TIMEZONE: Europe/Rome
+      CONTROLLO_AGGIORNAMENTI: ${DOCKER_CONTROLLO_AGGIORNAMENTI:-true}
       APP_LOCALE: it
       APP_FALLBACK_LOCALE: en
       APP_FAKER_LOCALE: it_IT

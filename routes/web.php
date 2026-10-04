@@ -103,6 +103,9 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/orari/{orario}/avvisi/azzera', [OrarioController::class, 'azzeraAvvisi'])->name('orari.avvisi.azzera');
     });
 
+    // Controllo nuove versioni: solo chi amministra (quindi chi può aggiornare l'installazione).
+    Route::get('/aggiornamenti', \App\Http\Controllers\AggiornamentiController::class)->middleware('can:gestisci-utenze')->name('aggiornamenti');
+
     // Registro delle attività: chi può approvare gli orari (amministratore, DS).
     Route::get('/audit', [\App\Http\Controllers\AuditController::class, 'index'])->middleware('can:approva-orari')->name('audit.index');
 

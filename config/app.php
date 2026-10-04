@@ -16,6 +16,14 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | Versione dell'applicazione (file VERSION nella radice, es. 0.1.0; stessa numerazione dei tag git "v0.1.0"),
+    | repository GitHub da cui controllare le nuove versioni e interruttore del controllo (rete in uscita).
+    */
+    'versione' => is_file(base_path('VERSION')) ? trim((string) file_get_contents(base_path('VERSION'))) : 'sconosciuta',
+    'repository' => 'johnnybaida/orario-scuola',
+    'controllo_aggiornamenti' => (bool) env('CONTROLLO_AGGIORNAMENTI', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

@@ -371,6 +371,15 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 - Il registro **non si può modificare né cancellare** dall'applicazione.
 - Non sono registrate le scelte multiple fatte con le caselle (per esempio le sedi di un docente o le indisponibilità) e il caricamento della scuola di esempio.
 
+## Versione e aggiornamenti
+<!-- sezione: gestisci-utenze -->
+
+In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se su GitHub è stata pubblicata una versione più recente, **l'amministratore** vede sotto la versione un avviso «Disponibile la versione X»: cliccandolo si apre la pagina con le novità.
+
+- Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge l'elenco pubblico delle versioni del progetto, non invia alcun dato della scuola, avviene al massimo ogni 6 ore e, se manca la rete, semplicemente non succede nulla.
+- Per **aggiornare**: scarica la nuova versione da GitHub (come nell'installazione) e riavvia l'applicazione con il pulsante di avvio; i dati nel database restano.
+- Per **disattivare** il controllo, chi gestisce l'installazione imposta `CONTROLLO_AGGIORNAMENTI=false` nel file di configurazione.
+
 ## Consigli d'uso
 <!-- sezione: gestisci-docenti-classi -->
 
