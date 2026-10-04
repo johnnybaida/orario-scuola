@@ -64,7 +64,7 @@ Il computer dove è installato deve restare acceso con Docker aperto. Dagli altr
 ### Se qualcosa non va
 
 - **Docker non parte o "non è acceso":** apri Docker Desktop a mano e aspetta che sia pronto. Su Windows serve la virtualizzazione attiva (se Docker lo segnala, chiedi assistenza).
-- **Porta occupata, o il browser mostra un altro sito:** aggiungi alla cartella un file di testo chiamato `.env` con dentro la riga `DOCKER_APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`). Su Windows: Blocco note → *Salva con nome* → tipo *Tutti i file* → nome `.env`. Su Mac: nel *Terminale*, dalla cartella, scrivi `echo 'DOCKER_APP_PORT=8081' >> .env`. Se il file c'è già, aggiungi solo quella riga.
+- **Porta occupata, o il browser mostra un altro sito:** aggiungi alla cartella un file di testo chiamato `web/.env` con dentro la riga `DOCKER_APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`). Su Windows: Blocco note → *Salva con nome* → tipo *Tutti i file* → nome `web/.env`. Su Mac: nel *Terminale*, dalla cartella, scrivi `echo 'DOCKER_APP_PORT=8081' >> .env`. Se il file c'è già, aggiungi solo quella riga.
 - **L'applicazione è lenta al primo avvio:** è normale, attendi.
 - **Altri problemi:** copia o fotografa il testo della finestra nera e mandalo a chi gestisce l'installazione.
 
@@ -86,7 +86,7 @@ Poi apri <http://localhost:8080> (la porta si cambia con `DOCKER_APP_PORT`). Al 
 
 Servizi: `db` (MariaDB 11) e `app` (PHP + FrankenPHP con gli assets compilati e il solver Python). I dati stanno in due volumi, `dbdata` (database) e `storage` (chiave, log, file), e sopravvivono ai riavvii.
 
-Per cambiare le impostazioni predefinite si possono aggiungere righe al file `.env` accanto a `compose.yaml` (o impostare variabili d'ambiente). **Chi non è uno sviluppatore non deve toccare nulla**: senza `.env` si usano i valori predefiniti. Queste variabili hanno il prefisso `DOCKER_` perché le legge solo Docker: il `.env` di Laravel dello sviluppo (`APP_URL`, `DB_PASSWORD`, `APP_KEY`, ...) **non** influisce sull'avvio con Docker, e viceversa.
+Per cambiare le impostazioni predefinite si possono aggiungere righe al file `web/.env` accanto a `compose.yaml` (o impostare variabili d'ambiente). **Chi non è uno sviluppatore non deve toccare nulla**: senza `web/.env` si usano i valori predefiniti. Queste variabili hanno il prefisso `DOCKER_` perché le legge solo Docker: il `web/.env` di Laravel dello sviluppo (`APP_URL`, `DB_PASSWORD`, `APP_KEY`, ...) **non** influisce sull'avvio con Docker, e viceversa.
 
 | Variabile (facoltativa) | Significato | Predefinito |
 |---|---|---|
@@ -152,7 +152,7 @@ python3.11 -m venv solver/.venv
 solver/.venv/bin/pip install -r solver/requirements.txt
 ```
 
-> Il file `.env` nella **radice** del progetto serve solo a Docker (variabili `DOCKER_*`, vedi sopra) e non è quello di Laravel.
+> Il file `web/.env` nella **radice** del progetto serve solo a Docker (variabili `DOCKER_*`, vedi sopra) e non è quello di Laravel.
 
 ---
 

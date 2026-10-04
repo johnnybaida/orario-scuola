@@ -26,7 +26,7 @@ Non aggiungere dipendenze (Composer, npm, pip) senza chiedere. Per PDF/Excel pro
 
 ## Comandi
 
-L'applicazione Laravel sta in **`web/`**: i comandi di sviluppo (`php artisan`, `composer`, `npm`, test) si lanciano da lì. Nella radice restano solo i file che servono a chi installa (README, launcher, Docker) e la documentazione. Il file `.env` della radice è quello di Docker (variabili `DOCKER_*`); quello di Laravel è `web/.env`.
+L'applicazione Laravel sta in **`web/`**: i comandi di sviluppo (`php artisan`, `composer`, `npm`, test) si lanciano da lì. Nella radice restano solo i file che servono a chi installa (README, launcher, Docker) e la documentazione. Il file `web/.env` della radice è quello di Docker (variabili `DOCKER_*`); quello di Laravel è `web/.env`.
 
 ```bash
 # setup (da web/)
@@ -244,7 +244,7 @@ Non anticipare funzionalità di fasi successive; se servono predisposizioni nel 
 
 ## Come lavorare
 
-- **Non modificare mai il file `.env`** (né `.env.local`, `.env.production`, ...): contiene credenziali e la chiave dell'applicazione e non è recuperabile da git. Niente `cp`/`mv`/`rm`/redirect/`sed -i` su di esso e niente `php artisan key:generate` senza `--show`: se serve un valore diverso, chiedilo all'utente. Per le prove di script usa percorsi temporanei o variabili d'ambiente. L'impedimento è anche tecnico: `.claude/settings.json` nega le modifiche con gli strumenti di scrittura e `.claude/hooks/proteggi-env.py` blocca i comandi di shell che toccano `.env` (la lettura resta consentita; `.env.example` è modificabile).
+- **Non modificare mai il file `web/.env`** (né `.env.local`, `.env.production`, ...): contiene credenziali e la chiave dell'applicazione e non è recuperabile da git. Niente `cp`/`mv`/`rm`/redirect/`sed -i` su di esso e niente `php artisan key:generate` senza `--show`: se serve un valore diverso, chiedilo all'utente. Per le prove di script usa percorsi temporanei o variabili d'ambiente. L'impedimento è anche tecnico: `.claude/settings.json` nega le modifiche con gli strumenti di scrittura e `.claude/hooks/proteggi-env.py` blocca i comandi di shell che toccano `web/.env` (la lettura resta consentita; `.env.example` è modificabile).
 - Modifica solo ciò che serve al task; niente refactoring non richiesti.
 - Prima di scelte architetturali non coperte da qui o dall'analisi: **fermati e chiedi**.
 - Ogni nuovo tipo di vincolo si implementa su entrambi i lati (definizione in `app/Constraints/` + modulo in `solver/constraints/`), con un test PHP di validazione e un test pytest con un caso fattibile e uno infattibile.

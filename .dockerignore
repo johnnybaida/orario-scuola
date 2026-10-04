@@ -1,7 +1,7 @@
 .git
 .claude
 .idea
-.env
+web/.env
 .env.*
 !.env.example
 *.bat
