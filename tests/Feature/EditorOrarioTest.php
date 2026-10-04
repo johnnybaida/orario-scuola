@@ -393,7 +393,7 @@ class EditorOrarioTest extends TestCase
 
     public function test_azzera_avvisi_svuota_il_pannello(): void
     {
-        [$classe, $slot1] = $this->classeConDueSlot();
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
         $orario = Orario::factory()->create();
         $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'ore' => 5]);
         $lezione = Lezione::factory()->create([
@@ -401,7 +401,7 @@ class EditorOrarioTest extends TestCase
         ]);
 
         $referente = $this->referente();
-        $this->actingAs($referente)->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot1->id]);
+        $this->actingAs($referente)->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sposta", ['slot_id' => $slot2->id]);   // lezione bloccata: rifiutato
         $this->assertDatabaseCount('avvisi_orario', 1);
 
         $response = $this->actingAs($referente)->post("/orari/{$orario->id}/avvisi/azzera");
@@ -643,5 +643,18 @@ class EditorOrarioTest extends TestCase
         $referente->get('/orari')->assertOk()->assertSee('Orario v3')->assertSee('Settimana uscita didattica');
 
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->put("/orari/{$orario->id}", ['nome' => 'x'])->assertForbidden();
+    }
+
+    public function test_scegliere_la_stessa_cattedra_non_e_un_errore_ne_una_modifica(): void
+    {
+        [$classe, $slot1] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+
+        $this->actingAs($this->referente())->patchJson("/orari/{$orario->id}/lezioni/{$lezione->id}/cattedra", ['cattedra_id' => $cattedra->id])
+            ->assertOk()->assertJsonPath('errori', []);
+        $this->assertDatabaseCount('avvisi_orario', 0);
+        $this->assertDatabaseCount('modifiche_orario', 0);
     }
 }

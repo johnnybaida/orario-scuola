@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
 class ControlloOrario
 {
     /**
-     * @return list<array{gravita: string, testo: string, lezioni: int[], classi: int[]}> prima gli errori, poi gli avvisi
+     * @return list<array{gravita: string, testo: string, lezioni: int[], classi: int[], docenti: int[]}> prima gli errori, poi gli avvisi
      */
     public function problemi(Orario $orario): array
     {
@@ -44,9 +44,24 @@ class ControlloOrario
         return array_values(array_filter($problemi, fn ($p) => in_array($classeId, $p['classi'])));
     }
 
-    private function p(string $gravita, string $testo, Collection|array $lezioni, Collection|array $classi): array
+    /** I problemi che toccano un docente. */
+    public function perDocente(array $problemi, int $docenteId): array
     {
-        return ['gravita' => $gravita, 'testo' => $testo, 'lezioni' => collect($lezioni)->values()->all(), 'classi' => collect($classi)->unique()->values()->all()];
+        return array_values(array_filter($problemi, fn ($p) => in_array($docenteId, $p['docenti'])));
+    }
+
+    /** I problemi che coinvolgono almeno una delle lezioni indicate (per esempio quelle di un'aula). */
+    public function perLezioni(array $problemi, array $lezioneIds): array
+    {
+        return array_values(array_filter($problemi, fn ($p) => array_intersect($p['lezioni'], $lezioneIds) !== []));
+    }
+
+    private function p(string $gravita, string $testo, Collection|array $lezioni, Collection|array $classi, Collection|array $docenti = []): array
+    {
+        return [
+            'gravita' => $gravita, 'testo' => $testo, 'lezioni' => collect($lezioni)->values()->all(),
+            'classi' => collect($classi)->unique()->values()->all(), 'docenti' => collect($docenti)->unique()->values()->all(),
+        ];
     }
 
     private function docentiInDuePosti(Collection $lezioni): array
@@ -61,7 +76,7 @@ class ControlloOrario
             $docente = $gruppo->first()->cattedra->docente;
             $dove = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' ('.$l->cattedra->disciplina->nome.')')->implode(' e in ');
             $problemi[] = $this->p('errore', "{$docente->nomeCompleto()}, {$gruppo->first()->slot->descrizione()}: è in due posti, in {$dove}.",
-                $gruppo->pluck('id'), $gruppo->map(fn (Lezione $l) => $l->cattedra->classe_id));
+                $gruppo->pluck('id'), $gruppo->map(fn (Lezione $l) => $l->cattedra->classe_id), [$docente->id]);
         }
 
         return $problemi;
@@ -72,7 +87,7 @@ class ControlloOrario
         return $lezioni->filter(fn (Lezione $l) => $l->cattedra->docente->indisponibilita->contains('id', $l->slot_id))
             ->map(fn (Lezione $l) => $this->p('errore',
                 "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->docente->nomeCompleto()} ({$l->cattedra->disciplina->nome}) non è disponibile in quell'ora.",
-                [$l->id], [$l->cattedra->classe_id]))->values()->all();
+                [$l->id], [$l->cattedra->classe_id], [$l->cattedra->docente_id]))->values()->all();
     }
 
     private function classiConDueLezioni(Collection $lezioni): array
@@ -87,7 +102,7 @@ class ControlloOrario
             $classe = $gruppo->first()->cattedra->classe;
             $quali = $gruppo->map(fn (Lezione $l) => $l->cattedra->disciplina->nome.' ('.$l->cattedra->docente->nomeCompleto().')')->implode(' e ');
             $problemi[] = $this->p('errore', "{$classe->nomeCompleto()}, {$gruppo->first()->slot->descrizione()}: due lezioni nello stesso momento, {$quali}.",
-                $gruppo->pluck('id'), [$classe->id]);
+                $gruppo->pluck('id'), [$classe->id], $gruppo->map(fn (Lezione $l) => $l->cattedra->docente_id));
         }
 
         return $problemi;
@@ -98,7 +113,7 @@ class ControlloOrario
         return $lezioni->filter(fn (Lezione $l) => ! $l->cattedra->classe->slotAttivi->contains('id', $l->slot_id))
             ->map(fn (Lezione $l) => $this->p('errore',
                 "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->disciplina->nome} è in un'ora che non fa parte della scansione oraria della classe.",
-                [$l->id], [$l->cattedra->classe_id]))->values()->all();
+                [$l->id], [$l->cattedra->classe_id], [$l->cattedra->docente_id]))->values()->all();
     }
 
     /** Una lezione che richiede un tipo di aula ma non ne ha una assegnata (o ne ha una di tipo diverso). */
@@ -150,7 +165,7 @@ class ControlloOrario
             $ore = $conteggi[$cattedra->id] ?? 0;
             if ($ore !== $cattedra->ore) {
                 $problemi[] = $this->p('errore', "{$cattedra->classe->nomeCompleto()}: {$cattedra->disciplina->nome} ({$cattedra->docente->nomeCompleto()}) ha {$ore} ore invece delle {$cattedra->ore} previste.",
-                    [], [$cattedra->classe_id]);
+                    [], [$cattedra->classe_id], [$cattedra->docente_id]);
             }
         }
 

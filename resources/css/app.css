@@ -9,6 +9,9 @@
 
     /* Design system: design-system/orario-scuola/MASTER.md (Minimalism & Swiss Style, navy professionale).
        Stati hover/active: modificatori di opacità Tailwind (es. hover:bg-primary/90), non token separati. */
+    /* Larghezza massima del contenuto delle pagine: classe max-w-pagina (1600px; max-w-6xl era 1152px). */
+    --container-pagina: 100rem;
+
     --color-primary: #1e3a5f;
     --color-on-primary: #ffffff;
     --color-secondary: #2563eb;

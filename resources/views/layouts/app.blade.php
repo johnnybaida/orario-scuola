@@ -69,7 +69,7 @@
         @endauth
 
         <main class="flex-1 min-w-0">
-            <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="max-w-pagina mx-auto px-4 py-6">
                 @auth
                     <div class="flex justify-end mb-3">
                         <button type="button" data-apri-guida aria-controls="pannello-guida" aria-expanded="false" title="Aiuto (F1)"

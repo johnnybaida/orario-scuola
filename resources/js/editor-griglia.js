@@ -11,6 +11,7 @@ const celleSlot = (griglia) => griglia.querySelectorAll('td[data-slot-id]');
 function inizializzaGriglia(griglia) {
     const urlLezioni = griglia.dataset.urlLezioni;
     let lezioneTrascinataId = null;
+    let slotOrigine = null;
 
     const interruttore = document.querySelector('#conflitti-provvisori');
     if (interruttore) {
@@ -25,6 +26,7 @@ function inizializzaGriglia(griglia) {
         const carta = evento.target.closest('[data-lezione-id]');
         if (!carta) return;
         lezioneTrascinataId = carta.dataset.lezioneId;
+        slotOrigine = carta.closest('[data-slot-id]')?.dataset.slotId ?? null;
         evento.dataTransfer.effectAllowed = 'move';
 
         const id = lezioneTrascinataId;
@@ -48,6 +50,7 @@ function inizializzaGriglia(griglia) {
 
         const lezioneId = lezioneTrascinataId;
         lezioneTrascinataId = null;
+        if (cella.dataset.slotId === slotOrigine) return; // rilasciata dove stava: niente da fare
 
         await chiamaApi(`${urlLezioni}/${lezioneId}/sposta`, 'PATCH', { slot_id: cella.dataset.slotId, provvisorio: provvisorio() }).catch(() => null);
         window.location.reload();

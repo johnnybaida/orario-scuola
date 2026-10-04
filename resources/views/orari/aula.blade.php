@@ -22,6 +22,8 @@
         vuote sono quelle in cui l'aula è libera.
     </x-guida>
 
+    @include('orari._controllo', ['ambito' => 'questa aula'])
+
     @php($totale = $lezioni->flatten()->count())
     <p class="mb-3 text-sm text-gray-600">{{ $totale }} {{ $totale === 1 ? 'ora occupata' : 'ore occupate' }} alla settimana.</p>
 

@@ -92,7 +92,7 @@ class OrarioController extends Controller
         ]);
     }
 
-    public function docente(Orario $orario, Docente $docente): View
+    public function docente(Orario $orario, Docente $docente, ControlloOrario $controllo): View
     {
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
@@ -107,6 +107,8 @@ class OrarioController extends Controller
             // Solo fino all'ultima ora in cui il docente ha lezione.
             'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
+            'problemi' => $controllo->perDocente($controllo->problemi($orario), $docente->id),
+            'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
         ]);
     }
 
@@ -168,13 +170,15 @@ class OrarioController extends Controller
             'cambi' => $cambi,
             'cambiPerClasse' => $cambiPerClasse,
             'problemiPerLezione' => $perLezione,
+            'problemi' => $problemi,
+            'classiOrario' => $classi->keyBy('id'),
             'avvisi' => $orario->avvisi,
             'modificabile' => $orario->modificabile() && (bool) $request->user()?->can('gestisci-anagrafica'),
         ]);
     }
 
     /** Occupazione di un'aula (anche quella base di una classe): chi c'è a ogni ora. Vista in sola lettura. */
-    public function aula(Orario $orario, Aula $aula): View
+    public function aula(Orario $orario, Aula $aula, ControlloOrario $controllo): View
     {
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
@@ -189,6 +193,8 @@ class OrarioController extends Controller
             // Solo fino all'ultima ora in cui l'aula è usata.
             'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
             'lezioni' => $lezioni,
+            'problemi' => $controllo->perLezioni($controllo->problemi($orario), $lezioni->flatten()->pluck('id')->all()),
+            'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
         ]);
     }
 

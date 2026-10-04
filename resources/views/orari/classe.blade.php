@@ -49,38 +49,7 @@
         </div>
     @endunless
 
-    {{-- Stato reale (ricalcolato a ogni apertura): sparisce da solo quando i problemi vengono risolti. --}}
-    @php($erroriLive = collect($problemi)->where('gravita', 'errore'))
-    <div class="mb-4 rounded-lg border px-4 py-3 text-sm {{ $problemi === [] ? 'bg-green-50 border-green-200 text-green-800' : ($erroriLive->isNotEmpty() ? 'bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800') }}">
-        <div class="flex items-center justify-between gap-3 {{ $problemi === [] ? '' : 'mb-2' }}">
-            <p class="font-medium">
-                Controllo dell'orario
-                @if ($problemi === [])
-                    — nessun problema per questa classe
-                @else
-                    — {{ $erroriLive->count() }} {{ $erroriLive->count() === 1 ? 'errore' : 'errori' }}, {{ count($problemi) - $erroriLive->count() }} {{ count($problemi) - $erroriLive->count() === 1 ? 'avviso' : 'avvisi' }}
-                @endif
-            </p>
-            <a href="{{ route('orari.controllo', $orario) }}" class="text-xs underline whitespace-nowrap">Tutto l'orario</a>
-        </div>
-        @if ($problemi !== [])
-            <ul class="space-y-1">
-                @foreach (array_slice($problemi, 0, 8) as $problema)
-                    <li>
-                        <span class="font-mono text-xs uppercase">[{{ $problema['gravita'] }}]</span> {{ $problema['testo'] }}
-                        @foreach ($problema['classi'] as $altraId)
-                            @if ($altraId !== $classe->id && $classiOrario->has($altraId))
-                                <a href="{{ route('orari.classe', [$orario, $altraId]) }}" class="ml-1 whitespace-nowrap underline">Apri {{ $classiOrario[$altraId]->nomeCompleto() }}</a>
-                            @endif
-                        @endforeach
-                    </li>
-                @endforeach
-            </ul>
-            @if (count($problemi) > 8)
-                <p class="mt-1 text-xs">… e altri {{ count($problemi) - 8 }}: vedi «Tutto l'orario».</p>
-            @endif
-        @endif
-    </div>
+    @include('orari._controllo', ['ambito' => 'questa classe', 'classeCorrente' => $classe->id])
 
     @include('orari._registro')
 

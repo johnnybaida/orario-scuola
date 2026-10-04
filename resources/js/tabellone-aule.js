@@ -20,7 +20,7 @@ if (tabella) {
     tabella.addEventListener('dragstart', (evento) => {
         const carta = evento.target.closest('[data-lezione-id]');
         if (!carta) return;
-        trascinata = { id: carta.dataset.lezioneId, slot: carta.dataset.slotId };
+        trascinata = { id: carta.dataset.lezioneId, slot: carta.dataset.slotId, aula: carta.closest('td')?.dataset.aulaId };
         evento.dataTransfer.effectAllowed = 'move';
 
         const { id } = trascinata;
@@ -40,8 +40,9 @@ if (tabella) {
         if (!cella || !trascinata) return;
         evento.preventDefault();
 
-        const { id, slot } = trascinata;
+        const { id, slot, aula } = trascinata;
         trascinata = null;
+        if (cella.dataset.slotId === slot && cella.dataset.aulaId === aula) return; // rilasciata dove stava: niente da fare
         const corpo = { provvisorio: provvisorio() };
         if (cella.dataset.slotId === slot) {
             await chiamaApi(`${urlLezioni}/${id}/aula`, 'PATCH', { ...corpo, aula_id: cella.dataset.aulaId }).catch(() => null);

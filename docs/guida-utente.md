@@ -352,7 +352,7 @@ Mentre trascini, le celle si colorano: **verde** si può, **ambra** crea un conf
 
 ### Controllo dell'orario
 
-Sopra la griglia di ogni classe c'è il riquadro **Controllo dell'orario**: è lo **stato reale** dell'orario, **ricalcolato ogni volta che apri o ricarichi la pagina** (non si aggiorna da solo mentre la tieni aperta, e se un collega modifica devi ricaricare). Segnala:
+In **tutte le viste dell'orario** (griglia della classe, vista docente, vista aula e tabellone) c'è in alto il riquadro **Controllo dell'orario**: è lo **stato reale** dell'orario, filtrato su ciò che stai guardando (i problemi di quella classe, di quel docente, di quell'aula, o di tutto l'orario nel tabellone), **ricalcolato ogni volta che apri o ricarichi la pagina** (non si aggiorna da solo mentre la tieni aperta, e se un collega modifica devi ricaricare). Segnala:
 
 - un **docente in due posti** nello stesso momento (con le due classi);
 - un docente **indisponibile** in quell'ora;

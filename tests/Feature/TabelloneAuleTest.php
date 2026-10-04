@@ -265,7 +265,9 @@ class TabelloneAuleTest extends TestCase
         $url = fn ($lezione) => "{$this->base()}/lezioni/{$lezione->id}/aula";
 
         $referente->patchJson($url($l), ['aula_id' => $laboratorio->id])->assertStatus(422)->assertJsonPath('errori.0', fn ($m) => str_contains($m, "serve un'aula di tipo 'dada_ita'"));
-        $referente->patchJson($url($l), ['aula_id' => $this->a1->id])->assertStatus(422)->assertJsonPath('errori.0', fn ($m) => str_contains($m, 'è già in Italiano 1'));
+        $registro = \App\Models\AvvisoOrario::query()->count();
+        $referente->patchJson($url($l), ['aula_id' => $this->a1->id])->assertOk()->assertJsonPath('errori', []);   // già lì: non è un errore
+        $this->assertSame($registro, \App\Models\AvvisoOrario::query()->count());                              // e non si registra nulla
         $referente->patchJson($url($storia), ['aula_id' => $this->a1->id])->assertStatus(422)->assertJsonPath('errori.0', fn ($m) => str_contains($m, "non richiede un'aula speciale"));
         $l->update(['bloccata' => true]);
         $referente->patchJson($url($l), ['aula_id' => $this->a2->id])->assertStatus(422)->assertJsonPath('errori.0', fn ($m) => str_contains($m, 'bloccata'));

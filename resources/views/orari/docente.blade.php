@@ -13,6 +13,8 @@
         se non è l'aula base della classe.
     </x-guida>
 
+    @include('orari._controllo', ['ambito' => 'questo docente'])
+
     <div class="bg-white border border-gray-200 rounded-lg">
         <table class="w-full table-fixed text-sm border-collapse">
             <thead class="bg-gray-50 text-gray-500">

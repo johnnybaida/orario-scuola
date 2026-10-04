@@ -186,17 +186,21 @@ class ControlloOrarioTest extends TestCase
 
         // lo slot fuori scansione resta vietato anche in modalità provvisoria
         $this->classeA->slotAttivi()->sync([$this->slot2->id]);
-        $referente->patchJson("$base/{$this->lez['A2']->id}/sposta", ['slot_id' => $this->slot1->id, 'provvisorio' => true])->assertStatus(422);
+        $referente->patchJson("$base/{$this->lez['A1']->id}/sposta", ['slot_id' => $this->slot1->id, 'provvisorio' => true])->assertStatus(422);   // A1 sta in slot2, slot1 non è più della classe
 
         // e annullare riporta indietro anche i passaggi provvisori
         $referente->post("/orari/{$this->orario->id}/annulla-ultima");
         $this->assertTrue(collect($this->testi())->contains(fn ($t) => str_contains($t, 'è in due posti')));
     }
 
-    public function test_spostare_una_lezione_nello_stesso_slot_viene_rifiutato(): void
+    public function test_rilasciare_una_lezione_dove_gia_si_trova_non_e_un_errore_ne_una_modifica(): void
     {
-        $this->actingAs($this->referente())->patchJson("/orari/{$this->orario->id}/lezioni/{$this->lez['A1']->id}/sposta", ['slot_id' => $this->slot1->id])
-            ->assertStatus(422)->assertJsonPath('errori.0', fn ($m) => str_contains($m, 'già in questo slot'));
+        $risposta = $this->actingAs($this->referente())->patchJson("/orari/{$this->orario->id}/lezioni/{$this->lez['A1']->id}/sposta", ['slot_id' => $this->slot1->id]);
+
+        $risposta->assertOk()->assertJsonPath('ok', true)->assertJsonPath('errori', [])->assertJsonPath('avvisi', []);
+        $this->assertSame($this->slot1->id, $this->lez['A1']->fresh()->slot_id);
+        $this->assertDatabaseCount('avvisi_orario', 0);                                           // niente nel registro
+        $this->assertDatabaseMissing('modifiche_orario', ['lezione_id' => $this->lez['A1']->id]);  // niente da annullare
     }
 
     public function test_una_modifica_rifiutata_sta_nel_registro_mentre_il_controllo_resta_pulito(): void
@@ -209,5 +213,30 @@ class ControlloOrarioTest extends TestCase
         $this->assertStringContainsString('[modifica rifiutata]', $html);                 // ma il tentativo è nel registro
         $this->assertStringContainsString('nulla ha cambiato', str_replace('<strong>rifiutata</strong> non ha cambiato nulla', 'nulla ha cambiato', $html));
         $this->assertStringContainsString('Registro delle modifiche', $html);
+    }
+
+    public function test_il_controllo_compare_in_tutte_le_viste_filtrato_per_cio_che_si_guarda(): void
+    {
+        $aula = \App\Models\Aula::factory()->create(['sede_id' => $this->classeA->sede_id, 'nome' => 'Aula Prova', 'tipo' => 'classe', 'capienza' => 1]);
+        $this->lez['A1']->update(['aula_id' => $aula->id]);
+        $libera = \App\Models\Aula::factory()->create(['sede_id' => $this->classeA->sede_id, 'nome' => 'Aula Libera', 'tipo' => 'classe', 'capienza' => 1]);
+        $referente = $this->actingAs($this->referente());
+        $base = "/orari/{$this->orario->id}";
+
+        // orario coerente: ovunque «nessun problema»
+        $referente->get("$base/classe/{$this->classeA->id}")->assertSee("Controllo dell'orario", false)->assertSee('nessun problema per questa classe');
+        $referente->get("$base/docente/{$this->rossi->id}")->assertSee("Controllo dell'orario", false)->assertSee('nessun problema per questo docente');
+        $referente->get("$base/aula/{$aula->id}")->assertSee("Controllo dell'orario", false)->assertSee('nessun problema per questa aula');
+        $referente->get("$base/tabellone?per=classe")->assertSee("Controllo dell'orario", false)->assertSee("nessun problema per tutto l'orario");
+
+        // Rossi finisce in due posti: lo vedono la sua vista, l'aula coinvolta e il tabellone, non chi non c'entra
+        $this->lez['B2']->update(['slot_id' => $this->slot1->id]);
+        $this->assertStringContainsString('è in due posti', $referente->get("$base/docente/{$this->rossi->id}")->assertOk()->getContent());
+        $this->assertStringContainsString('1 errore', $referente->get("$base/docente/{$this->bianchi->id}")->getContent());   // solo «due lezioni nello stesso momento» in 2ªB
+        $this->assertStringContainsString('è in due posti', $referente->get("$base/aula/{$aula->id}")->getContent());
+        $this->assertStringContainsString('nessun problema per questa aula', $referente->get("$base/aula/{$libera->id}")->getContent());
+        $tabellone = $referente->get("$base/tabellone?per=classe")->getContent();
+        $this->assertStringContainsString('è in due posti', $tabellone);
+        $this->assertStringContainsString('Apri 2ª B', str_replace('&ordf;', 'ª', $tabellone));
     }
 }

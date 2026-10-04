@@ -33,6 +33,12 @@ class EditorLezione
     public function esegui(Lezione $lezione, int $slotDestinazioneId, int $utenteId, bool $provvisorio = false, ?int $aulaPreferita = null): array
     {
         $orarioId = $lezione->orario_id;
+
+        // Rilasciata dove già si trova: non è una modifica, né un errore da registrare.
+        if ($lezione->slot_id === $slotDestinazioneId) {
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];
+        }
+
         $valutazione = $this->valuta($lezione, $slotDestinazioneId);
 
         if ($valutazione['rigidi'] || ($valutazione['conflitti'] && ! $provvisorio)) {
@@ -82,6 +88,9 @@ class EditorLezione
         if (! $aula) {
             return $errore('aula non trovata.');
         }
+        if ($lezione->aula_id === $aula->id) {
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];   // già in quell'aula: nessuna modifica, niente da registrare
+        }
         if ($lezione->bloccata) {
             return $errore('la lezione è bloccata, sbloccala prima di cambiarne l\'aula.');
         }
@@ -91,10 +100,6 @@ class EditorLezione
         if ($aula->tipo !== $tipo) {
             return $errore("{$aula->nome} è di tipo '{$aula->tipo}' ma serve un'aula di tipo '{$tipo}'.");
         }
-        if ($lezione->aula_id === $aula->id) {
-            return $errore("è già in {$aula->nome}.");
-        }
-
         $conflitti = [];
         $altre = Lezione::query()->where('orario_id', $lezione->orario_id)->where('slot_id', $lezione->slot_id)->where('aula_id', $aula->id)
             ->where('id', '!=', $lezione->id)->with('cattedra.classe', 'cattedra.disciplina')->get();
@@ -170,9 +175,6 @@ class EditorLezione
         if ($lezione->bloccata) {
             return ['rigidi' => ["{$this->descriviLezione($lezione)}: la lezione è bloccata, sbloccala prima di spostarla."]] + $nullo;
         }
-        if ($lezione->slot_id === $slotDestinazioneId) {
-            return ['rigidi' => ["{$this->descriviLezione($lezione)}: la lezione è già in questo slot."]] + $nullo;
-        }
 
         $classe = $lezione->cattedra->classe;
         $esistente = Lezione::query()
@@ -247,7 +249,7 @@ class EditorLezione
         $vecchiaCattedra = $lezione->cattedra;
 
         if ($nuovaCattedraId === $vecchiaCattedra->id) {
-            return $this->persisti($orarioId, ['ok' => false, 'errori' => ["{$this->descriviLezione($lezione)}: nessuna modifica, è già la cattedra assegnata."], 'avvisi' => []], $lezione->id);
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];   // stessa cattedra: nessuna modifica, niente da registrare
         }
 
         $nuovaCattedra = Cattedra::query()->with('classe', 'docente', 'disciplina')->find($nuovaCattedraId);

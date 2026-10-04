@@ -41,6 +41,7 @@
         @endif
     </x-guida>
 
+    @include('orari._controllo', ['ambito' => 'tutto l\'orario'])
     @include('orari._registro')
 
     @if ($righe->isEmpty() || $ore === [])
@@ -82,9 +83,11 @@
                             @foreach ($giorni as $giorno)
                                 @foreach ($ore as $ora)
                                     @php($s = $slot->get($giorno.'-'.$ora))
-                                    <td @class(['border border-gray-200 p-0.5 align-top min-w-14', 'border-l-2 border-l-gray-500' => $loop->first])
+                                    <td @class(['border border-gray-200 p-0.5 align-top min-w-14 h-px', 'border-l-2 border-l-gray-500' => $loop->first])
                                         @if ($s) data-slot-id="{{ $s->id }}" @endif
                                         @if ($s && $aulaMode && $riga['id']) data-aula-id="{{ $riga['id'] }}" @endif>
+                                        {{-- Il riquadro (o i riquadri, se più lezioni nella stessa cella) occupa tutta l'altezza della cella. --}}
+                                        <div class="flex h-full flex-col gap-0.5">
                                         @foreach ($s ? $celle->get($s->id.'-'.$riga['id'], collect()) : [] as $lezione)
                                             @php($d = $lezione->cattedra->disciplina)
                                             @php($conflitti = $problemiPerLezione[$lezione->id] ?? [])
@@ -93,7 +96,7 @@
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
                                                  title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->cattedra->docente->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
-                                                 class="mb-0.5 rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
+                                                 class="flex flex-1 flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
                                                 @if ($aulaMode)
                                                     <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
                                                     <div>{{ $d->codice }}</div>
@@ -108,6 +111,7 @@
                                                 @endif
                                             </div>
                                         @endforeach
+                                        </div>
                                     </td>
                                 @endforeach
                             @endforeach
