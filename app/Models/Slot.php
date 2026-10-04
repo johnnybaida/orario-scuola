@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo'])]
+#[Fillable(['giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti'])]
 class Slot extends Model
 {
     use HasFactory;
@@ -27,6 +27,13 @@ class Slot extends Model
     public static function minutiTra(string $da, string $a): int
     {
         return (int) \Carbon\Carbon::createFromTimeString($da)->diffInMinutes(\Carbon\Carbon::createFromTimeString($a), false);
+    }
+
+    /** Fine della ricreazione che segue quest'ora ("H:i"), null se non ce n'è. */
+    public function fineRicreazione(): ?string
+    {
+        return $this->ricreazione_minuti
+            ? \Carbon\Carbon::createFromTimeString($this->fine)->addMinutes($this->ricreazione_minuti)->format('H:i') : null;
     }
 
     /** Slot raggruppati per giorno, fino all'ora $ordineMax (null = tutte): niente righe vuote oltre l'ultima ora usata. */

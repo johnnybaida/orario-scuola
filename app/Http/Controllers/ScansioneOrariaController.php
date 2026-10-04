@@ -27,7 +27,8 @@ class ScansioneOrariaController extends Controller
                 Slot::query()->where('ordine', $ordine)->update([
                     'inizio' => $ora['inizio'].':00',
                     'fine' => $ora['fine'].':00',
-                    'intervallo_dopo' => (bool) ($ora['ricreazione'] ?? false),
+                    'intervallo_dopo' => ! empty($ora['ricreazione']),
+                    'ricreazione_minuti' => ! empty($ora['ricreazione']) ? (int) $ora['ricreazione'] : null,
                 ]);
             }
         });
@@ -53,7 +54,7 @@ class ScansioneOrariaController extends Controller
     private function descrizione(): array
     {
         return $this->ore()->map(fn (Slot $s) => [
-            'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_dopo' => $s->intervallo_dopo,
+            'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti,
         ])->all();
     }
 }

@@ -94,8 +94,8 @@ class OrarioPdfExporter
 
             return $ora ? [
                 'ordine' => $ordine, 'inizio' => substr($ora->inizio, 0, 5), 'fine' => substr($ora->fine, 0, 5),
-                'ricreazione' => $ora->intervallo_dopo && $prossima
-                    ? ['fine' => substr($prossima->inizio, 0, 5), 'minuti' => Slot::minutiTra($ora->fine, $prossima->inizio)] : null,
+                'ricreazione' => $ora->fineRicreazione() && $prossima
+                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti] : null,
             ] : null;
         })->filter()->values()->all();
 

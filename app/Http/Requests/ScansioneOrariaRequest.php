@@ -19,11 +19,11 @@ class ScansioneOrariaRequest extends FormRequest
             'ore' => ['required', 'array'],
             'ore.*.inizio' => ['required', 'date_format:H:i'],
             'ore.*.fine' => ['required', 'date_format:H:i'],
-            'ore.*.ricreazione' => ['nullable', 'boolean'],
+            'ore.*.ricreazione' => ['nullable', 'integer', 'min:0', 'max:240'],
         ];
     }
 
-    /** Orari coerenti: ogni ora finisce dopo il suo inizio, le ore non si sovrappongono e una ricreazione ha una pausa vera dopo l'ora. */
+    /** Orari coerenti: ogni ora finisce dopo il suo inizio, le ore non si sovrappongono e la ricreazione (durata in minuti) finisce prima dell'ora successiva. */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v) {
@@ -47,8 +47,13 @@ class ScansioneOrariaRequest extends FormRequest
                 }
                 if (! empty($ora['ricreazione'])) {
                     $prossima = $ore[$ordini[$i + 1] ?? null] ?? null;
-                    if (! $prossima || $prossima['inizio'] <= $ora['fine']) {
-                        $v->errors()->add("ore.$ordine.ricreazione", "Per la ricreazione dopo la {$ordine}ª ora serve una pausa tra la fine di questa ora e l'inizio della successiva.");
+                    if (! $prossima) {
+                        $v->errors()->add("ore.$ordine.ricreazione", "Dopo l'ultima ora ({$ordine}ª) non può esserci una ricreazione.");
+                    } else {
+                        $fineRicreazione = date('H:i', strtotime($ora['fine']) + (int) $ora['ricreazione'] * 60);
+                        if ($prossima['inizio'] < $fineRicreazione) {
+                            $v->errors()->add("ore.$ordine.ricreazione", "La ricreazione dopo la {$ordine}ª ora ({$ora['fine']}–{$fineRicreazione}, {$ora['ricreazione']} minuti) finisce dopo l'inizio della successiva ({$prossima['inizio']}): sposta l'inizio della successiva o accorcia la ricreazione.");
+                        }
                     }
                 }
                 $precedenteFine = $ora['fine'];

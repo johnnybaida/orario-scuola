@@ -139,7 +139,7 @@ class ExportPdfTest extends TestCase
     public function test_i_pdf_mostrano_orari_delle_ore_e_ricreazioni(): void
     {
         $classe = Classe::factory()->create();
-        $prima = Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '09:40:00', 'fine' => '10:30:00', 'intervallo_dopo' => true]);
+        $prima = Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '09:40:00', 'fine' => '10:30:00', 'intervallo_dopo' => true, 'ricreazione_minuti' => 10]);
         $seconda = Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '10:40:00', 'fine' => '11:30:00']);
         $classe->slotAttivi()->attach([$prima->id, $seconda->id]);
         $orario = Orario::factory()->create();

@@ -30,6 +30,7 @@ class SlotSeeder extends Seeder
                     'inizio' => $inizio->format('H:i:s'),
                     'fine' => $fine->format('H:i:s'),
                     'intervallo_dopo' => $intervalloDopo,
+                    'ricreazione_minuti' => $intervalloDopo ? 10 : null,
                 ]);
 
                 $inizio = $fine->copy()->addMinutes($intervalloDopo ? 10 : 0);

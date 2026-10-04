@@ -418,13 +418,13 @@ class AnagraficheTest extends TestCase
         $utente->get('/scansione-oraria')->assertOk()->assertSee('Ricreazione dopo');
 
         $utente->put('/scansione-oraria', ['ore' => [
-            1 => ['inizio' => '08:00', 'fine' => '08:55', 'ricreazione' => '1'],
+            1 => ['inizio' => '08:00', 'fine' => '08:55', 'ricreazione' => '10'],
             2 => ['inizio' => '09:05', 'fine' => '10:00'],
         ]])->assertRedirect(route('scansione.index'));
 
         foreach ([1, 2] as $giorno) {
             $this->assertDatabaseHas('slot', ['giorno' => $giorno, 'ordine' => 1, 'fine' => '08:55:00', 'intervallo_dopo' => true]);
-            $this->assertDatabaseHas('slot', ['giorno' => $giorno, 'ordine' => 2, 'inizio' => '09:05:00', 'intervallo_dopo' => false]);
+            $this->assertDatabaseHas('slot', ['giorno' => $giorno, 'ordine' => 2, 'inizio' => '09:05:00', 'intervallo_dopo' => false, 'ricreazione_minuti' => null]);
         }
         $this->assertDatabaseHas('audit_log', ['entita' => 'ScansioneOraria', 'azione' => 'modifica']);
     }
@@ -442,13 +442,42 @@ class AnagraficheTest extends TestCase
         $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '09:00'], 2 => ['inizio' => '08:50', 'fine' => '10:00']]])
             ->assertSessionHasErrors('ore.2.inizio');
         // ricreazione senza pausa tra le due ore
-        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => '1'], 2 => ['inizio' => '08:50', 'fine' => '09:40']]])
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => '10'], 2 => ['inizio' => '08:50', 'fine' => '09:40']]])
             ->assertSessionHasErrors('ore.1.ricreazione');
         // ricreazione dopo l'ultima ora
-        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50'], 2 => ['inizio' => '09:00', 'fine' => '09:50', 'ricreazione' => '1']]])
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50'], 2 => ['inizio' => '09:00', 'fine' => '09:50', 'ricreazione' => '10']]])
             ->assertSessionHasErrors('ore.2.ricreazione');
 
         $this->assertDatabaseHas('slot', ['ordine' => 1, 'fine' => '08:50:00']); // niente è stato salvato
+    }
+
+    public function test_le_ricreazioni_hanno_durate_diverse_e_si_tolgono_svuotando_il_campo_senza_errori(): void
+    {
+        foreach (['08:00' => '08:50', '08:50' => '09:40', '09:55' => '10:45'] as $inizio => $fine) {
+            static $ordine = 0;
+            $ordine++;
+            Slot::factory()->create(['giorno' => 1, 'ordine' => $ordine, 'inizio' => $inizio.':00', 'fine' => $fine.':00']);
+        }
+        $utente = $this->actingAs($this->referente());
+        $ore = fn (array $r) => ['ore' => [
+            1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => $r[0]],
+            2 => ['inizio' => '09:00', 'fine' => '09:50', 'ricreazione' => $r[1]],
+            3 => ['inizio' => '10:05', 'fine' => '10:55'],
+        ]];
+
+        // 10' dopo la 1ª (08:50-09:00) e 15' dopo la 2ª (09:50-10:05): durate diverse
+        $utente->put('/scansione-oraria', $ore(['10', '15']))->assertRedirect(route('scansione.index'));
+        $this->assertDatabaseHas('slot', ['ordine' => 1, 'ricreazione_minuti' => 10, 'intervallo_dopo' => true]);
+        $this->assertDatabaseHas('slot', ['ordine' => 2, 'ricreazione_minuti' => 15, 'intervallo_dopo' => true]);
+        $utente->get('/scansione-oraria')->assertSee('08:50–09:00', false)->assertSee('09:50–10:05', false);
+
+        // si toglie svuotando il campo (o con 0), nessun errore anche se resta spazio tra le ore
+        $utente->put('/scansione-oraria', $ore(['', '0']))->assertRedirect(route('scansione.index'))->assertSessionHasNoErrors();
+        $this->assertDatabaseMissing('slot', ['intervallo_dopo' => true]);
+        $this->assertDatabaseMissing('slot', ['ricreazione_minuti' => 10]);
+
+        // la ricreazione non può invadere l'ora successiva: 15' dopo la 1ª (fino 09:05) ma la 2ª inizia 09:00
+        $utente->put('/scansione-oraria', $ore(['15', '']))->assertSessionHasErrors('ore.1.ricreazione');
     }
 
     public function test_solo_chi_gestisce_lanagrafica_modifica_la_scansione_oraria_ma_tutti_i_ruoli_operativi_la_vedono(): void

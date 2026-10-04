@@ -91,7 +91,7 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
     - Gli intervalli non sono slot. Di default un blocco di due ore **può stare a cavallo dell'intervallo**; il vincolo D7 permette di vietarlo per singole discipline.
 - **Recupero minuti** (unità oraria < 60'): solo calcolo e report del debito orario di docenti e classi; nessuna pianificazione del recupero.
 
-> **Implementazione.** Pagina **Scansione oraria**: inizio e fine di ciascuna ora e ricreazioni (anche più d'una, flag «ricreazione dopo» sull'ora che le precede), uguali per tutti i giorni; la ricreazione dura dalla fine dell'ora all'inizio della successiva. Gli orari non si sovrappongono e una ricreazione richiede una pausa vera. Le modifiche vanno nell'audit log. Orari delle ore e ricreazioni compaiono nei PDF (griglie di classe e docente, legenda nel tabellone). Durata dell'ora e giorni non sono ancora configurabili per singolo giorno e il report dei minuti da recuperare non è realizzato.
+> **Implementazione.** Pagina **Scansione oraria**: inizio e fine di ciascuna ora e ricreazioni (anche più d'una, ciascuna con la propria durata in minuti sull'ora che la precede), uguali per tutti i giorni; la ricreazione parte dalla fine dell'ora e deve finire prima dell'inizio della successiva. Gli orari non si sovrappongono. Le modifiche vanno nell'audit log. Orari delle ore e ricreazioni compaiono nei PDF (griglie di classe e docente, legenda nel tabellone). Durata dell'ora e giorni non sono ancora configurabili per singolo giorno e il report dei minuti da recuperare non è realizzato.
 
 ### 5.2 Sedi, aule e risorse
 

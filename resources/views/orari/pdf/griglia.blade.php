@@ -37,7 +37,7 @@
                 <tbody>
                     @php($maxOrdine = $slotPerGiorno->flatten()->max('ordine'))
                     {{-- Ricreazioni: ore seguite da una pausa (intervallo_dopo), con orario e durata; il loro spazio si toglie all'altezza delle ore. --}}
-                    @php($nRicreazioni = collect(range(1, max(1, $maxOrdine) - 1))->filter(fn ($o) => $slotPerGiorno->flatten()->firstWhere('ordine', $o)?->intervallo_dopo)->count())
+                    @php($nRicreazioni = collect(range(1, max(1, $maxOrdine) - 1))->filter(fn ($o) => $slotPerGiorno->flatten()->firstWhere('ordine', $o)?->ricreazione_minuti)->count())
                     @for ($ordine = 1; $ordine <= $maxOrdine; $ordine++)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
                         {{-- Celle alte quanto serve perché la settimana riempia il foglio A4 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
@@ -57,11 +57,11 @@
                                 </td>
                             @endforeach
                         </tr>
-                        @if ($primoSlot?->intervallo_dopo && $ordine < $maxOrdine && ($prossimoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine + 1)))
+                        @if ($primoSlot?->ricreazione_minuti && $ordine < $maxOrdine)
                             <tr class="ricreazione">
                                 <td colspan="{{ $slotPerGiorno->count() + 1 }}">
-                                    Ricreazione {{ substr($primoSlot->fine, 0, 5) }}-{{ substr($prossimoSlot->inizio, 0, 5) }}
-                                    ({{ \App\Models\Slot::minutiTra($primoSlot->fine, $prossimoSlot->inizio) }} minuti)
+                                    Ricreazione {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
+                                    ({{ $primoSlot->ricreazione_minuti }} minuti)
                                 </td>
                             </tr>
                         @endif
