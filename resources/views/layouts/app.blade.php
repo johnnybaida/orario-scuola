@@ -35,19 +35,29 @@
             <aside class="bg-primary text-white md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:self-start">
                 <nav class="p-3 md:p-4 flex md:flex-col gap-1 overflow-x-auto md:h-full md:overflow-y-auto md:overflow-x-hidden" aria-label="Menu principale">
                     <a href="{{ route('dashboard') }}" class="hidden md:block font-semibold text-lg px-3 pb-4 text-white">Orario Scuola</a>
+                    @php($inFondo = ['audit.index', 'utenze.index']) {{-- amministrazione: in basso, sopra l'utente --}}
                     @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
+                        @continue(in_array($rotta, $inFondo))
                         {{-- Le voci si vedono solo con il permesso giusto (null = tutti): 'consulta' per le anagrafiche, 'gestisci-utenze' per le utenze. --}}
                         @continue($permesso && ! auth()->user()->can($permesso))
                         @php($attiva = request()->routeIs(...explode('|', $pattern)))
                         <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="{{ $classeVoce($attiva) }}">{!! $icona !!}{{ $etichetta }}</a>
                     @endforeach
                     
-                    <div class="shrink-0 ml-auto md:ml-0 flex items-center gap-3 md:block md:mt-auto md:pt-4 md:border-t md:border-white/15 text-sm px-3 md:px-0">
+                    <div class="contents md:block md:mt-auto md:pt-4">
+                    @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
+                        @continue(! in_array($rotta, $inFondo) || ($permesso && ! auth()->user()->can($permesso)))
+                        @php($attiva = request()->routeIs(...explode('|', $pattern)))
+                        <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="{{ $classeVoce($attiva) }}">{!! $icona !!}{{ $etichetta }}</a>
+                    @endforeach
+
+                    <div class="shrink-0 ml-auto md:ml-0 flex items-center gap-3 md:block md:mt-2 md:pt-4 md:border-t md:border-white/15 text-sm px-3 md:px-0">
                         <p class="text-white/70 whitespace-nowrap"><span class="text-white font-medium">{{ auth()->user()->name }}</span><br class="hidden md:inline"> {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</p>
                         <form method="POST" action="{{ route('logout') }}" class="md:mt-2">
                             @csrf
                             <button type="submit" class="text-white/75 hover:text-white underline transition-colors duration-200 cursor-pointer">Esci</button>
                         </form>
+                    </div>
                     </div>
                 </nav>
             </aside>

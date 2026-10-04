@@ -46,20 +46,37 @@ class OrarioPdfExporter
 
     public function docente(Orario $orario, Docente $docente): PdfDocument
     {
-        $lezioni = Lezione::query()
-            ->where('orario_id', $orario->id)
-            ->whereHas('cattedra', fn ($q) => $q->where('docente_id', $docente->id))
-            ->with('cattedra.classe', 'cattedra.disciplina', 'aula')
-            ->get()
-            ->keyBy('slot_id');
+        return $this->docenti($orario, collect([$docente]));
+    }
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => [[
-            'titolo' => "Orario docente {$docente->nomeCompleto()}",
-            'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $lezioni->keys())->max('ordine')),
-            'lezioni' => $lezioni,
-            'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome,
-            'sostegni' => [],
-        ]]])->setPaper('a4', 'landscape');
+    /**
+     * Un foglio A4 orizzontale per docente (titolo centrato, tutta la settimana, classe e disciplina in ogni ora; le ore
+     * di sostegno in compresenza come «S classe»). Senza argomento: tutti i docenti che hanno almeno un'ora in questo
+     * orario, in ordine alfabetico.
+     */
+    public function docenti(Orario $orario, ?Collection $docenti = null): PdfDocument
+    {
+        $lezioni = Lezione::query()->where('orario_id', $orario->id)
+            ->with('cattedra.classe', 'cattedra.disciplina', 'aula')->get()->groupBy(fn (Lezione $l) => $l->cattedra->docente_id);
+        $compresenze = $orario->compresenzeSostegno()->with('classe')->get()->groupBy('docente_id');
+
+        $docenti ??= Docente::query()->whereIn('id', $lezioni->keys()->merge($compresenze->keys())->unique())
+            ->orderBy('cognome')->orderBy('nome')->get();
+
+        $fogli = $docenti->map(function (Docente $docente) use ($lezioni, $compresenze) {
+            $sue = ($lezioni[$docente->id] ?? collect())->keyBy('slot_id');
+            $sostegni = ($compresenze[$docente->id] ?? collect());
+
+            return [
+                'titolo' => "Orario docente {$docente->nomeCompleto()}",
+                'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
+                'lezioni' => $sue,
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome,
+                'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
+            ];
+        })->all();
+
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
     }
 
     /**

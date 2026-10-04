@@ -492,7 +492,7 @@ Export: **PDF** (stampa per bacheca, per classe e per docente) ed **Excel**. Nes
 
 Import: anagrafiche docenti/classi da CSV/Excel (evitare l'inserimento manuale).
 
-> **Implementazione.** Viste: orario classe, orario docente, dashboard con il carico dei docenti. Export **PDF**: griglia per classe (A4 orizzontale, titolo centrato), **PDF di tutte le classi con un foglio per classe**, griglia per docente, **tabellone generale su un solo foglio A3** (classi in riga, colonne per giorno tutte della stessa larghezza, sigle delle materie e cognomi troncati con «…», docenti di sostegno visibili, legenda delle sigle); le ore senza lezioni non compaiono. Non realizzati: orario per aula, disponibilità per slot, statistiche, export Excel (Fase 4). Import CSV per docenti e classi.
+> **Implementazione.** Viste: orario classe, orario docente, dashboard con il carico dei docenti. Export **PDF**: griglia per classe (A4 orizzontale, titolo centrato), **PDF di tutte le classi con un foglio per classe**, griglia per docente e **PDF di tutti i docenti con un foglio per docente** (A4 orizzontale, ore di sostegno in compresenza come «S classe»), **tabellone generale su un solo foglio A3** (classi in riga, colonne per giorno tutte della stessa larghezza, sigle delle materie e cognomi troncati con «…», docenti di sostegno visibili, legenda delle sigle); le ore senza lezioni non compaiono. Non realizzati: orario per aula, disponibilità per slot, statistiche, export Excel (Fase 4). Import CSV per docenti e classi.
 
 ---
 

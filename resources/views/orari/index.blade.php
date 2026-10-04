@@ -38,6 +38,7 @@
                         <td class="px-4 py-2 text-right space-x-3">
                             <a href="{{ route('orari.export.generale', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Tabellone PDF</a>
                             <a href="{{ route('orari.export.classi', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Classi PDF</a>
+                            <a href="{{ route('orari.export.docenti', $orario) }}" class="text-gray-600 hover:text-gray-900 underline">Docenti PDF</a>
                             <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $orario->id }}/classe">
                                 <option value="">Vista classe…</option>
                                 @foreach ($classi as $classe)

@@ -79,6 +79,7 @@
                     <div class="flex flex-wrap items-center gap-3 text-sm">
                         <a href="{{ route('orari.export.generale', $ultimoOrario) }}" class="underline text-primary">Tabellone PDF</a>
                         <a href="{{ route('orari.export.classi', $ultimoOrario) }}" class="underline text-primary">Classi PDF</a>
+                        <a href="{{ route('orari.export.docenti', $ultimoOrario) }}" class="underline text-primary">Docenti PDF</a>
                         <select data-ricerca class="js-vai-classe text-sm" data-base="/orari/{{ $ultimoOrario->id }}/classe">
                             <option value="">Vista classe…</option>
                             @foreach ($classi as $classe)

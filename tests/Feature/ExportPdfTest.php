@@ -158,4 +158,34 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('1&ordf; 09:40-10:30', $tabellone);
         $this->assertStringContainsString('ricreazione</strong> 10:30-10:40 (10\')', $tabellone);
     }
+
+    public function test_il_pdf_dei_docenti_ha_un_foglio_per_docente_con_lezioni_e_sostegno(): void
+    {
+        $classe = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'A']);
+        $slot1 = Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        $slot2 = Slot::factory()->create(['giorno' => 1, 'ordine' => 2]);
+        $orario = Orario::factory()->create();
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $verdi = Docente::factory()->create(['cognome' => 'Verdi', 'nome' => 'Luca']);
+        Docente::factory()->create(['cognome' => 'Senzaore']);
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+        \App\Models\CompresenzaSostegno::query()->create(['orario_id' => $orario->id, 'docente_id' => $verdi->id, 'classe_id' => $classe->id, 'slot_id' => $slot2->id]);
+
+        $html = app(\App\Services\Export\OrarioPdfExporter::class)->docenti($orario)->getDomPDF()->outputHtml();
+        $html = str_replace('&ordf;', 'ª', $html); // dompdf scrive la "ª" come entità HTML
+
+        $this->assertStringContainsString('Orario docente '.$rossi->nomeCompleto(), $html);
+        $this->assertStringContainsString('Orario docente '.$verdi->nomeCompleto(), $html);
+        $this->assertStringNotContainsString('Senzaore', $html);                       // nessuna ora: niente foglio
+        $this->assertStringContainsString($classe->nomeCompleto().' - '.$cattedra->disciplina->nome, $html);
+        $this->assertStringContainsString('S '.$classe->nomeCompleto(), $html);        // sostegno in compresenza
+        $this->assertSame(1, substr_count($html, 'page-break-after: always'));         // 2 docenti = 1 interruzione
+        $this->assertLessThan(strpos($html, 'Verdi'), strpos($html, 'Rossi'));         // ordine alfabetico
+
+        $risposta = $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get("/orari/{$orario->id}/export/docenti");
+        $risposta->assertOk();
+        $this->assertSame('application/pdf', $risposta->headers->get('Content-Type'));
+        $this->actingAs(User::factory()->create(['ruolo' => 'docente']))->get("/orari/{$orario->id}/export/docenti")->assertForbidden();
+    }
 }
