@@ -86,8 +86,8 @@
                                     <td @class(['border border-gray-200 p-0.5 align-top min-w-14 h-px', 'border-l-2 border-l-gray-500' => $loop->first])
                                         @if ($s) data-slot-id="{{ $s->id }}" @endif
                                         @if ($s && $aulaMode && $riga['id']) data-aula-id="{{ $riga['id'] }}" @endif>
-                                        {{-- Il riquadro (o i riquadri, se più lezioni nella stessa cella) occupa tutta l'altezza della cella. --}}
-                                        <div class="flex h-full flex-col gap-0.5">
+                                        {{-- Il riquadro (o i riquadri, se più lezioni nella stessa cella) occupa tutta l'altezza della cella; altezza minima uguale per tutte (min-h-14), anche per le celle vuote, così le righe sono uniformi e si leggono meglio. --}}
+                                        <div class="flex h-full min-h-14 flex-col gap-0.5">
                                         @foreach ($s ? $celle->get($s->id.'-'.$riga['id'], collect()) : [] as $lezione)
                                             @php($d = $lezione->cattedra->disciplina)
                                             @php($conflitti = $problemiPerLezione[$lezione->id] ?? [])
