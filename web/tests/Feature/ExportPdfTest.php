@@ -188,4 +188,41 @@ class ExportPdfTest extends TestCase
         $this->assertSame('application/pdf', $risposta->headers->get('Content-Type'));
         $this->actingAs(User::factory()->create(['ruolo' => 'docente']))->get("/orari/{$orario->id}/export/docenti")->assertForbidden();
     }
+
+    /** Un foglio per classe, qualunque sia il numero di ore e la lunghezza dei testi: mai due pagine per la stessa classe. */
+    public function test_il_pdf_delle_classi_ha_una_sola_pagina_per_classe_anche_con_9_ore_e_testi_lunghi(): void
+    {
+        $orario = Orario::factory()->create();
+        $slot = [];
+        foreach (range(1, 5) as $giorno) {
+            foreach (range(1, 9) as $ordine) {
+                $slot[$giorno][$ordine] = Slot::query()->create([
+                    'giorno' => $giorno, 'ordine' => $ordine, 'inizio' => '08:00:00', 'fine' => '08:50:00',
+                    'intervallo_dopo' => in_array($ordine, [3, 6], true), 'ricreazione_minuti' => in_array($ordine, [3, 6], true) ? 10 : null,
+                ]);
+            }
+        }
+
+        foreach ([6, 9, 9] as $i => $ore) {
+            $classe = Classe::factory()->create();
+            $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+            $cattedra->disciplina->update(['nome' => 'Disciplina con un nome molto lungo che va a capo su più righe']);
+            foreach ($slot as $perGiorno) {
+                foreach (range(1, $ore) as $ordine) {
+                    $classe->slotAttivi()->attach($perGiorno[$ordine]->id);
+                    Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $perGiorno[$ordine]->id]);
+                }
+            }
+        }
+
+        $pdf = app(\App\Services\Export\OrarioPdfExporter::class)->classi($orario)->output();
+
+        $this->assertSame(3, preg_match_all('#/Type\s*/Page\b(?!s)#', $pdf));
+
+        // Aula con 3 lezioni contemporanee in ogni ora (capienza 3): anche così una sola pagina.
+        $aula = \App\Models\Aula::factory()->create(['capienza' => 3]);
+        Lezione::query()->where('orario_id', $orario->id)->update(['aula_id' => $aula->id]);
+        $pdfAula = app(\App\Services\Export\OrarioPdfExporter::class)->aule($orario)->output();
+        $this->assertSame(1, preg_match_all('#/Type\s*/Page\b(?!s)#', $pdfAula));
+    }
 }
