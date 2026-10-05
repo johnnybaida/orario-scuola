@@ -77,7 +77,7 @@ class GenerateTimetable implements ShouldQueue
         Generazione::query()->find($this->generazioneId)?->update([
             'stato' => 'fallita',
             'progresso' => 100,
-            'diagnostica' => [$e->getMessage()],
+            'diagnostica' => [get_class($e).' in '.basename($e->getFile()).':'.$e->getLine().' - '.$e->getMessage()],
         ]);
     }
 }

@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->except(['store', 'update', 'destroy']);
         Route::resource('generazioni', GenerazioneController::class)->parameters($parametriRisorse['generazioni'])->only(['index', 'show']);
         Route::get('/generazioni/{generazione}/stato', [GenerazioneController::class, 'stato'])->name('generazioni.stato');
+        Route::get('/generazioni/{generazione}/diagnostica', [GenerazioneController::class, 'diagnostica'])->middleware('can:gestisci-anagrafica')->name('generazioni.diagnostica');
 
         Route::get('/scansione-oraria', [ScansioneOrariaController::class, 'index'])->name('scansione.index');
 

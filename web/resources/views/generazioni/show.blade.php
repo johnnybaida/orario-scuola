@@ -43,5 +43,12 @@
                 <p class="text-red-700 text-sm">Errore tecnico durante la generazione.</p>
             @endif
         </div>
+
+        @can('gestisci-anagrafica')
+            <div class="flex items-center gap-2">
+                <a href="{{ route('generazioni.diagnostica', $generazione) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">Scarica diagnostica</a>
+                <x-info testo="Scarica un file di testo con errore, vincoli, log e dati del calcolo. In caso di problemi invialo a chi gestisce l'applicazione." />
+            </div>
+        @endcan
     </div>
 @endsection

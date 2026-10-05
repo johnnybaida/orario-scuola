@@ -4,6 +4,10 @@
     <label for="codice" class="block text-sm font-medium text-gray-700">Codice</label>
     <input type="text" name="codice" id="codice" value="{{ old('codice', $disciplina?->codice) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <p class="mt-1 text-xs text-gray-500">
+        Sigla libera e unica. Per una seconda lingua straniera usa <strong>FRA</strong>, <strong>SPA</strong> o <strong>TED</strong>
+        (oppure scrivi «seconda lingua» nel nome): così l'aula DADA delle lingue è riconosciuta.
+    </p>
 </div>
 
 <div>

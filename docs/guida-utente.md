@@ -91,7 +91,7 @@ Gli orari delle ore e le ricreazioni compaiono nei **PDF**: nelle griglie di cla
 
 Il catalogo delle materie insegnate.
 
-- **Codice**: la sigla breve e unica (es. ITA, MAT). È quella che compare nel tabellone PDF.
+- **Codice**: la sigla breve e unica (es. ITA, MAT). È quella che compare nel tabellone PDF. Per una **seconda lingua straniera** usa FRA, SPA o TED (oppure scrivi «seconda lingua» nel nome): sono i codici con cui l'aula DADA delle lingue viene riconosciuta.
 - **Nome**: es. Italiano, Matematica.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
 - **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
@@ -282,7 +282,7 @@ Lo **stato** di una generazione:
    - *In corso*: il calcolo è in esecuzione; la barra mostra l'avanzamento.
    - *Completata*: l'orario è pronto e compare tra gli **Orari**.
    - *Infattibile*: non esiste un orario valido con i dati e i vincoli attuali (o il tempo è finito senza trovarne uno). La pagina elenca **quali vincoli o risorse sono in conflitto**.
-   - *Fallita*: errore tecnico durante il calcolo.
+   - *Fallita*: errore tecnico durante il calcolo. Premi **Scarica diagnostica** nella pagina della generazione e invia il file a chi gestisce l'applicazione: contiene l'errore, i vincoli attivi, i controlli sui dati e il log.
 
 Il **punteggio** di un orario somma le penalità dei vincoli preferenziali violati: **0 = tutti rispettati, più è basso meglio è**.
 

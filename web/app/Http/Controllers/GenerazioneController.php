@@ -6,6 +6,7 @@ use App\Http\Requests\GenerazioneRequest;
 use App\Jobs\GenerateTimetable;
 use App\Models\Generazione;
 use App\Models\Periodo;
+use App\Services\Diagnostica;
 use App\Services\QueueWorker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -73,6 +74,14 @@ class GenerazioneController extends Controller
             'progresso' => $generazione->progresso,
             'diagnostica' => $generazione->diagnostica,
             'orario_id' => $generazione->orario_id,
+        ]);
+    }
+
+    public function diagnostica(Generazione $generazione, Diagnostica $diagnostica)
+    {
+        return response($diagnostica->rapporto($generazione), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="diagnostica-generazione-'.$generazione->id.'.txt"',
         ]);
     }
 }
