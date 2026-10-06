@@ -57,10 +57,9 @@
                             @csrf
                             <button type="submit" class="text-white/75 hover:text-white underline transition-colors duration-200 cursor-pointer">Esci</button>
                         </form>
-                        {{-- Versione installata; per chi amministra compare anche l'avviso se su GitHub c'è una versione più recente. --}}
-                        <p class="hidden md:block mt-3 text-xs text-white/60" @can('gestisci-utenze') data-aggiornamenti data-url="{{ route('aggiornamenti') }}" @if (request()->routeIs('dashboard')) data-controlla @endif @endcan>
+                        {{-- Versione installata (l'avviso di nuova versione per l'amministratore sta accanto al pulsante Aiuto). --}}
+                        <p class="hidden md:block mt-3 text-xs text-white/60">
                             Versione {{ config('app.versione') }}
-                            <a data-aggiornamento-link hidden target="_blank" rel="noopener" class="mt-1 block rounded bg-white/15 px-2 py-1 text-white underline"></a>
                         </p>
                     </div>
                     </div>
@@ -71,7 +70,9 @@
         <main class="flex-1 min-w-0">
             <div class="max-w-pagina mx-auto px-4 py-6">
                 @auth
-                    <div class="flex justify-end mb-3">
+                    <div class="flex justify-end items-center gap-3 mb-3" @can('gestisci-utenze') data-aggiornamenti data-url="{{ route('aggiornamenti') }}" @if (request()->routeIs('dashboard')) data-controlla @endif @endcan>
+                        {{-- Avviso di nuova versione (per chi amministra): lo mostra resources/js/aggiornamenti.js se su GitHub c'è una versione più recente. --}}
+                        <a data-aggiornamento-link hidden target="_blank" rel="noopener" class="rounded-md bg-amber-400 px-3 py-1.5 text-sm font-semibold text-gray-900 shadow animate-pulse motion-reduce:animate-none hover:bg-amber-300 hover:animate-none"></a>
                         <button type="button" data-apri-guida aria-controls="pannello-guida" aria-expanded="false" title="Aiuto (F1)"
                                 class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>

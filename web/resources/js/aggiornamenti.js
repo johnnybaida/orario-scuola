@@ -1,4 +1,4 @@
-// Avviso di nuova versione nella sidebar. Il controllo (che interroga GitHub, senza cache) si fa solo aprendo la dashboard,
+// Avviso di nuova versione accanto al pulsante Aiuto. Il controllo (che interroga GitHub, senza cache) si fa solo aprendo la dashboard,
 // cioè dopo il login; l'esito resta nella sessione del browser e le altre pagine lo mostrano senza richiamare il server.
 const contenitore = document.querySelector('[data-aggiornamenti]');
 const CHIAVE = 'aggiornamento-disponibile';
