@@ -28,7 +28,11 @@ use InvalidArgumentException;
  */
 class ListeCsv
 {
-    /** @var array<string, array{titolo: string, modello: class-string, request: class-string, permesso: string, colonne: list<string>}> */
+    /**
+     * Le liste con `solo_export` (senza modello né request) non si importano.
+     *
+     * @var array<string, array{titolo: string, modello?: class-string, request?: class-string, permesso: string, colonne: list<string>, solo_export?: true}>
+     */
     public const LISTE = [
         'sedi' => ['titolo' => 'Sedi', 'modello' => Sede::class, 'request' => SedeRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['nome', 'indirizzo']],
@@ -42,6 +46,10 @@ class ListeCsv
             'colonne' => ['anno_corso', 'sezione', 'sede', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni']],
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'classe_sede', 'disciplina', 'ore', 'compresenza']],
+        'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica', 'solo_export' => true,
+            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti']],
+        'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica', 'solo_export' => true,
+            'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali']],
     ];
 
     /** Righe da esportare, nell'ordine di `colonne`. */
@@ -56,6 +64,13 @@ class ListeCsv
                 ->map(fn ($d) => [$d->nome, $d->cognome, $d->email, $d->tipo_contratto, $d->tipo_posto, $d->regime, $d->ore_dovute, (int) $d->coe]),
             'classi' => Classe::query()->with('sede', 'aulaBase', 'quadroOrario')->orderBy('anno_corso')->orderBy('sezione')->get()
                 ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->sede->nome, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni]),
+            // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
+            'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
+                ->map(fn ($s) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti]),
+            // Una riga per disciplina del quadro (un quadro senza righe compare con le ultime due colonne vuote).
+            'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
+                ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
+                    : $q->righe->sortBy('disciplina.codice')->map(fn ($r) => [$q->nome, $q->ore_totali, $r->disciplina->codice, $r->ore_settimanali])),
             'cattedre' => Cattedra::query()->with('docente', 'classe.sede', 'disciplina')->get()
                 ->sortBy(fn ($c) => $c->classe->nomeCompleto().$c->docente->nomeCompleto())
                 ->map(fn ($c) => [$c->docente->cognome, $c->docente->nome, $c->classe->anno_corso, $c->classe->sezione, $c->classe->sede->nome,

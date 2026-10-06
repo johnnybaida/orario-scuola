@@ -12,6 +12,10 @@
         prima dell'inizio dell'ora successiva: se cambi la fine di un'ora o la sua ricreazione, le ore che seguono si spostano da sole (poi puoi ritoccarle). Orari e ricreazioni compaiono nei PDF degli orari.
     </x-guida>
 
+    <x-barra-tabella>
+        <x-slot:azioni><x-csv-azioni lista="scansione" /></x-slot:azioni>
+    </x-barra-tabella>
+
     @php($puoModificare = auth()->user()->can('gestisci-anagrafica'))
     <form method="POST" action="{{ route('scansione.update') }}" data-scansione>
         @csrf

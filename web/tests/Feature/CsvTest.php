@@ -41,4 +41,19 @@ class CsvTest extends TestCase
         $this->actingAs($ds)->get('/csv/aule/importa')->assertForbidden();
         $this->actingAs($ds)->get('/csv/inesistente')->assertNotFound();
     }
+
+    public function test_esporta_scansione_e_quadri_ma_non_si_importano(): void
+    {
+        $quadro = \App\Models\QuadroOrario::factory()->create(['nome' => 'Normale 30h', 'ore_totali' => 30]);
+        $disciplina = \App\Models\Disciplina::factory()->create(['codice' => 'ITA']);
+        \App\Models\QuadroOrarioRiga::query()->create(['quadro_orario_id' => $quadro->id, 'disciplina_id' => $disciplina->id, 'ore_settimanali' => 6]);
+        \App\Models\Slot::query()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00', 'intervallo_dopo' => false]);
+        $admin = $this->admin();
+
+        $this->assertStringContainsString('"Normale 30h";30;ITA;6', $this->actingAs($admin)->get('/csv/quadri-orari')->streamedContent());
+        $this->actingAs($admin)->get('/csv/scansione')->assertOk();
+        $this->assertStringContainsString('1;08:00;08:50;', $this->actingAs($admin)->get('/csv/scansione')->streamedContent());
+        $this->actingAs($admin)->get('/csv/scansione/importa')->assertNotFound();
+        $this->actingAs($admin)->get('/scansione-oraria')->assertSee('Esporta CSV')->assertDontSee('Importa CSV');
+    }
 }

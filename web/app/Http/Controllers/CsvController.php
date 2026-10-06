@@ -43,6 +43,7 @@ class CsvController extends Controller
     private function definizione(string $lista, bool $scrittura = false): array
     {
         $def = ListeCsv::LISTE[$lista] ?? abort(404);
+        abort_if($scrittura && ($def['solo_export'] ?? false), 404);
         Gate::authorize($scrittura ? $def['permesso'] : 'consulta');
 
         return $def;

@@ -36,7 +36,7 @@ La **Dashboard** ti dice a che punto sei:
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
-**Esporta e importa CSV.** Sedi, aule, discipline, docenti, classi e cattedre hanno in alto i collegamenti **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**. Il modo più semplice di importare è esportare la lista, aggiungere le righe in Excel e reimportare il file: le righe già presenti vengono **saltate** (l'import non aggiorna), quelle con errori vengono elencate con il numero di riga e le altre importate. I riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, discipline, docenti, classi, cattedre. Quadri orari e vincoli non si importano da CSV.
+**Esporta e importa CSV.** Sedi, aule, discipline, docenti, classi e cattedre hanno in alto i collegamenti **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**. Il modo più semplice di importare è esportare la lista, aggiungere le righe in Excel e reimportare il file: le righe già presenti vengono **saltate** (l'import non aggiorna), quelle con errori vengono elencate con il numero di riga e le altre importate. I riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, discipline, docenti, classi, cattedre. **Scansione oraria** e **quadri orari** si possono solo **esportare** (una riga per ora, una riga per disciplina del quadro); quadri orari e vincoli non si importano da CSV.
 
 ## Sedi e aule
 <!-- sezione: consulta -->
@@ -443,8 +443,8 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 
 In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede sotto la versione un avviso «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
 
-- Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene al massimo **una volta all'ora** (15 minuti se non è raggiungibile) e, se manca la rete, semplicemente non succede nulla. Dopo aver aggiornato il file su GitHub l'avviso può quindi comparire con un po' di ritardo.
-- Per **aggiornare**: scarica la nuova versione da GitHub (come nell'installazione) e riavvia l'applicazione con il pulsante di avvio; i dati nel database restano.
+- Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene quando **apri la dashboard** (quindi a ogni accesso), senza memorizzare nulla e, se manca la rete, semplicemente non succede nulla. L'avviso resta visibile nelle altre pagine fino alla fine della sessione; se esce una versione mentre sei già collegato, lo vedi alla prossima apertura della dashboard (GitHub può impiegare qualche minuto a pubblicare il file).
+- Per **aggiornare**: fai doppio clic su `Aggiorna-Orario-Scuola.bat` (Windows) o `Aggiorna-Orario-Scuola.command` (Mac) nella cartella del programma, con Docker acceso. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. Poi ricarica la pagina.
 - Per **disattivare** il controllo, chi gestisce l'installazione imposta `CONTROLLO_AGGIORNAMENTI=false` nel file di configurazione.
 
 ## Consigli d'uso
