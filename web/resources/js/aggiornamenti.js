@@ -1,15 +1,28 @@
-// Avviso di nuova versione nella sidebar: chiede al server (che interroga GitHub, in cache) dopo il caricamento della pagina.
+// Avviso di nuova versione nella sidebar. Il controllo (che interroga GitHub, senza cache) si fa solo aprendo la dashboard,
+// cioè dopo il login; l'esito resta nella sessione del browser e le altre pagine lo mostrano senza richiamare il server.
 const contenitore = document.querySelector('[data-aggiornamenti]');
+const CHIAVE = 'aggiornamento-disponibile';
+
+function mostra(disponibile) {
+    if (!disponibile) return;
+    const link = contenitore.querySelector('[data-aggiornamento-link]');
+    link.href = disponibile.url;
+    link.textContent = `Disponibile la versione ${disponibile.versione}`;
+    link.hidden = false;
+}
 
 if (contenitore) {
-    fetch(contenitore.dataset.url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((dati) => {
-            if (!dati?.disponibile) return;
-            const link = contenitore.querySelector('[data-aggiornamento-link]');
-            link.href = dati.disponibile.url;
-            link.textContent = `Disponibile la versione ${dati.disponibile.versione}`;
-            link.hidden = false;
-        })
-        .catch(() => {}); // senza rete l'avviso semplicemente non compare
+    const salvato = sessionStorage.getItem(CHIAVE);
+    if (salvato !== null && !('controlla' in contenitore.dataset)) {
+        mostra(JSON.parse(salvato));
+    } else if ('controlla' in contenitore.dataset) {
+        fetch(contenitore.dataset.url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((dati) => {
+                if (!dati) return;
+                sessionStorage.setItem(CHIAVE, JSON.stringify(dati.disponibile));
+                mostra(dati.disponibile);
+            })
+            .catch(() => {}); // senza rete l'avviso semplicemente non compare
+    }
 }

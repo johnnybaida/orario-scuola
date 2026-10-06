@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -15,7 +14,6 @@ class AggiornamentiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Cache::flush();
         config(['app.versione' => '0.1.0', 'app.controllo_aggiornamenti' => true]);
     }
 
@@ -29,7 +27,7 @@ class AggiornamentiTest extends TestCase
         $this->actingAs($this->admin())->get('/dashboard')->assertSee('Versione 0.1.0');
     }
 
-    private const URL_VERSION = 'raw.githubusercontent.com/johnnybaida/orario-scuola/main/VERSION';
+    private const URL_VERSION = 'raw.githubusercontent.com/johnnybaida/orario-scuola/main/VERSION*';
 
     public function test_segnala_una_versione_piu_alta_nel_file_version_online_senza_bisogno_di_tag(): void
     {
@@ -45,34 +43,25 @@ class AggiornamentiTest extends TestCase
     {
         $admin = $this->admin();
         foreach (['0.1.0', '0.0.9', 'non una versione', '', '<html>404</html>'] as $contenuto) {
-            Cache::flush();
             Http::fake([self::URL_VERSION => Http::response($contenuto)]);
             $this->actingAs($admin)->getJson('/aggiornamenti')->assertOk()->assertJsonPath('disponibile', null);
         }
     }
 
-    public function test_senza_rete_o_con_errore_non_si_rompe_nulla_e_la_risposta_e_in_cache(): void
+    public function test_senza_rete_o_con_errore_non_si_rompe_nulla_e_non_c_e_cache(): void
     {
-        Http::fake([self::URL_VERSION => Http::sequence()->push('errore', 500)->push('0.2.0')]);
+        Http::fake([self::URL_VERSION => Http::sequence()->push('errore', 500)->push('0.2.0')->push('0.3.0')]);
         $admin = $this->admin();
         $this->actingAs($admin)->getJson('/aggiornamenti')->assertOk()->assertJsonPath('disponibile', null);
-        $this->actingAs($admin)->getJson('/aggiornamenti');
-        Http::assertSentCount(1); // il fallimento si ricorda per 15 minuti
-
-        $this->travel(16)->minutes();
-        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.2.0'); // poi riprova
+        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.2.0');
+        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.3.0');
     }
 
-    public function test_una_versione_trovata_resta_in_cache_un_ora(): void
+    public function test_solo_la_dashboard_avvia_il_controllo(): void
     {
-        Http::fake([self::URL_VERSION => Http::sequence()->push('0.2.0')->push('0.3.0')]);
         $admin = $this->admin();
-        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.2.0');
-        $this->actingAs($admin)->getJson('/aggiornamenti');
-        Http::assertSentCount(1);
-
-        $this->travel(61)->minutes();
-        $this->actingAs($admin)->getJson('/aggiornamenti')->assertJsonPath('disponibile.versione', '0.3.0');
+        $this->actingAs($admin)->get('/dashboard')->assertSee('data-controlla', false);
+        $this->actingAs($admin)->get('/utenze')->assertDontSee('data-controlla', false);
     }
 
     public function test_si_disattiva_e_non_e_per_tutti_i_ruoli(): void

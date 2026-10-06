@@ -58,7 +58,7 @@
                             <button type="submit" class="text-white/75 hover:text-white underline transition-colors duration-200 cursor-pointer">Esci</button>
                         </form>
                         {{-- Versione installata; per chi amministra compare anche l'avviso se su GitHub c'è una versione più recente. --}}
-                        <p class="hidden md:block mt-3 text-xs text-white/60" @can('gestisci-utenze') data-aggiornamenti data-url="{{ route('aggiornamenti') }}" @endcan>
+                        <p class="hidden md:block mt-3 text-xs text-white/60" @can('gestisci-utenze') data-aggiornamenti data-url="{{ route('aggiornamenti') }}" @if (request()->routeIs('dashboard')) data-controlla @endif @endcan>
                             Versione {{ config('app.versione') }}
                             <a data-aggiornamento-link hidden target="_blank" rel="noopener" class="mt-1 block rounded bg-white/15 px-2 py-1 text-white underline"></a>
                         </p>
