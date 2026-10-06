@@ -22,8 +22,12 @@
         <p class="text-sm text-gray-600">
             Colonne (intestazione in prima riga, separatore virgola o punto e virgola):
             <code>{{ implode(', ', $def['colonne']) }}</code>.
-            Il modo più semplice è esportare la lista, aggiungere righe e reimportare: le righe già presenti vengono saltate,
-            non aggiornate. I riferimenti ad altre liste (sede, disciplina, docente, ...) si scrivono con il nome o il codice già censito.
+            @isset($def['nota'])
+                {{ $def['nota'] }}
+            @else
+                Il modo più semplice è esportare la lista, aggiungere righe e reimportare: le righe già presenti vengono saltate,
+                non aggiornate. I riferimenti ad altre liste (sede, disciplina, docente, ...) si scrivono con il nome o il codice già censito.
+            @endisset
         </p>
 
         <form method="POST" action="{{ route('csv.importa', $lista) }}" enctype="multipart/form-data" class="space-y-4">

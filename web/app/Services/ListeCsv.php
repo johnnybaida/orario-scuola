@@ -7,6 +7,8 @@ use App\Http\Requests\CattedraRequest;
 use App\Http\Requests\ClasseRequest;
 use App\Http\Requests\DisciplinaRequest;
 use App\Http\Requests\DocenteRequest;
+use App\Http\Requests\QuadroOrarioRequest;
+use App\Http\Requests\ScansioneOrariaRequest;
 use App\Http\Requests\SedeRequest;
 use App\Models\Aula;
 use App\Models\Cattedra;
@@ -29,9 +31,10 @@ use InvalidArgumentException;
 class ListeCsv
 {
     /**
-     * Le liste con `solo_export` (senza modello né request) non si importano.
+     * Scansione oraria e quadri orari non hanno modello/request per riga: si importano con metodi propri (`nota` li descrive
+     * nella pagina di import).
      *
-     * @var array<string, array{titolo: string, modello?: class-string, request?: class-string, permesso: string, colonne: list<string>, solo_export?: true}>
+     * @var array<string, array{titolo: string, modello?: class-string, request?: class-string, permesso: string, colonne: list<string>, nota?: string}>
      */
     public const LISTE = [
         'sedi' => ['titolo' => 'Sedi', 'modello' => Sede::class, 'request' => SedeRequest::class, 'permesso' => 'gestisci-anagrafica',
@@ -46,10 +49,12 @@ class ListeCsv
             'colonne' => ['anno_corso', 'sezione', 'sede', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni']],
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'classe_sede', 'disciplina', 'ore', 'compresenza']],
-        'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica', 'solo_export' => true,
-            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti']],
-        'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica', 'solo_export' => true,
-            'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali']],
+        'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
+            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti'],
+            'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. Se c\'è un errore non cambia nulla.'],
+        'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica',
+            'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali'],
+            'nota' => 'Una riga per disciplina del quadro (la disciplina si scrive con il codice, quindi importa prima le discipline). Ogni quadro è importato per intero o per niente; quelli già presenti con lo stesso nome vengono saltati. Le ore totali si ricalcolano dalle righe: la colonna ore_totali è ignorata.'],
     ];
 
     /** Righe da esportare, nell'ordine di `colonne`. */
@@ -81,9 +86,28 @@ class ListeCsv
     /** @return array{importate: int, saltate: int, errori: list<string>} */
     public function importa(string $lista, string $percorso): array
     {
-        $def = self::LISTE[$lista];
         $esito = ['importate' => 0, 'saltate' => 0, 'errori' => []];
+        $righe = $this->leggiFile($lista, $percorso, $esito);
+        if ($righe === null) {
+            return $esito;
+        }
 
+        match ($lista) {
+            'scansione' => $this->importaScansione($righe, $esito),
+            'quadri-orari' => $this->importaQuadri($righe, $esito),
+            default => $this->importaRighe($lista, $righe, $esito),
+        };
+
+        return $esito;
+    }
+
+    /**
+     * Righe del file come [numero di riga => [colonna => valore|null]]; null (con l'errore in $esito) se mancano colonne.
+     *
+     * @return array<int, array<string, string|null>>|null
+     */
+    private function leggiFile(string $lista, string $percorso, array &$esito): ?array
+    {
         $f = fopen($percorso, 'r');
         $prima = (string) fgets($f);
         rewind($f);
@@ -91,24 +115,38 @@ class ListeCsv
         $sep = substr_count($prima, ';') > substr_count($prima, ',') ? ';' : ',';
         $intestazione = array_map(fn ($c) => trim($c, " \t\n\r\0\x0B\xEF\xBB\xBF"), fgetcsv($f, separator: $sep, escape: '\\') ?: []);
 
-        $mancanti = array_diff($def['colonne'], $intestazione);
+        $mancanti = array_diff(self::LISTE[$lista]['colonne'], $intestazione);
         if ($lista === 'docenti') {
             $mancanti = array_diff($mancanti, ['email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe']);
+        }
+        if ($lista === 'quadri-orari') {
+            $mancanti = array_diff($mancanti, ['ore_totali']);
         }
         if ($mancanti) {
             fclose($f);
             $esito['errori'][] = 'Colonne mancanti nell\'intestazione: '.implode(', ', $mancanti).'.';
 
-            return $esito;
+            return null;
         }
 
-        DB::transaction(function () use ($f, $sep, $intestazione, $lista, $def, &$esito) {
-            for ($n = 2; ($valori = fgetcsv($f, separator: $sep, escape: '\\')) !== false; $n++) {
-                if ($valori === [null]) {
-                    continue; // riga vuota
-                }
-                $riga = array_map(fn ($v) => trim((string) $v) === '' ? null : trim($v), array_combine($intestazione, array_pad(array_slice($valori, 0, count($intestazione)), count($intestazione), null)));
+        $righe = [];
+        for ($n = 2; ($valori = fgetcsv($f, separator: $sep, escape: '\\')) !== false; $n++) {
+            if ($valori !== [null]) { // salta le righe vuote
+                $righe[$n] = array_map(fn ($v) => trim((string) $v) === '' ? null : trim($v),
+                    array_combine($intestazione, array_pad(array_slice($valori, 0, count($intestazione)), count($intestazione), null)));
+            }
+        }
+        fclose($f);
 
+        return $righe;
+    }
+
+    private function importaRighe(string $lista, array $righe, array &$esito): void
+    {
+        $def = self::LISTE[$lista];
+
+        DB::transaction(function () use ($righe, $lista, $def, &$esito) {
+            foreach ($righe as $n => $riga) {
                 try {
                     [$chiave, $dati] = $this->leggi($lista, $riga);
                     if ($def['modello']::query()->where($chiave)->exists()) {
@@ -135,9 +173,103 @@ class ListeCsv
                 $esito['importate']++;
             }
         });
-        fclose($f);
+    }
 
-        return $esito;
+    /** Tutto o niente: la scansione è unica per l'istituto e le regole (orari coerenti, ricreazioni) valgono sull'insieme delle ore. */
+    private function importaScansione(array $righe, array &$esito): void
+    {
+        $ore = [];
+        foreach ($righe as $n => $r) {
+            $ora = (int) $r['ora'];
+            if (! ctype_digit((string) $r['ora']) || isset($ore[$ora])) {
+                $esito['errori'][] = "Riga {$n}: ora «{$r['ora']}» non valida o ripetuta.";
+
+                continue;
+            }
+            $ore[$ora] = [
+                'inizio' => preg_replace('/^(\d):/', '0$1:', (string) $r['inizio']), 'fine' => preg_replace('/^(\d):/', '0$1:', (string) $r['fine']),
+                'ricreazione' => $r['ricreazione_minuti'],
+            ];
+        }
+        if ($esito['errori']) {
+            return;
+        }
+
+        $esistenti = Slot::query()->distinct()->orderBy('ordine')->pluck('ordine')->all();
+        ksort($ore);
+        if (array_keys($ore) !== $esistenti) {
+            $esito['errori'][] = 'Il file deve contenere tutte le ore della scansione (da '.reset($esistenti).' a '.end($esistenti).', una riga ciascuna): ha '.implode(', ', array_keys($ore)).'.';
+
+            return;
+        }
+
+        $richiesta = new ScansioneOrariaRequest;
+        $richiesta->merge(['ore' => $ore]);
+        $validatore = Validator::make($richiesta->all(), $richiesta->rules());
+        $richiesta->withValidator($validatore);
+        if ($validatore->fails()) {
+            $esito['errori'] = $validatore->errors()->all();
+
+            return;
+        }
+
+        app(ScansioneOraria::class)->applica($ore);
+        $esito['importate'] = count($ore);
+    }
+
+    /** Un quadro per volta, per intero o per niente. */
+    private function importaQuadri(array $righe, array &$esito): void
+    {
+        $quadri = [];
+        foreach ($righe as $n => $r) {
+            if (! $r['quadro']) {
+                $esito['errori'][] = "Riga {$n}: manca il nome del quadro.";
+
+                continue;
+            }
+            $quadri[$r['quadro']][$n] = $r;
+        }
+
+        DB::transaction(function () use ($quadri, &$esito) {
+            foreach ($quadri as $nome => $righeQuadro) {
+                if (QuadroOrario::query()->where('nome', $nome)->exists()) {
+                    $esito['saltate'] += count($righeQuadro);
+
+                    continue;
+                }
+
+                $voci = [];
+                $errori = [];
+                foreach ($righeQuadro as $n => $r) {
+                    if ($r['disciplina'] === null && $r['ore_settimanali'] === null) {
+                        continue; // quadro senza righe
+                    }
+                    try {
+                        $voci[] = ['disciplina_id' => $this->trova(Disciplina::query()->where('codice', $r['disciplina']), "disciplina «{$r['disciplina']}»"),
+                            'ore_settimanali' => $r['ore_settimanali']];
+                    } catch (InvalidArgumentException $e) {
+                        $errori[] = "Riga {$n}: ".$e->getMessage();
+                    }
+                }
+                if (! $errori) {
+                    $richiesta = new QuadroOrarioRequest;
+                    $messaggi = Validator::make(['nome' => $nome, 'righe' => $voci], $richiesta->rules())->errors()->all();
+                    $errori = array_map(fn ($m) => "Quadro «{$nome}»: {$m}", array_unique($messaggi));
+                }
+                if ($errori) {
+                    array_push($esito['errori'], ...$errori);
+
+                    continue;
+                }
+
+                $quadro = QuadroOrario::query()->create(['nome' => $nome]);
+                foreach ($voci as $voce) {
+                    $quadro->righe()->create($voce);
+                }
+                $quadro->update(['ore_totali' => $quadro->righe()->sum('ore_settimanali')]);
+                $esito['importate'] += count($righeQuadro);
+            }
+        });
     }
 
     /**
