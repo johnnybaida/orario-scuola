@@ -95,5 +95,5 @@ echo
 echo "Dagli altri computer della scuola: http://INDIRIZZO-DI-QUESTO-COMPUTER:$PORTA"
 echo
 echo "Puoi chiudere questa finestra: l'applicazione resta attiva."
-echo "Per spegnerla usa il file \"Ferma-Orario-Scuola.command\"."
+echo "Per spegnerla usa il file \"Ferma-Orario-Scuola-Mac.command\"."
 fine 0

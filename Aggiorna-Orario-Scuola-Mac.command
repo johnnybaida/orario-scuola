@@ -22,7 +22,7 @@ TMP=$(mktemp -d)
 echo "Scarico l'ultima versione..."
 curl -fsSL "$ZIP" -o "$TMP/p.zip" && unzip -q "$TMP/p.zip" -d "$TMP" || { echo "Download non riuscito: controlla la connessione."; fine 1; }
 # l'attuale script resta com'è (sovrascriverlo mentre gira lo romperebbe); i file tolti dal progetto restano dove sono
-rsync -a --exclude Aggiorna-Orario-Scuola.command "$TMP"/orario-scuola-*/ ./ || { echo "Copia dei file non riuscita."; fine 1; }
+rsync -a --exclude Aggiorna-Orario-Scuola-Mac.command "$TMP"/orario-scuola-*/ ./ || { echo "Copia dei file non riuscita."; fine 1; }
 rm -rf "$TMP"
 
 docker compose up -d --build || { echo; echo "Ricostruzione non riuscita."; fine 1; }

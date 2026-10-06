@@ -31,21 +31,21 @@ Se ti sembra complicato, chiedi aiuto a chi gestisce i computer della scuola: do
 
 Ti serve la cartella del progetto, con dentro i file di avvio. Puoi averla in due modi:
 
-- **Scaricarla da GitHub** (consigliato): vai su **<https://github.com/johnnybaida/orario-scuola>**, clicca il pulsante verde **Code** e poi **Download ZIP**. Il file scaricato è lo ZIP da estrarre qui sotto. I file di avvio (`Avvia-Orario-Scuola.bat`, `Avvia-Orario-Scuola.command` e i due `Ferma-…`) sono nella cartella principale del progetto.
+- **Scaricarla da GitHub** (consigliato): vai su **<https://github.com/johnnybaida/orario-scuola>**, clicca il pulsante verde **Code** e poi **Download ZIP**. Il file scaricato è lo ZIP da estrarre qui sotto. I file di avvio sono nella cartella principale del progetto, in sei: `Avvia-`, `Ferma-` e `Aggiorna-Orario-Scuola`, ciascuno con il suffisso **`-Windows.bat`** (per Windows) o **`-Mac.command`** (per Mac). Usa solo quelli del tuo sistema.
 - **Ricevere un file ZIP** da chi gestisce l'installazione: è lo stesso contenuto.
 
 Nella cartella troverai pochi file. **Quelli che ti servono sono i quattro di avvio** (`Avvia-…` e `Ferma-…`, due per Windows e due per Mac) e questo `README.md`. Le cartelle `web`, `docs` e `docker` e gli altri file (`Dockerfile`, `compose.yaml`, `VERSION`, …) sono il programma stesso: **non vanno aperti né modificati**.
 
 In entrambi i casi, **estrai lo ZIP** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
 
-Per **aggiornare** a una nuova versione basta fare doppio clic su `Aggiorna-Orario-Scuola.bat` / `.command` (scarica da GitHub l'ultima versione e ricostruisce l'applicazione, senza bisogno di Git): i dati non si perdono. In alternativa riscarica lo ZIP a mano e ripeti questo passo e il successivo; chi ha clonato il progetto può usare `git pull`.
+Per **aggiornare** a una nuova versione basta fare doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` (Windows) o `Aggiorna-Orario-Scuola-Mac.command` (Mac) (scarica da GitHub l'ultima versione e ricostruisce l'applicazione, senza bisogno di Git): i dati non si perdono. In alternativa riscarica lo ZIP a mano e ripeti questo passo e il successivo; chi ha clonato il progetto può usare `git pull`.
 
 ### Passo 3 - Avviare Orario Scuola
 
 | Sistema | Fai doppio clic su | Se compare un avviso |
 |---|---|---|
-| **Windows** | `Avvia-Orario-Scuola.bat` | "Windows ha protetto il PC": clicca *Ulteriori informazioni* e poi *Esegui comunque*. |
-| **Mac** | `Avvia-Orario-Scuola.command` | "Sviluppatore non identificato": tasto destro sul file → *Apri* → *Apri* (oppure *Impostazioni di Sistema → Privacy e sicurezza → Apri comunque*). Se dice "permesso negato": nell'app *Terminale* scrivi `chmod +x ` (con uno spazio), trascina i due file `.command`, premi Invio e riprova. |
+| **Windows** | `Avvia-Orario-Scuola-Windows.bat` | "Windows ha protetto il PC": clicca *Ulteriori informazioni* e poi *Esegui comunque*. |
+| **Mac** | `Avvia-Orario-Scuola-Mac.command` | "Sviluppatore non identificato": tasto destro sul file → *Apri* → *Apri* (oppure *Impostazioni di Sistema → Privacy e sicurezza → Apri comunque*). Se dice "permesso negato": nell'app *Terminale* scrivi `chmod +x ` (con uno spazio), trascina i tre file `.command`, premi Invio e riprova. |
 
 Si apre una finestra nera con le istruzioni: controlla che Docker sia installato e acceso (lo accende se serve), avvia l'applicazione (`docker compose up -d --build`, vedi [Avvio con Docker](#avvio-con-docker)), attende che risponda e apre il browser su <http://localhost:8080>. **La prima volta ci vogliono alcuni minuti (anche 10): non chiuderla.**
 
@@ -53,9 +53,9 @@ Si apre una finestra nera con le istruzioni: controlla che Docker sia installato
 
 ### Uso quotidiano
 
-- Se Docker Desktop è aperto, Orario Scuola è già acceso: basta aprire il browser su <http://localhost:8080> (puoi salvarlo tra i preferiti). Se non si apre, rifai doppio clic su `Avvia-Orario-Scuola`.
-- Per **spegnerlo**: doppio clic su `Ferma-Orario-Scuola.bat` / `.command`. I dati (docenti, classi, orari, ...) **non** vengono cancellati. Chiudere la finestra nera non spegne l'applicazione.
-- **Aggiornare** a una nuova versione: sostituisci la cartella con quella nuova e rifai doppio clic su `Avvia-Orario-Scuola`. I dati restano: li conserva Docker, non la cartella.
+- Se Docker Desktop è aperto, Orario Scuola è già acceso: basta aprire il browser su <http://localhost:8080> (puoi salvarlo tra i preferiti). Se non si apre, rifai doppio clic su `Avvia-Orario-Scuola-Windows.bat` / `Avvia-Orario-Scuola-Mac.command`.
+- Per **spegnerlo**: doppio clic su `Ferma-Orario-Scuola-Windows.bat` (Windows) o `Ferma-Orario-Scuola-Mac.command` (Mac). I dati (docenti, classi, orari, ...) **non** vengono cancellati. Chiudere la finestra nera non spegne l'applicazione.
+- **Aggiornare** a una nuova versione: doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` / `Aggiorna-Orario-Scuola-Mac.command` (oppure sostituisci la cartella con quella nuova e rifai doppio clic su `Avvia-…`). I dati restano: li conserva Docker, non la cartella.
 
 ### Usarlo da altri computer della scuola
 
@@ -212,7 +212,7 @@ solver/.venv/bin/pytest solver/tests   # test del solver Python
 
 ```
 README.md, CLAUDE.md, AGENTS.md, VERSION, LICENSE
-Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic (installazione semplice); Aggiorna-… = scarica lo ZIP da GitHub e ricostruisce (senza Git)
+Avvia-/Ferma-/Aggiorna-Orario-Scuola-Windows.bat|-Mac.command   # launcher a doppio clic (installazione semplice); Aggiorna = scarica lo ZIP da GitHub e ricostruisce (senza Git)
 Dockerfile, compose.yaml, docker/         # avvio con Docker
 docs/
   analisi-orario-scuola-media.md   # specifica funzionale

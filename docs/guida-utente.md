@@ -36,7 +36,14 @@ La **Dashboard** ti dice a che punto sei:
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
-**Esporta e importa CSV.** Sedi, aule, discipline, docenti, classi e cattedre hanno in alto i collegamenti **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**. Il modo più semplice di importare è esportare la lista, aggiungere le righe in Excel e reimportare il file: le righe già presenti vengono **saltate** (l'import non aggiorna), quelle con errori vengono elencate con il numero di riga e le altre importate. I riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, discipline, docenti, classi, cattedre. Anche la **scansione oraria** (una riga per ora) e i **quadri orari** (una riga per disciplina del quadro, con il codice della disciplina) si esportano e si importano, per portarli da un'installazione all'altra, ma con regole diverse: l'import della scansione **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla); l'import dei quadri crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe. I vincoli non si importano da CSV.
+**Esporta e importa CSV.** Sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi e cattedre hanno in alto il collegamento **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**: servono per caricare molti dati insieme o per portarli da un'installazione all'altra.
+
+- **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
+- **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
+- **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
+- **Scansione oraria:** una riga per ora; l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
+- **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
+- **Non si importano:** vincoli, sostegno e le altre impostazioni.
 
 ## Sedi e aule
 <!-- sezione: consulta -->
@@ -86,6 +93,8 @@ La scansione oraria definisce **a che ora inizia e finisce ogni ora di lezione**
 Modifica gli orari e salva una volta sola con il pulsante in basso a destra. Un errore ti dice quale ora non torna (per esempio un'ora che inizia prima della fine della ricreazione che la precede).
 <!-- /permesso -->
 
+Con **Esporta CSV** (in alto) scarichi la scansione in un file e con **Importa CSV** la carichi da un file, per esempio su un'altra installazione; vedi *Esporta e importa CSV* in *Per iniziare*.
+
 Gli orari delle ore e le ricreazioni compaiono nei **PDF**: nelle griglie di classe e di docente come orario accanto a ogni ora e come riga «Ricreazione 10:30-10:40 (10 minuti)» al posto giusto; nel tabellone generale in una riga di legenda in fondo.
 
 ## Discipline
@@ -111,6 +120,7 @@ Un quadro orario è il monte ore settimanale per disciplina (es. "Tempo normale 
 - Aggiungi e togli le righe con i pulsanti della sezione e salva una volta sola, anche alla creazione.
 - Un quadro usato da qualche classe **non si può eliminare**.
 <!-- /permesso -->
+- **Esporta CSV** e **Importa CSV** (in alto): una riga per disciplina del quadro; importa prima le discipline. Vedi *Esporta e importa CSV* in *Per iniziare*.
 
 
 ## Docenti
@@ -444,7 +454,7 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede in alto a destra, accanto al pulsante **Aiuto**, un pulsante giallo lampeggiante «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
 
 - Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene quando **apri la dashboard** (quindi a ogni accesso), senza memorizzare nulla e, se manca la rete, semplicemente non succede nulla. Il pulsante resta visibile nelle altre pagine fino alla fine della sessione; se esce una versione mentre sei già collegato, lo vedi alla prossima apertura della dashboard (GitHub può impiegare qualche minuto a pubblicare il file).
-- Per **aggiornare**: fai doppio clic su `Aggiorna-Orario-Scuola.bat` (Windows) o `Aggiorna-Orario-Scuola.command` (Mac) nella cartella del programma, con Docker acceso. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. Poi ricarica la pagina.
+- Per **aggiornare**: fai doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` (Windows) o `Aggiorna-Orario-Scuola-Mac.command` (Mac) nella cartella del programma, con Docker acceso. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. Poi ricarica la pagina.
 - Per **disattivare** il controllo, chi gestisce l'installazione imposta `CONTROLLO_AGGIORNAMENTI=false` nel file di configurazione.
 
 ## Consigli d'uso

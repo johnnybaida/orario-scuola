@@ -44,7 +44,7 @@ php artisan queue:work          # necessario per la generazione; l'app lo avvia/
 # tutto su Docker (dalla radice: app + database + worker, con la scuola di esempio): http://localhost:8080
 docker compose up -d --build
 docker compose down -v          # ferma e cancella i dati
-# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola.bat (Windows) o .command (Mac); istruzioni nel README
+# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola-Windows.bat (Windows) o Avvia-Orario-Scuola-Mac.command (Mac); istruzioni nel README
 
 # test (da web/)
 php artisan test
@@ -59,7 +59,7 @@ Se un comando non esiste ancora o cambia, aggiorna questa sezione.
 
 ```
 README.md, CLAUDE.md, AGENTS.md, VERSION, LICENSE          # nella radice: pochi file, per chi installa e per chi sviluppa
-Avvia-/Ferma-Orario-Scuola.bat|.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
+Avvia-/Ferma-/Aggiorna-Orario-Scuola-Windows.bat|-Mac.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
 Dockerfile, compose.yaml, docker/         # avvio con Docker; docker/ = entrypoint, Caddyfile e script di avvio del container
 docs/
   analisi-orario-scuola-media.md   # specifica funzionale (fonte di verità)
