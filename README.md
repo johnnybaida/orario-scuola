@@ -38,7 +38,7 @@ Nella cartella troverai pochi file. **Quelli che ti servono sono i quattro di av
 
 In entrambi i casi, **estrai lo ZIP** (su Windows: tasto destro → "Estrai tutto") in una cartella normale, ad esempio sul Desktop o in Documenti. Non avviare i file direttamente dentro lo ZIP.
 
-Per **aggiornare** a una nuova versione basta fare doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` (Windows) o `Aggiorna-Orario-Scuola-Mac.command` (Mac) (scarica da GitHub l'ultima versione e ricostruisce l'applicazione, senza bisogno di Git): i dati non si perdono. In alternativa riscarica lo ZIP a mano e ripeti questo passo e il successivo; chi ha clonato il progetto può usare `git pull`.
+Per **aggiornare** a una nuova versione basta fare doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` (Windows) o `Aggiorna-Orario-Scuola-Mac.command` (Mac) (scarica da GitHub l'ultima versione e ricostruisce l'applicazione, senza bisogno di Git): i dati non si perdono. La cartella viene **allineata** alla nuova versione: i file che non esistono più vengono cancellati, quindi non lasciare nella cartella del programma file tuoi (restano intatti solo i file `.env`, `.git` e, per chi sviluppa, `web/vendor`, `web/node_modules`, `web/storage` e `web/solver/.venv`). In alternativa riscarica lo ZIP a mano e ripeti questo passo e il successivo; chi ha clonato il progetto può usare `git pull`.
 
 ### Passo 3 - Avviare Orario Scuola
 
