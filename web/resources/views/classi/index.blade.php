@@ -11,21 +11,11 @@
         impostare gli slot attivi e vedere le cattedre assegnate.
     </x-guida>
 
-    @if (session('errori_import'))
-        <div class="mb-4 rounded bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-            <ul class="list-disc list-inside space-y-1">
-                @foreach (session('errori_import') as $errore)
-                    <li>{{ $errore }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <x-barra-tabella>
         <x-slot:azioni>
             @can('gestisci-docenti-classi')
                 <div class="flex gap-3">
-                    <a href="{{ route('classi.import.form') }}" class="text-sm underline text-gray-600 self-center">Importa CSV</a>
+                    <x-csv-azioni lista="classi" />
                     <a href="{{ route('classi.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova classe</a>
                 </div>
             @endcan

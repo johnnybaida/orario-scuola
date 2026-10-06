@@ -11,16 +11,6 @@
         cattedre e impostare le indisponibilità. Puoi importare più docenti insieme con un file CSV.
     </x-guida>
 
-    @if (session('errori_import'))
-        <div class="mb-4 rounded bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-            <ul class="list-disc list-inside space-y-1">
-                @foreach (session('errori_import') as $errore)
-                    <li>{{ $errore }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <x-barra-tabella>
         <form method="GET" class="flex items-center gap-2">
             <input type="search" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome" aria-label="Cerca docente">
@@ -28,7 +18,7 @@
         </form>
         <x-slot:azioni>
         @can('gestisci-docenti-classi')
-            <a href="{{ route('docenti.import.form') }}" class="text-sm underline text-gray-600">Importa CSV</a>
+            <x-csv-azioni lista="docenti" />
             <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
         @endcan
         </x-slot:azioni>

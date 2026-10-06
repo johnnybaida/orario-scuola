@@ -115,6 +115,11 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::post('/orari/{orario}/avvisi/azzera', [OrarioController::class, 'azzeraAvvisi'])->name('orari.avvisi.azzera');
     });
 
+    // Esporta/importa CSV delle liste (permessi controllati dal controller, per lista).
+    Route::get('/csv/{lista}', [\App\Http\Controllers\CsvController::class, 'esporta'])->name('csv.esporta');
+    Route::get('/csv/{lista}/importa', [\App\Http\Controllers\CsvController::class, 'form'])->name('csv.form');
+    Route::post('/csv/{lista}/importa', [\App\Http\Controllers\CsvController::class, 'importa'])->name('csv.importa');
+
     // Controllo nuove versioni: solo chi amministra (quindi chi può aggiornare l'installazione).
     Route::get('/aggiornamenti', \App\Http\Controllers\AggiornamentiController::class)->middleware('can:gestisci-utenze')->name('aggiornamenti');
 
@@ -129,11 +134,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
     // Gestione docenti e classi: anche la segreteria.
     Route::middleware('ruolo:'.implode(',', Ruoli::GESTIONE_DOCENTI_CLASSI))->group(function () use ($parametriRisorse) {
         Route::resource('docenti', DocenteController::class)->parameters($parametriRisorse['docenti'])->only(['store', 'update', 'destroy']);
-        Route::get('/docenti-import', [DocenteController::class, 'importForm'])->name('docenti.import.form');
-        Route::post('/docenti-import', [DocenteController::class, 'import'])->name('docenti.import');
 
         Route::resource('classi', ClasseController::class)->parameters($parametriRisorse['classi'])->only(['store', 'update', 'destroy']);
-        Route::get('/classi-import', [ClasseController::class, 'importForm'])->name('classi.import.form');
-        Route::post('/classi-import', [ClasseController::class, 'import'])->name('classi.import');
     });
 });

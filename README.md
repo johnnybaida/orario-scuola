@@ -2,7 +2,7 @@
 
 Applicativo web per generare e gestire l'orario settimanale di una scuola secondaria di I grado: anagrafiche, cattedre, vincoli configurabili, generazione automatica (OR-Tools CP-SAT), editor a griglia con drag&drop ed export PDF.
 
-Cosa fa: anagrafiche (sedi, aule, discipline, quadri orari, docenti, classi, cattedre) con import CSV, sostegno e didattica DADA, vincoli configurabili, generazione automatica asincrona con seed riproducibile, editor a griglia, export PDF (griglie e tabellone generale su un foglio), utenze con ruoli, dashboard operativa e **guida in-app** (pulsante *Aiuto* o tasto **F1**, in funzione del ruolo).
+Cosa fa: anagrafiche (sedi, aule, discipline, quadri orari, docenti, classi, cattedre) con esporta/importa CSV, sostegno e didattica DADA, vincoli configurabili, generazione automatica asincrona con seed riproducibile, editor a griglia, export PDF (griglie e tabellone generale su un foglio), utenze con ruoli, dashboard operativa e **guida in-app** (pulsante *Aiuto* o tasto **F1**, in funzione del ruolo).
 
 La specifica funzionale completa è in [`docs/analisi-orario-scuola-media.md`](docs/analisi-orario-scuola-media.md); le convenzioni di sviluppo sono in [`CLAUDE.md`](CLAUDE.md).
 

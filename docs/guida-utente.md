@@ -36,6 +36,8 @@ La **Dashboard** ti dice a che punto sei:
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
+**Esporta e importa CSV.** Sedi, aule, discipline, docenti, classi e cattedre hanno in alto i collegamenti **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**. Il modo più semplice di importare è esportare la lista, aggiungere le righe in Excel e reimportare il file: le righe già presenti vengono **saltate** (l'import non aggiorna), quelle con errori vengono elencate con il numero di riga e le altre importate. I riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, discipline, docenti, classi, cattedre. Quadri orari e vincoli non si importano da CSV.
+
 ## Sedi e aule
 <!-- sezione: consulta -->
 
@@ -149,7 +151,7 @@ Nella pagina del docente puoi anche:
 
 **Come funziona la sospensione.** Spuntando **Escludi dall'orario** (è già spuntato di norma), finché la sospensione è in corso il docente **non può avere cattedre**: i controlli prima di generare lo segnalano con un link alla sua scheda e **la generazione non parte** finché non riassegni le sue cattedre a un **supplente** (un altro docente, per esempio con contratto *Supplenza breve*) dalla pagina **Cattedre** o dalla scheda del docente, oppure non chiudi la sospensione. Togli la spunta per un'assenza **breve** che non deve cambiare l'orario base: in quel caso viene solo registrata. Sospensioni già finite o non ancora iniziate non bloccano nulla. La proposta automatica dei sostituti per i giorni di assenza arriverà con la gestione di assenze e sostituzioni.
 
-Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per tutta la pagina. Puoi importare più docenti insieme da un file **CSV** (colonne: nome, cognome, email, tipo_contratto, tipo_posto, regime, ore_dovute).
+Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per tutta la pagina. Per importare più docenti insieme vedi **Esporta e importa CSV** in *Per iniziare*.
 <!-- /permesso -->
 
 

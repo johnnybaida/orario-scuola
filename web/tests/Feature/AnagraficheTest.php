@@ -151,9 +151,9 @@ class AnagraficheTest extends TestCase
         $csv = "nome,cognome,email\nAnna,Bianchi,anna.bianchi@scuola.test\nLuca,Verdi,luca.verdi@scuola.test\n";
         $file = UploadedFile::fake()->createWithContent('docenti.csv', $csv);
 
-        $response = $this->actingAs($this->referente())->post('/docenti-import', ['file' => $file]);
+        $response = $this->actingAs($this->referente())->post('/csv/docenti/importa', ['file' => $file]);
 
-        $response->assertRedirect(route('docenti.index'));
+        $response->assertOk();
         $this->assertDatabaseCount('docenti', 2);
         $this->assertDatabaseHas('docenti', ['email' => 'anna.bianchi@scuola.test']);
     }
