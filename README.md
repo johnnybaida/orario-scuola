@@ -2,7 +2,14 @@
 
 Applicativo web per generare e gestire l'orario settimanale di una scuola secondaria di I grado: anagrafiche, cattedre, vincoli configurabili, generazione automatica (OR-Tools CP-SAT), editor a griglia con drag&drop ed export PDF.
 
-Cosa fa: anagrafiche (sedi, aule, discipline, quadri orari, docenti, classi, cattedre) con esporta/importa CSV e backup completo dei dati in ZIP (pagina *Dati*), sostegno e didattica DADA, vincoli configurabili, generazione automatica asincrona con seed riproducibile, editor a griglia, export PDF (griglie e tabellone generale su un foglio), sospensioni dei docenti con passaggio delle cattedre ai supplenti, più sedi (ognuna con i suoi docenti, discipline, scansione oraria e orari), utenze con ruoli, dashboard operativa e **guida in-app** (pulsante *Aiuto* o tasto **F1**, in funzione del ruolo).
+Cosa fa:
+
+- **Più sedi**, ciascuna con i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; si sceglie la sede in cui lavorare dal menu in alto, e una sede nuova può copiare la configurazione di un'altra.
+- **Anagrafiche** (sedi, aule con piano, discipline, quadri orari, docenti, classi, cattedre, laboratori pomeridiani) con esporta/importa CSV e backup completo dei dati in ZIP (pagina *Dati*).
+- **Docenti**: sospensioni con passaggio delle cattedre ai supplenti, assistenza alle pause (mensa), indisponibilità; **sostegno** e didattica **DADA**.
+- **Vincoli configurabili** (blocchi consecutivi, ore al giorno, fasce orarie, giorno libero, buche, spostamenti tra piani) e **generazione automatica** asincrona con seed riproducibile (OR-Tools CP-SAT), una per sede.
+- **Orario**: editor a griglia con drag&drop, controllo dei conflitti, stati (bozza, revisione, approvato, pubblicato), versioni e duplicazione, export PDF (classi, docenti, aule, tabellone generale).
+- **Utenze con ruoli**, dashboard operativa, registro delle attività, eliminazioni con avviso di ciò che portano via a cascata e **guida in-app** (pulsante *Aiuto* o tasto **F1**, in funzione del ruolo).
 
 La specifica funzionale completa è in [`docs/analisi-orario-scuola-media.md`](docs/analisi-orario-scuola-media.md); le convenzioni di sviluppo sono in [`CLAUDE.md`](CLAUDE.md).
 
@@ -55,6 +62,7 @@ Si apre una finestra con **tre pulsanti**: *Avvia*, *Aggiorna* e *Ferma*. Premi 
 
 - Se Docker Desktop è aperto, Orario Scuola è già acceso: basta aprire il browser su <http://localhost:8080> (puoi salvarlo tra i preferiti). Se non si apre, apri `WIN-Orario-Scuola.bat` / `MAC-Orario-Scuola.app` e premi **Avvia**.
 - Per **spegnerlo**: apri il file di avvio e premi **Ferma**. I dati (docenti, classi, orari, ...) **non** vengono cancellati.
+- **Backup:** da amministratore, la pagina *Dati* scarica uno ZIP con tutti i dati (e li ricarica): fanne uno prima di un aggiornamento importante.
 - **Aggiornare** a una nuova versione: apri il file di avvio e premi **Aggiorna** (oppure sostituisci la cartella con quella nuova e premi **Avvia**). I dati restano: li conserva Docker, non la cartella.
 
 ### Usarlo da altri computer della scuola
@@ -66,7 +74,7 @@ Il computer dove è installato deve restare acceso con Docker aperto. Dagli altr
 - **Docker non parte o "non è acceso":** apri Docker Desktop a mano e aspetta che sia pronto. Su Windows serve la virtualizzazione attiva (se Docker lo segnala, chiedi assistenza).
 - **Porta occupata, o il browser mostra un altro sito:** aggiungi alla cartella un file di testo chiamato `web/.env` con dentro la riga `DOCKER_APP_PORT=8081` e rilancia l'avvio (l'indirizzo diventa `http://localhost:8081`). Su Windows: Blocco note → *Salva con nome* → tipo *Tutti i file* → nome `web/.env`. Su Mac: nel *Terminale*, dalla cartella, scrivi `echo 'DOCKER_APP_PORT=8081' >> .env`. Se il file c'è già, aggiungi solo quella riga.
 - **L'applicazione è lenta al primo avvio:** è normale, attendi.
-- **Altri problemi:** copia o fotografa il testo della finestra nera e mandalo a chi gestisce l'installazione.
+- **Altri problemi:** copia o fotografa il testo che compare nella casella della finestra (su Mac, nella finestra d'errore, *Mostra tutto*) e mandalo a chi gestisce l'installazione.
 
 > **Attenzione:** `docker compose down -v` **cancella tutti i dati**. Non usarlo se non sei sicuro.
 
@@ -186,13 +194,13 @@ Password per tutti: `password`.
 
 ## Versione e rilasci
 
-La versione è nel file `VERSION` e compare in fondo alla barra laterale. L'amministratore vede un avviso quando il file `VERSION` del ramo `main` su GitHub ha un numero più alto di quello installato (nessun tag necessario; controllo in sola lettura, al massimo una volta all'ora; si spegne con `CONTROLLO_AGGIORNAMENTI=false`, su Docker `DOCKER_CONTROLLO_AGGIORNAMENTI=false`).
+La versione è nel file `VERSION` e compare in fondo alla barra laterale. L'amministratore vede un avviso quando il file `VERSION` del ramo `main` su GitHub ha un numero più alto di quello installato (nessun tag necessario; controllo in sola lettura, senza cache, all'apertura della dashboard (quindi a ogni accesso); si spegne con `CONTROLLO_AGGIORNAMENTI=false`, su Docker `DOCKER_CONTROLLO_AGGIORNAMENTI=false`).
 
 Per pubblicare una nuova versione:
 
 ```bash
 echo 0.2.0 > VERSION && git commit -am "Versione 0.2.0"
-git push                                        # basta questo: le installazioni vedono l'avviso entro un'ora
+git push                                        # basta questo: le installazioni vedono l'avviso al prossimo accesso
 git tag v0.2.0 && git push --tags               # facoltativo: tag e release su GitHub con le note
 ```
 
@@ -203,8 +211,10 @@ git tag v0.2.0 && git push --tags               # facoltativo: tag e release su 
 ```bash
 cd web
 php artisan test                    # test PHP (Feature + Unit)
-solver/.venv/bin/pytest solver/tests   # test del solver Python
+solver/.venv/bin/pytest solver/tests   # test del solver Python (se il venv è stato spostato di cartella: solver/.venv/bin/python3 -m pytest solver/tests)
 ```
+
+I test PHP usano dati fissi (seme di Faker bloccato) e non richiedono gli asset compilati.
 
 ---
 
@@ -224,12 +234,17 @@ web/                                # l'applicazione (Laravel): tutti i comandi 
     Http/Controllers/
     Http/Requests/        # validazione dei form
     Support/              # ruoli/permessi, mappa pagina → sezione della guida
-    Constraints/          # catalogo vincoli configurabili (D1, D3, D6, T2, T3)
+    Models/Concerns/      # Auditable (registro attività), PerSede/PerSedeVia (dati per sede)
+    Constraints/          # catalogo vincoli configurabili (D1, D3, D6, T2, T3, C5)
     Services/
       Solver/             # ProblemBuilder, SolverRunner, ResultImporter
       Validation/         # pre-validazione prima del solving (con link per correggere)
       Editor/             # spostamento/scambio lezioni, controllo dell'orario
       Export/             # export PDF
+      Substitution/       # passaggio delle cattedre ai supplenti
+      SedeCorrente.php, CopiaDaSede.php   # sede in cui si lavora, copia della configurazione tra sedi
+      DatiScuola.php, ListeCsv.php        # backup ZIP e import/export CSV
+      Laboratori.php, AssistenzaPause.php, ScansioneOraria.php, StatoCattedre.php, ConseguenzeEliminazione.php
       QueueWorker.php     # avvio/arresto del worker di coda dall'interfaccia
       SincronizzaRighe.php  # salvataggio delle righe ripetibili dei form
     Jobs/GenerateTimetable.php
