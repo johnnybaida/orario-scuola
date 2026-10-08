@@ -12,6 +12,8 @@
         viene violato solo se non c'è alternativa migliore.
     </x-guida>
 
+    <x-copia-da-sede area="vincoli" />
+
     <x-barra-tabella>
         <form method="GET">
             <select name="tipo" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">

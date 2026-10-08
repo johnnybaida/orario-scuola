@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -43,12 +44,18 @@ return new class extends Migration
             $sedeId = DB::table('sedi')->insertGetId(['nome' => 'Sede principale', 'created_at' => now(), 'updated_at' => now()]);
         }
         if ($sedeId) {
+            $daAssegnare = collect(self::TABELLE)->contains(fn ($t) => DB::table($t)->whereNull('sede_id')->exists());
             foreach (self::TABELLE as $tabella) {
                 DB::table($tabella)->whereNull('sede_id')->update(['sede_id' => $sedeId]);
             }
+            if ($daAssegnare) {
+                $this->riunisciClassiEAule($sedeId);
+            }
             // Docenti collegati a sedi diverse dalla prima: restano nella prima sede collegata.
-            foreach (DB::table('docente_sede')->orderBy('sede_id')->get()->unique('docente_id') as $riga) {
-                DB::table('docenti')->where('id', $riga->docente_id)->update(['sede_id' => $riga->sede_id]);
+            if (Schema::hasTable('docente_sede')) {
+                foreach (DB::table('docente_sede')->orderBy('sede_id')->get()->unique('docente_id') as $riga) {
+                    DB::table('docenti')->where('id', $riga->docente_id)->update(['sede_id' => $riga->sede_id]);
+                }
             }
         }
 
@@ -64,6 +71,28 @@ return new class extends Migration
                     $t->dropUnique($vecchio);
                 }
             });
+        }
+    }
+
+    /**
+     * Prima le sedi erano solo un'etichetta di classi e aule, mentre docenti, discipline, quadri e orari erano comuni: chi
+     * aveva classi o aule in più sedi le ritrova tutte nella prima, così restano collegate ai loro docenti e orari. Una
+     * sezione che si ripeterebbe (stesso anno e sezione in due sedi) prende il suffisso «-id della sede di origine».
+     */
+    private function riunisciClassiEAule(int $sedeId): void
+    {
+        foreach (DB::table('classi')->where('sede_id', '!=', $sedeId)->orderBy('id')->get() as $classe) {
+            $sezione = $classe->sezione;
+            if (DB::table('classi')->where('anno_corso', $classe->anno_corso)->where('sezione', $sezione)->where('sede_id', $sedeId)->exists()) {
+                $sezione = mb_substr($sezione.'-'.$classe->sede_id, 0, 10);
+            }
+            DB::table('classi')->where('id', $classe->id)->update(['sede_id' => $sedeId, 'sezione' => $sezione]);
+            Log::warning("Migrazione sedi: la classe {$classe->id} ({$classe->anno_corso}{$classe->sezione}) era nella sede {$classe->sede_id}: ora è nella sede {$sedeId} come «{$sezione}».");
+        }
+        $aule = DB::table('aule')->where('sede_id', '!=', $sedeId)->get();
+        DB::table('aule')->where('sede_id', '!=', $sedeId)->update(['sede_id' => $sedeId]);
+        foreach ($aule as $aula) {
+            Log::warning("Migrazione sedi: l'aula {$aula->id} ({$aula->nome}) era nella sede {$aula->sede_id}: ora è nella sede {$sedeId}.");
         }
     }
 

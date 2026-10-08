@@ -104,6 +104,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::post('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'assegna'])->name('sostituzioni.assegna');
         Route::post('/sospensioni/{sospensione}/ripristina', [\App\Http\Controllers\SostituzioneController::class, 'ripristina'])->name('sostituzioni.ripristina');
 
+        Route::post('/copia-da-sede/{area}', \App\Http\Controllers\CopiaDaSedeController::class)->name('sede.copia');
         Route::post('/scansione-oraria/standard', [ScansioneOrariaController::class, 'standard'])->name('scansione.standard');
         Route::put('/scansione-oraria', [ScansioneOrariaController::class, 'update'])->name('scansione.update');
 

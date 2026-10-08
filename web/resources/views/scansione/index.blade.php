@@ -18,6 +18,7 @@
 
     @php($puoModificare = auth()->user()->can('gestisci-anagrafica'))
     @if ($ore->isEmpty())
+        <x-copia-da-sede area="scansione" />
         <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-3">
             <p class="text-sm text-gray-600">Questa sede non ha ancora una scansione oraria.</p>
             @if ($puoModificare)

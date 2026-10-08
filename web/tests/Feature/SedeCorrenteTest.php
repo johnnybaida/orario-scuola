@@ -96,7 +96,7 @@ class SedeCorrenteTest extends TestCase
     {
         $this->b->delete();
 
-        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get('/dashboard')->assertOk()->assertDontSee('id="sede-corrente"', false);
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get('/dashboard')->assertOk()->assertDontSee('id="sede-corrente"', false)->assertSee('Sede:')->assertSee('Centrale');   // con una sola sede si vede il nome, senza selettore
     }
 
     public function test_la_generazione_lavora_nella_sede_della_propria_generazione(): void

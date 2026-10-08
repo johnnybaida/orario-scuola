@@ -12,6 +12,8 @@
         classe non si può eliminare.
     </x-guida>
 
+    <x-copia-da-sede area="quadri" />
+
     <x-barra-tabella>
         <x-slot:azioni>
             <x-csv-azioni lista="quadri-orari" />

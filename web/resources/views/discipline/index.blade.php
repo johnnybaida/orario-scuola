@@ -12,6 +12,8 @@
         (es. Storia e Geografia sotto Italiano), solo a scopo informativo.
     </x-guida>
 
+    <x-copia-da-sede area="discipline" />
+
     <x-barra-tabella>
         <x-slot:azioni>
             <x-csv-azioni lista="discipline" />

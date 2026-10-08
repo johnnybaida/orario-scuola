@@ -85,6 +85,8 @@
                                         @endforeach
                                     </select>
                                 </form>
+                            @elseif ($sedeCorrente)
+                                <span class="mr-auto text-sm text-gray-500">Sede: <strong class="font-medium text-gray-800">{{ $sedeCorrente->nome }}</strong></span>
                             @endif
                         @endisset
                         <a data-aggiornamento-link hidden target="_blank" rel="noopener" class="rounded-md bg-amber-400 px-3 py-1.5 text-sm font-semibold text-gray-900 shadow animate-pulse motion-reduce:animate-none hover:bg-amber-300 hover:animate-none"></a>

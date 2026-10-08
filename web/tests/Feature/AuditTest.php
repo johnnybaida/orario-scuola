@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AuditLog;
+use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\Sede;
 use App\Models\User;
@@ -61,12 +62,12 @@ class AuditTest extends TestCase
     {
         $admin = User::factory()->create(['ruolo' => 'amministratore']);
         $this->actingAs($admin);
-        Sede::query()->create(['nome' => 'Sede Nord', 'indirizzo' => 'x']);
+        Disciplina::query()->create(['codice' => 'NRD', 'nome' => 'Disciplina Nord']);
         Docente::factory()->create(['cognome' => 'Rossi']);
 
-        $this->get(route('audit.index'))->assertOk()->assertSee('Sede Nord')->assertSee('Rossi');
-        $this->get(route('audit.index', ['entita' => 'Sede']))->assertOk()->assertSee('Sede Nord')->assertDontSee('Rossi');
-        $this->get(route('audit.index', ['cerca' => 'Rossi']))->assertOk()->assertDontSee('Sede Nord');
+        $this->get(route('audit.index'))->assertOk()->assertSee('Disciplina Nord')->assertSee('Rossi');
+        $this->get(route('audit.index', ['entita' => 'Disciplina']))->assertOk()->assertSee('Disciplina Nord')->assertDontSee('Rossi');
+        $this->get(route('audit.index', ['cerca' => 'Rossi']))->assertOk()->assertDontSee('Disciplina Nord');
 
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get(route('audit.index'))->assertOk();
         $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get(route('audit.index'))->assertForbidden();

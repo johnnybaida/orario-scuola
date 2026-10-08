@@ -13,6 +13,8 @@
         "DADA · disciplina" come tipo: la colonna "Usata da" mostra quali discipline si svolgono in ciascuna aula.
     </x-guida>
 
+    <x-copia-da-sede area="aule" />
+
     <x-barra-tabella>
         <x-slot:azioni>
             <x-csv-azioni lista="aule" />
