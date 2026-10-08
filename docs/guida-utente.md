@@ -9,15 +9,15 @@ In fondo trovi il **Glossario** (cosa significano i termini scolastici usati) e 
 ## Per iniziare
 <!-- sezione: consulta -->
 
-L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine:
+L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine. Se l'istituto ha più sedi, scegli prima la sede in cui lavorare dal menu **Sede** in alto: ogni sede ha la sua configurazione (e puoi copiarla da un'altra sede quando un'area è vuota).
 
 1. **Sedi** e **Aule**: i plessi dell'istituto e le loro aule (due voci separate del menu). Poi la **Scansione oraria**: gli orari delle ore e le ricreazioni.
 2. **Discipline**: le materie, con classe di concorso e aula richiesta.
 3. **Quadri orari**: quante ore settimanali di ogni disciplina fa una classe.
 4. **Docenti** e **Classi**: le anagrafiche.
 5. **Cattedre**: chi insegna cosa, in quale classe e per quante ore.
-6. **Vincoli** (facoltativo): regole in più per la generazione.
-7. **Genera orario**: avvia il calcolo automatico.
+6. **Vincoli** (facoltativo): regole in più per la generazione. Facoltativi anche i **Laboratori** pomeridiani e le **Impostazioni** (menu del profilo).
+7. **Genera orario**: avvia il calcolo automatico. Se non riesce, la pagina elenca i problemi con il pulsante **Correggi**.
 8. **Orari**: controlla, correggi a mano ed esporta in PDF.
 
 Perché la generazione possa riuscire, per **ogni classe** devono valere due condizioni:
@@ -31,7 +31,7 @@ La **Dashboard** ti dice a che punto sei:
 - **Sei pronto a generare?**: i problemi che bloccherebbero la generazione, ognuno con il link **Correggi** alla pagina giusta. Se non ce ne sono, vedi "Tutto a posto".
 - **Generazione e worker**: stato del worker di coda (con **Avvia**), ultima generazione con seed e punteggio, e **Nuova generazione**.
 - **Ultimo orario**: versione, stato, punteggio e avvisi aperti, con il tabellone PDF e la ricerca di una classe o di un docente.
-- **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*. Accanto al nome compaiono i minuti di **assistenza alle pause** (ore di servizio a parte, che non toccano le ore dovute).
+- **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*. Accanto al nome compaiono i minuti di **assistenza alle pause** e di **laboratorio** (ore di servizio a parte, che non toccano le ore dovute).
 - **Percorso di avvio**: i passi del percorso tipico, spuntati quando hai già inserito qualcosa.
 
 **Eliminare.** Nelle liste si spuntano le righe e si usa *Elimina selezionati*. Se l'eliminazione porta via anche altri dati (per esempio eliminando un docente spariscono le sue cattedre e le sue lezioni negli orari, eliminando una sede tutto ciò che contiene), l'avviso **te lo elenca con i numeri** e ti chiede una **seconda conferma**. Quello che resta ma perde un collegamento (per esempio le classi di un'aula eliminata) è indicato a parte. Non si può annullare.
@@ -730,7 +730,7 @@ In fondo alla barra laterale compare la **versione** installata (per esempio *Ve
 - **La generazione resta "in coda".** Il worker di coda è fermo (di solito parte da solo con **Avvia generazione**): in **Genera orario** premi **Avvia**.
 <!-- /permesso -->
 <!-- permesso: consulta -->
-- **La generazione è "infattibile".** Leggi i messaggi nella pagina della generazione. Le cause più comuni: le ore delle cattedre di una classe non coincidono con il quadro orario; gli slot attivi della classe non coincidono con le ore del quadro; a un docente sono state assegnate più ore degli slot in cui è disponibile; non ci sono abbastanza aule di un tipo; due vincoli rigidi si contraddicono; le ore di sostegno assegnate non coprono il fabbisogno.
+- **La generazione è "infattibile".** Leggi i messaggi nella pagina della generazione: accanto a quelli che si sa dove correggere c'è il pulsante **Correggi**. Le cause più comuni: le ore delle cattedre di una classe non coincidono con il quadro orario; gli slot attivi della classe non coincidono con le ore del quadro; a un docente sono state assegnate più ore degli slot in cui è disponibile; non ci sono abbastanza aule di un tipo; due vincoli rigidi si contraddicono; le ore di sostegno assegnate non coprono il fabbisogno.
 <!-- /permesso -->
 <!-- permesso: gestisci-docenti-classi -->
 - **Non riesco a eliminare un elemento.** È ancora in uso: ad esempio un quadro orario usato da classi. Il messaggio dopo l'eliminazione dice quanti elementi non sono stati eliminati.
