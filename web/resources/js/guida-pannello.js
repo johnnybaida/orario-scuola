@@ -1,6 +1,8 @@
 // Pannello di aiuto a destra (contenuto da docs/guida-utente.md via /guida). Si apre con il pulsante "Aiuto" o F1
 // sulla sezione della pagina corrente (data-contesto); cerca nel testo di tutte le sezioni.
-// Si chiude con ×, Esc o di nuovo F1. Con una modale aperta il resto della pagina è inerte: lì non si apre.
+// Si chiude con ×, Esc o di nuovo F1. Funziona anche con una modale aperta: una <dialog> modale rende inerte tutto ciò che sta
+// fuori da lei e sta sopra a tutto, quindi il pannello, finché la modale è aperta, viene spostato al suo interno (sempre `fixed`,
+// a destra); chiusa la modale torna nel body e, se era aperto, resta aperto sulla pagina.
 let sezioni = null;
 let aperto = false;
 let apritore = null;
@@ -113,8 +115,15 @@ function cerca() {
     }));
 }
 
+// Il pannello sta nella modale aperta (così è visibile e utilizzabile sopra di lei) oppure nel body.
+function collocaPannello() {
+    const modale = document.querySelector('dialog[open]');
+    const dove = modale ?? document.body;
+    if (pannello().parentElement !== dove) dove.append(pannello());
+}
+
 async function imposta(visibile) {
-    if (visibile && document.querySelector('dialog[open]')) return;
+    if (visibile) collocaPannello();
     aperto = visibile;
     pannello().hidden = !visibile;
     document.querySelectorAll('[data-apri-guida]').forEach((b) => b.setAttribute('aria-expanded', String(visibile)));
@@ -147,6 +156,25 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault(); // niente aiuto del browser
         imposta(!aperto);
     } else if (e.key === 'Escape' && aperto) {
+        e.preventDefault(); // dentro una modale: chiude la guida, non la modale
         imposta(false);
     }
 });
+
+// Una modale che si apre mentre la guida è aperta (es. «Modifica» con la guida visibile) nasconderebbe il pannello: lo si porta dentro.
+document.addEventListener('modale:caricata', () => {
+    if (pannello() && aperto) collocaPannello();
+});
+
+// Una modale che si chiude porta con sé il pannello: lo si rimette nel body (se era aperto resta aperto sulla pagina).
+document.addEventListener('close', (e) => {
+    if (pannello() && e.target instanceof HTMLDialogElement && e.target.contains(pannello())) collocaPannello();
+}, true);
+
+// Con la guida aperta dentro una modale, Esc chiude solo la guida e non la modale (con i dati inseriti).
+document.addEventListener('cancel', (e) => {
+    if (pannello() && aperto && e.target instanceof HTMLDialogElement && e.target.contains(pannello())) {
+        e.preventDefault();
+        imposta(false);
+    }
+}, true);
