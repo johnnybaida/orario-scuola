@@ -470,6 +470,9 @@ Conta solo il passaggio tra **ore consecutive** dello stesso giorno; un'ora vuot
 ## Genera orario
 <!-- sezione: consulta -->
 
+Con più sedi, ogni sede ha le sue generazioni e i suoi orari: si genera, si approva e si pubblica **una sede alla volta**, nella sede in cui stai lavorando. Le versioni dell'orario sono numerate per sede e l'orario pubblicato di una sede non cambia quando pubblichi quello di un'altra. I PDF riportano il nome della sede nel titolo.
+
+
 La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento nella pagina.
 
 <!-- permesso: gestisci-anagrafica -->

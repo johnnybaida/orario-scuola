@@ -8,7 +8,9 @@ use App\Models\Docente;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
+use App\Models\Sede;
 use App\Services\AssistenzaPause;
+use App\Services\SedeCorrente;
 use App\Services\Laboratori;
 use App\Services\Editor\SpostamentiAula;
 use App\Support\ColoriDiscipline;
@@ -41,7 +43,7 @@ class OrarioPdfExporter
             $cambi = app(SpostamentiAula::class)->cambi($lezioni);
 
             return [
-                'titolo' => "Orario classe {$classe->nomeCompleto()}",
+                'titolo' => $this->conSede("Orario classe {$classe->nomeCompleto()}"),
                 'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
                 'lezioni' => $lezioni->keyBy('slot_id'),
                 // L'aula si scrive se non è quella della classe o se è cambiata rispetto all'ora prima (freccia →).
@@ -84,7 +86,7 @@ class OrarioPdfExporter
             $sostegni = ($compresenze[$docente->id] ?? collect());
 
             return [
-                'titolo' => "Orario docente {$docente->nomeCompleto()}",
+                'titolo' => $this->conSede("Orario docente {$docente->nomeCompleto()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
@@ -112,7 +114,7 @@ class OrarioPdfExporter
             $sue = $lezioni->filter(fn (Lezione $l) => $this->inAula($l, $aula))->groupBy('slot_id');
 
             return [
-                'titolo' => "Orario aula {$aula->nome}",
+                'titolo' => $this->conSede("Orario aula {$aula->nome}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys())->max('ordine')),
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
@@ -122,6 +124,14 @@ class OrarioPdfExporter
         })->all();
 
         return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+    }
+
+    /** Con più sedi il nome della sede è nel titolo: i fogli stampati di sedi diverse non si confondono. */
+    private function conSede(string $titolo): string
+    {
+        $sede = Sede::query()->count() > 1 ? Sede::query()->find(app(SedeCorrente::class)->id()) : null;
+
+        return $sede ? "{$titolo} – {$sede->nome}" : $titolo;
     }
 
     /** Stessa regola di Lezione::scopeInAula, su lezioni già caricate. */
@@ -182,7 +192,7 @@ class OrarioPdfExporter
         }
 
         return Pdf::loadView('orari.pdf.tabellone', [
-            'titolo' => $per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario',
+            'titolo' => $this->conSede($per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario'),
             'per' => $per,
             'righe' => $righe,
             'colori' => ColoriDiscipline::mappa(),

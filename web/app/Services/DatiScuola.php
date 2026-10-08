@@ -121,7 +121,7 @@ class DatiScuola
         if ($mancanti = array_diff($tabelle, array_keys($manifest['tabelle']))) {
             throw new RuntimeException('Nell\'archivio mancano: '.implode(', ', $mancanti).'.');
         }
-        if (Generazione::query()->whereIn('stato', ['in_coda', 'in_corso'])->exists()) {
+        if (Generazione::query()->withoutGlobalScopes()->whereIn('stato', ['in_coda', 'in_corso'])->exists()) {
             throw new RuntimeException('C\'è una generazione in corso: aspetta che finisca (o annullala) e riprova.');
         }
 
