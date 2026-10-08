@@ -3,15 +3,6 @@
 @php($tipoSel = old('tipo', $dada ? 'dada:'.$dada->id : ($aula?->tipo ?? 'classe')))
 
 <div>
-    <label for="sede_id" class="block text-sm font-medium text-gray-700">Sede</label>
-    <select name="sede_id" id="sede_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-        @foreach ($sedi as $sede)
-            <option value="{{ $sede->id }}" @selected(old('sede_id', $aula?->sede_id) == $sede->id)>{{ $sede->nome }}</option>
-        @endforeach
-    </select>
-</div>
-
-<div>
     <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
     <input type="text" name="nome" id="nome" value="{{ old('nome', $aula?->nome) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">

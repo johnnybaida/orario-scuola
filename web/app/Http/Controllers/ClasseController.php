@@ -8,7 +8,6 @@ use App\Models\Classe;
 use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\QuadroOrario;
-use App\Models\Sede;
 use App\Models\Slot;
 use App\Services\SincronizzaRighe;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +21,7 @@ class ClasseController extends Controller
     public function index(): View
     {
         return view('classi.index', [
-            'classi' => Classe::query()->with('sede', 'quadroOrario')->withCount('cattedre')
+            'classi' => Classe::query()->with('quadroOrario')->withCount('cattedre')
                 ->orderBy('anno_corso')->orderBy('sezione')->get(),
         ]);
     }
@@ -68,7 +67,7 @@ class ClasseController extends Controller
         }
 
         DB::transaction(function () use ($request, $classe, $cattedre) {
-            $classe->update($request->safe()->only(['anno_corso', 'sezione', 'sede_id', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni', 'piano']));
+            $classe->update($request->safe()->only(['anno_corso', 'sezione', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni', 'piano']));
 
             if ($request->boolean('sezioni_extra')) {
                 // La griglia degli slot è completa e prevale sui giorni di rientro (che servono solo a spuntarla).
@@ -97,7 +96,6 @@ class ClasseController extends Controller
     private function opzioniForm(): array
     {
         return [
-            'sedi' => Sede::query()->orderBy('nome')->get(),
             'aule' => Aula::query()->where('tipo', 'classe')->orderBy('nome')->get(),
             'quadri' => QuadroOrario::query()->orderBy('nome')->get(),
             // Giorni in cui la scansione di istituto prevede ore pomeridiane.

@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['classe_id', 'docente_id', 'ore'])]
 class AssegnazioneSostegno extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'classe';
 
     protected $table = 'assegnazioni_sostegno';
 

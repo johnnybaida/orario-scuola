@@ -42,6 +42,7 @@ class SedeController extends Controller
 
     public function destroy(Sede $sede): RedirectResponse
     {
+        abort_if(Sede::query()->count() <= 1, 422, 'Deve esistere almeno una sede.');
         $sede->delete();
 
         return redirect()->route('sedi.index')->with('successo', 'Sede eliminata.');

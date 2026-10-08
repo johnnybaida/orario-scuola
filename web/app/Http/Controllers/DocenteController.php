@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DocenteRequest;
 use App\Models\Disciplina;
 use App\Models\Docente;
-use App\Models\Sede;
 use App\Models\Classe;
 use App\Models\Slot;
 use App\Services\AssistenzaPause;
@@ -37,7 +36,7 @@ class DocenteController extends Controller
 
     public function create(): View
     {
-        return view('docenti.create', ['sedi' => Sede::query()->orderBy('nome')->get(), 'classiConcorso' => $this->classiConcorso()]);
+        return view('docenti.create', ['classiConcorso' => $this->classiConcorso()]);
     }
 
     public function store(DocenteRequest $request): RedirectResponse
@@ -52,7 +51,7 @@ class DocenteController extends Controller
         $docente->load('assistenzePausa');
         $indisponibili = $docente->indisponibilita()->pluck('slot.id');
         return view('docenti.edit', [
-            'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita', 'sospensioni.supplenti'),
+            'docente' => $docente->load('classiConcorso', 'indisponibilita', 'sospensioni.supplenti'),
             'sospensioni' => $docente->sospensioni->map(fn ($s) => [
                 'id' => $s->id, 'dal' => $s->dal->format('Y-m-d'), 'al' => $s->al?->format('Y-m-d'),
                 'motivo' => $s->motivo, 'esclude_da_orario' => $s->esclude_da_orario, 'note' => $s->note,
@@ -65,7 +64,6 @@ class DocenteController extends Controller
                     : (Slot::query()->where('giorno', $a->giorno)->whereNotIn('id', $indisponibili)->doesntExist() ? 'Il docente è indisponibile tutto il giorno.' : null),
             ])->all(),
             'docentiSupplenti' => Docente::query()->whereKeyNot($docente->id)->orderBy('cognome')->orderBy('nome')->get(),
-            'sedi' => Sede::query()->orderBy('nome')->get(),
             'classiConcorso' => $this->classiConcorso(),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
@@ -130,7 +128,6 @@ class DocenteController extends Controller
     {
         $dati = $request->validated();
         $classiConcorso = $dati['classi_concorso'] ?? [];
-        $sediIds = $dati['sedi'] ?? [];
 
         $docente->fill([
             'nome' => $dati['nome'],
@@ -147,8 +144,6 @@ class DocenteController extends Controller
         foreach ($classiConcorso as $cc) {
             $docente->classiConcorso()->create(['classe_concorso' => $cc]);
         }
-
-        $docente->sedi()->sync($sediIds);
 
         return $docente;
     }

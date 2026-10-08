@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['orario_id', 'lezione_id', 'tipo', 'messaggio'])]
 class AvvisoOrario extends Model
 {
+    use \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'orario';
+
     protected $table = 'avvisi_orario';
 
     const CREATED_AT = 'creato_il';

@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['docente_id', 'dal', 'al', 'motivo', 'esclude_da_orario', 'note'])]
 class Sospensione extends Model
 {
-    use \App\Models\Concerns\Auditable;
+    use \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'docente';
 
     protected $table = 'sospensioni';
 

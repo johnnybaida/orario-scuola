@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['docente_id', 'classe_id', 'disciplina_id', 'ore', 'compresenza', 'sospensione_id'])]
 class Cattedra extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'classe';
 
     protected $table = 'cattedre';
 

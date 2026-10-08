@@ -17,10 +17,10 @@ class CattedraRequest extends FormRequest
         $cattedra = $this->route('cattedra');
 
         return [
-            'docente_id' => ['required', 'exists:docenti,id'],
-            'classe_id' => ['required', 'exists:classi,id'],
+            'docente_id' => ['required', app(\App\Services\SedeCorrente::class)->esiste('docenti')],
+            'classe_id' => ['required', app(\App\Services\SedeCorrente::class)->esiste('classi')],
             'disciplina_id' => [
-                'required', 'exists:discipline,id',
+                'required', app(\App\Services\SedeCorrente::class)->esiste('discipline'),
                 Rule::unique('cattedre')->where(fn ($q) => $q->where('docente_id', $this->input('docente_id'))->where('classe_id', $this->input('classe_id')))->ignore($cattedra),
             ],
             'ore' => ['required', 'integer', 'min:1', 'max:20'],

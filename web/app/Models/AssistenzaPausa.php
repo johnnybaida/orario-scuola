@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['docente_id', 'giorno', 'ordine'])]
 class AssistenzaPausa extends Model
 {
-    use \App\Models\Concerns\Auditable;
+    use \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'docente';
 
     protected $table = 'assistenze_pausa';
 

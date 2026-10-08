@@ -75,15 +75,3 @@
     </div>
 </div>
 
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Sedi di servizio</label>
-    <div class="flex flex-wrap gap-3">
-        @foreach ($sedi as $sede)
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" name="sedi[]" value="{{ $sede->id }}"
-                       @checked(in_array($sede->id, old('sedi', $docente?->sedi?->pluck('id')->all() ?? []))) >
-                {{ $sede->nome }}
-            </label>
-        @endforeach
-    </div>
-</div>

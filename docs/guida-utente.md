@@ -40,7 +40,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
-- **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
+- **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltativa, `nome_pausa`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Non si importano:** vincoli, sostegno e le altre impostazioni.
@@ -50,7 +50,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 
 ### Sedi
 
-Se l'istituto ha **più sedi**, in alto a destra compare il menu **Sede**: scegli la sede in cui lavorare. Ogni sede ha i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; tutte le pagine mostrano e salvano solo i dati della sede scelta. L'ultima sede usata viene ricordata. Una persona che lavora in due sedi ha una scheda docente per ciascuna.
+Se l'istituto ha **più sedi**, in alto a destra compare il menu **Sede**: scegli la sede in cui lavorare. Ogni sede ha i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; tutte le pagine mostrano e salvano solo i dati della sede scelta. L'ultima sede usata viene ricordata. Una persona che lavora in due sedi ha una scheda docente per ciascuna. Ogni elemento nasce nella sede in cui stai lavorando; lo stesso codice disciplina, la stessa sezione o la stessa email possono esistere in sedi diverse. **Una sede appena creata è vuota**: nella pagina *Scansione oraria* trovi il pulsante **Crea la scansione standard**, poi inserisci aule, discipline, quadri orari, docenti e classi. L'ultima sede non si può eliminare.
 
 Le **sedi** sono i plessi: se l'istituto ne ha uno solo, basta una sede.
 
@@ -59,9 +59,8 @@ Le **sedi** sono i plessi: se l'istituto ne ha uno solo, basta una sede.
 
 ### Aule
 
-Ogni aula appartiene a una sede.
+Ogni aula appartiene alla sede in cui stai lavorando (non si sceglie nel form).
 
-- **Sede**: il plesso in cui si trova.
 - **Nome**: es. "Aula 12" o "Palestra".
 - **Tipo**: la categoria dell'aula (classe, laboratorio, palestra, aula di musica, ...). Il tipo serve a collegare le discipline che richiedono un'aula speciale: una lezione di Scienze motorie, se la disciplina richiede il tipo "palestra", si svolge in un'aula di quel tipo.
 - **Piano**: il piano dell'edificio (0 = piano terra, negativo = interrato). Facoltativo: serve al vincolo *Spostamenti tra piani* (C5).
@@ -153,7 +152,6 @@ Per ogni docente puoi indicare:
 - **Ore dovute**: le ore settimanali di lezione previste dal contratto (1–24). 18 = cattedra intera; un part-time al 50% ne ha 9. La differenza tra ore dovute e ore assegnate nelle cattedre sono le *ore a disposizione*.
 - **COE** (Cattedra Orario Esterna): il docente ha ore anche in un'altra scuola. Per lui l'applicazione gestisce solo le **indisponibilità**: segnala tu gli slot in cui è impegnato nell'altra scuola.
 - **Classi di concorso abilitanti**: i codici di abilitazione (es. A022 Lettere, A028 Matematica e scienze, AB25 Inglese). L'elenco è preso dalle discipline e accanto a ogni codice vedi le materie che abilita a insegnare (es. *A022 — Geografia, Italiano, Storia*): una sola spunta vale per tutte.
-- **Sedi di servizio**: i plessi in cui insegna.
 
 Importante: **contratto, regime, COE e classi di concorso sono dati anagrafici**: il generatore non li usa da soli. Per far rispettare un part-time o un impegno in un'altra scuola devi segnare le **indisponibilità**.
 
@@ -180,8 +178,7 @@ Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per 
 Ogni classe ha:
 
 - **Anno di corso**: 1ª, 2ª o 3ª.
-- **Sezione**: la lettera (A, B, C, ...). Anno e sezione insieme devono essere unici nella stessa sede.
-- **Sede**: il plesso della classe.
+- **Sezione**: la lettera (A, B, C, ...). Anno e sezione insieme devono essere unici nella stessa sede. La classe nasce nella sede in cui stai lavorando.
 - **Aula base**: l'aula in cui la classe fa le lezioni che non richiedono un'aula speciale. Lasciala vuota con la didattica DADA.
 - **Piano della classe**: dove sta la classe (0 = piano terra). Facoltativo: conta, nel vincolo *Spostamenti tra piani* (C5), per le ore che si svolgono senza un'aula assegnata.
 - **Quadro orario**: il monte ore settimanali per disciplina.

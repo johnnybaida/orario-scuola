@@ -6,7 +6,6 @@ use App\Enums\TipoAula;
 use App\Http\Requests\AulaRequest;
 use App\Models\Aula;
 use App\Models\Disciplina;
-use App\Models\Sede;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -15,7 +14,7 @@ class AulaController extends Controller
     public function index(): View
     {
         return view('aule.index', [
-            'aule' => Aula::query()->with('sede')->orderBy('nome')->get(),
+            'aule' => Aula::query()->orderBy('nome')->get(),
             'usataDa' => Disciplina::query()->whereNotNull('tipo_aula_richiesto')->get()
                 ->groupBy('tipo_aula_richiesto')->map(fn ($d) => $d->pluck('nome')->implode(', ')),
         ]);
@@ -24,7 +23,6 @@ class AulaController extends Controller
     public function create(): View
     {
         return view('aule.create', [
-            'sedi' => Sede::query()->orderBy('nome')->get(),
             'tipiSuggeriti' => $this->tipiSuggeriti(),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
         ]);
@@ -41,7 +39,6 @@ class AulaController extends Controller
     {
         return view('aule.edit', [
             'aula' => $aula,
-            'sedi' => Sede::query()->orderBy('nome')->get(),
             'tipiSuggeriti' => $this->tipiSuggeriti(),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
         ]);

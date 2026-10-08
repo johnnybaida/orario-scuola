@@ -18,7 +18,7 @@ class QuadroOrarioRequest extends FormRequest
             // Righe ripetibili della pagina di modifica (assenti alla creazione).
             'righe' => ['nullable', 'array'],
             'righe.*.id' => ['nullable', 'integer'],
-            'righe.*.disciplina_id' => ['required', 'exists:discipline,id', 'distinct'],
+            'righe.*.disciplina_id' => ['required', app(\App\Services\SedeCorrente::class)->esiste('discipline'), 'distinct'],
             'righe.*.ore_settimanali' => ['required', 'integer', 'min:1', 'max:40'],
         ];
     }

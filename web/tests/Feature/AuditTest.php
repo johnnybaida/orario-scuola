@@ -52,7 +52,7 @@ class AuditTest extends TestCase
         $this->assertSame(0, AuditLog::query()->count());
 
         $referente = User::factory()->create(['ruolo' => 'referente_orario']);
-        $sede = Sede::query()->first();
+        $sede = Sede::factory()->create();   // l'ultima sede non si elimina
         $this->actingAs($referente)->delete(route('sedi.destroy', $sede));
         $this->assertDatabaseHas('audit_log', ['entita' => 'Sede', 'entita_id' => $sede->id, 'azione' => 'eliminazione', 'user_id' => $referente->id]);
     }

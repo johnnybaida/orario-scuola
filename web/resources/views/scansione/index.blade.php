@@ -17,6 +17,18 @@
     </x-barra-tabella>
 
     @php($puoModificare = auth()->user()->can('gestisci-anagrafica'))
+    @if ($ore->isEmpty())
+        <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-3">
+            <p class="text-sm text-gray-600">Questa sede non ha ancora una scansione oraria.</p>
+            @if ($puoModificare)
+                <form method="POST" action="{{ route('scansione.standard') }}">
+                    @csrf
+                    <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Crea la scansione standard</button>
+                    <x-info testo="Lunedì–venerdì, 6 ore al mattino da 50 minuti con 10 minuti di ricreazione dopo la 3ª e 3 ore al pomeriggio. Poi la modifichi come serve." />
+                </form>
+            @endif
+        </div>
+    @else
     <form method="POST" action="{{ route('scansione.update') }}" data-scansione>
         @csrf
         @method('PUT')
@@ -80,4 +92,5 @@
             <x-barra-salvataggio :annulla="route('dashboard')" />
         @endif
     </form>
+    @endif
 @endsection

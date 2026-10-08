@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['nome', 'indirizzo'])]
@@ -25,9 +24,9 @@ class Sede extends Model
         return $this->hasMany(Classe::class);
     }
 
-    public function docenti(): BelongsToMany
+    public function docenti(): HasMany
     {
-        return $this->belongsToMany(Docente::class, 'docente_sede');
+        return $this->hasMany(Docente::class);
     }
 
     public function tempiVerso(): HasMany

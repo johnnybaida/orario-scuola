@@ -17,13 +17,13 @@ class DisciplinaRequest extends FormRequest
         $disciplina = $this->route('disciplina');
 
         return [
-            'codice' => ['required', 'string', 'max:20', Rule::unique('discipline', 'codice')->ignore($disciplina)],
+            'codice' => ['required', 'string', 'max:20', app(\App\Services\SedeCorrente::class)->unico('discipline', 'codice')->ignore($disciplina)],
             'nome' => ['required', 'string', 'max:255'],
             'classe_concorso' => ['nullable', 'string', 'max:20'],
             // Stringa libera: deve coincidere con un Aula.tipo esistente (usato
             // anche per il modello DADA, un'aula dedicata a questa disciplina).
             'tipo_aula_richiesto' => ['nullable', 'string', 'max:50'],
-            'padre_id' => ['nullable', 'exists:discipline,id'],
+            'padre_id' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('discipline')],
         ];
     }
 }

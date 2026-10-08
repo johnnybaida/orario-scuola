@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['orario_id', 'docente_id', 'classe_id', 'slot_id', 'codice_anonimo'])]
 class CompresenzaSostegno extends Model
 {
+    use \App\Models\Concerns\PerSedeVia;
+
+    public const SEDE_VIA = 'orario';
+
     protected $table = 'compresenze_sostegno';
 
     public function orario(): BelongsTo

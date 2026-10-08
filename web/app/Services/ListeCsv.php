@@ -40,15 +40,15 @@ class ListeCsv
         'sedi' => ['titolo' => 'Sedi', 'modello' => Sede::class, 'request' => SedeRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['nome', 'indirizzo']],
         'aule' => ['titolo' => 'Aule', 'modello' => Aula::class, 'request' => AulaRequest::class, 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['sede', 'nome', 'tipo', 'capienza', 'piano']],
+            'colonne' => ['nome', 'tipo', 'capienza', 'piano']],
         'discipline' => ['titolo' => 'Discipline', 'modello' => Disciplina::class, 'request' => DisciplinaRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre']],
         'docenti' => ['titolo' => 'Docenti', 'modello' => Docente::class, 'request' => DocenteRequest::class, 'permesso' => 'gestisci-docenti-classi',
             'colonne' => ['nome', 'cognome', 'email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe']],
         'classi' => ['titolo' => 'Classi', 'modello' => Classe::class, 'request' => ClasseRequest::class, 'permesso' => 'gestisci-docenti-classi',
-            'colonne' => ['anno_corso', 'sezione', 'sede', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni', 'piano']],
+            'colonne' => ['anno_corso', 'sezione', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni', 'piano']],
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'classe_sede', 'disciplina', 'ore', 'compresenza']],
+            'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'disciplina', 'ore', 'compresenza']],
         'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa'],
             'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. Se c\'è un errore non cambia nulla.'],
@@ -62,13 +62,13 @@ class ListeCsv
     {
         return match ($lista) {
             'sedi' => Sede::query()->orderBy('nome')->get()->map(fn ($s) => [$s->nome, $s->indirizzo]),
-            'aule' => Aula::query()->with('sede')->orderBy('nome')->get()->map(fn ($a) => [$a->sede->nome, $a->nome, $a->tipo, $a->capienza, $a->piano]),
+            'aule' => Aula::query()->orderBy('nome')->get()->map(fn ($a) => [$a->nome, $a->tipo, $a->capienza, $a->piano]),
             'discipline' => Disciplina::query()->with('padre')->orderBy('codice')->get()
                 ->map(fn ($d) => [$d->codice, $d->nome, $d->classe_concorso, $d->tipo_aula_richiesto, $d->padre?->codice]),
             'docenti' => Docente::query()->orderBy('cognome')->orderBy('nome')->get()
                 ->map(fn ($d) => [$d->nome, $d->cognome, $d->email, $d->tipo_contratto, $d->tipo_posto, $d->regime, $d->ore_dovute, (int) $d->coe]),
-            'classi' => Classe::query()->with('sede', 'aulaBase', 'quadroOrario')->orderBy('anno_corso')->orderBy('sezione')->get()
-                ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->sede->nome, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano]),
+            'classi' => Classe::query()->with('aulaBase', 'quadroOrario')->orderBy('anno_corso')->orderBy('sezione')->get()
+                ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano]),
             // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
             'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
                 ->map(fn ($s) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]),
@@ -76,9 +76,9 @@ class ListeCsv
             'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
                 ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
                     : $q->righe->sortBy('disciplina.codice')->map(fn ($r) => [$q->nome, $q->ore_totali, $r->disciplina->codice, $r->ore_settimanali])),
-            'cattedre' => Cattedra::query()->with('docente', 'classe.sede', 'disciplina')->get()
+            'cattedre' => Cattedra::query()->with('docente', 'classe', 'disciplina')->get()
                 ->sortBy(fn ($c) => $c->classe->nomeCompleto().$c->docente->nomeCompleto())
-                ->map(fn ($c) => [$c->docente->cognome, $c->docente->nome, $c->classe->anno_corso, $c->classe->sezione, $c->classe->sede->nome,
+                ->map(fn ($c) => [$c->docente->cognome, $c->docente->nome, $c->classe->anno_corso, $c->classe->sezione,
                     $c->disciplina->codice, $c->ore, (int) $c->compresenza]),
         };
     }
@@ -291,10 +291,9 @@ class ListeCsv
             case 'sedi':
                 return [['nome' => $r['nome']], ['nome' => $r['nome'], 'indirizzo' => $r['indirizzo']]];
             case 'aule':
-                $sede = $this->trova(Sede::query()->where('nome', $r['sede']), "sede «{$r['sede']}»");
-
-                return [['sede_id' => $sede, 'nome' => $r['nome']],
-                    ['sede_id' => $sede, 'nome' => $r['nome'], 'tipo' => $r['tipo'], 'capienza' => $r['capienza'], 'piano' => $r['piano'] ?? null]];
+                // La sede è quella corrente (la assegna il modello).
+                return [['nome' => $r['nome']],
+                    ['nome' => $r['nome'], 'tipo' => $r['tipo'], 'capienza' => $r['capienza'], 'piano' => $r['piano'] ?? null]];
             case 'discipline':
                 $padre = $r['padre'] ? $this->trova(Disciplina::query()->where('codice', $r['padre']), "disciplina padre «{$r['padre']}»") : null;
 
@@ -306,18 +305,16 @@ class ListeCsv
                     'tipo_contratto' => $r['tipo_contratto'] ?? 'tempo_indeterminato', 'tipo_posto' => $r['tipo_posto'] ?? 'comune',
                     'regime' => $r['regime'] ?? 'tempo_pieno', 'ore_dovute' => $r['ore_dovute'] ?? 18, 'coe' => $r['coe'] ?? 0]];
             case 'classi':
-                // Come in passato, sede e quadro orario vuoti ripiegano sul primo censito.
-                $sede = $r['sede'] ? $this->trova(Sede::query()->where('nome', $r['sede']), "sede «{$r['sede']}»") : Sede::query()->value('id');
+                // Come in passato, il quadro orario vuoto ripiega sul primo censito (della sede corrente).
                 $quadro = $r['quadro_orario'] ? $this->trova(QuadroOrario::query()->where('nome', $r['quadro_orario']), "quadro orario «{$r['quadro_orario']}»") : QuadroOrario::query()->value('id');
-                $aula = $r['aula_base'] ? $this->trova(Aula::query()->where('nome', $r['aula_base'])->where('sede_id', $sede), "aula base «{$r['aula_base']}»") : null;
+                $aula = $r['aula_base'] ? $this->trova(Aula::query()->where('nome', $r['aula_base']), "aula base «{$r['aula_base']}»") : null;
 
-                return [['anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione'], 'sede_id' => $sede], [
-                    'anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione'], 'sede_id' => $sede, 'aula_base_id' => $aula,
+                return [['anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione']], [
+                    'anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione'], 'aula_base_id' => $aula,
                     'quadro_orario_id' => $quadro, 'tempo_scuola' => $r['tempo_scuola'] ?? 'normale', 'n_alunni' => $r['n_alunni'] ?? 0, 'piano' => $r['piano'] ?? null]];
             case 'cattedre':
                 $docente = $this->trova(Docente::query()->where('cognome', $r['docente_cognome'])->where('nome', $r['docente_nome']), "docente {$r['docente_cognome']} {$r['docente_nome']}");
-                $classe = $this->trova(Classe::query()->where('anno_corso', $r['classe_anno'])->where('sezione', $r['classe_sezione'])
-                    ->when($r['classe_sede'], fn ($q, $s) => $q->whereHas('sede', fn ($q) => $q->where('nome', $s))), "classe {$r['classe_anno']}{$r['classe_sezione']}");
+                $classe = $this->trova(Classe::query()->where('anno_corso', $r['classe_anno'])->where('sezione', $r['classe_sezione']), "classe {$r['classe_anno']}{$r['classe_sezione']}");
                 $disciplina = $this->trova(Disciplina::query()->where('codice', $r['disciplina']), "disciplina «{$r['disciplina']}»");
 
                 return [['docente_id' => $docente, 'classe_id' => $classe, 'disciplina_id' => $disciplina],

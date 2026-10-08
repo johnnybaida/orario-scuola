@@ -18,14 +18,6 @@
 
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
-        <label for="sede_id" class="block text-sm font-medium text-gray-700">Sede</label>
-        <select name="sede_id" id="sede_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-            @foreach ($sedi as $sede)
-                <option value="{{ $sede->id }}" @selected(old('sede_id', $classe?->sede_id) == $sede->id)>{{ $sede->nome }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div>
         <label for="aula_base_id" class="block text-sm font-medium text-gray-700">Aula base</label>
         <select name="aula_base_id" id="aula_base_id" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             <option value="">— Nessuna —</option>

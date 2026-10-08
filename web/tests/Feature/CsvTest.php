@@ -18,19 +18,23 @@ class CsvTest extends TestCase
         return User::factory()->create(['ruolo' => 'amministratore']);
     }
 
-    public function test_esporta_e_reimporta_le_aule_saltando_le_presenti(): void
+    public function test_esporta_e_reimporta_le_aule_saltando_le_presenti_e_solo_della_sede_corrente(): void
     {
-        $sede = Sede::factory()->create(['nome' => 'Centrale']);
-        Aula::factory()->create(['sede_id' => $sede->id, 'nome' => 'Lab1', 'tipo' => 'laboratorio_informatica', 'capienza' => 1]);
+        $centrale = Sede::factory()->create(['nome' => 'Centrale']);
+        $altra = Sede::factory()->create(['nome' => 'Succursale']);
+        Aula::factory()->create(['sede_id' => $centrale->id, 'nome' => 'Lab1', 'tipo' => 'laboratorio_informatica', 'capienza' => 1]);
+        Aula::factory()->create(['sede_id' => $altra->id, 'nome' => 'AulaAltrove', 'tipo' => 'palestra', 'capienza' => 1]);
 
         $csv = $this->actingAs($this->admin())->get('/csv/aule')->streamedContent();
-        $this->assertStringContainsString('Centrale;Lab1', $csv);
+        $this->assertStringContainsString('Lab1;laboratorio_informatica;1', $csv);
+        $this->assertStringNotContainsString('AulaAltrove', $csv);   // l'esportazione riguarda la sede in cui si lavora
 
-        $nuovo = $csv."Centrale;Lab2;palestra;2\nInesistente;Lab3;palestra;2\nCentrale;Lab4;palestra;0\n";
+        $nuovo = $csv."Lab2;palestra;2\nLab3;palestra;0\n";
         $r = $this->post('/csv/aule/importa', ['file' => UploadedFile::fake()->createWithContent('aule.csv', $nuovo)]);
 
-        $r->assertOk()->assertSee('Importate 1 righe')->assertSee('1 già presenti')->assertSee('Riga 4')->assertSee('Riga 5');
-        $this->assertDatabaseCount('aule', 2);
+        $r->assertOk()->assertSee('Importate 1 righe')->assertSee('1 già presenti')->assertSee('Riga 4');
+        $this->assertDatabaseCount('aule', 3);
+        $this->assertDatabaseHas('aule', ['nome' => 'Lab2', 'sede_id' => app(\App\Services\SedeCorrente::class)->id()]);
     }
 
     public function test_import_riservato_a_chi_puo_modificare(): void

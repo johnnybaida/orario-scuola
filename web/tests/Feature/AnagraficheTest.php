@@ -124,11 +124,13 @@ class AnagraficheTest extends TestCase
         $this->assertDatabaseHas('cattedre', ['docente_id' => $docente->id, 'classe_id' => $classe->id, 'ore' => 4, 'compresenza' => true]);
     }
 
-    public function test_crea_un_docente_con_classi_di_concorso_e_sedi(): void
+    public function test_crea_un_docente_con_classi_di_concorso_nella_sede_corrente(): void
     {
         $sede = Sede::factory()->create();
+        $altra = Sede::factory()->create();
+        $this->actingAs($this->referente())->post('/sede', ['sede_id' => $altra->id]);
 
-        $response = $this->actingAs($this->referente())->post('/docenti', [
+        $response = $this->post('/docenti', [
             'nome' => 'Mario',
             'cognome' => 'Rossi',
             'email' => 'mario.rossi@scuola.test',
@@ -137,13 +139,12 @@ class AnagraficheTest extends TestCase
             'regime' => 'tempo_pieno',
             'ore_dovute' => 18,
             'classi_concorso' => ['A022', 'A028'],
-            'sedi' => [$sede->id],
         ]);
 
         $response->assertRedirect();
         $docente = Docente::query()->where('email', 'mario.rossi@scuola.test')->firstOrFail();
         $this->assertCount(2, $docente->classiConcorso);
-        $this->assertTrue($docente->sedi->contains($sede));
+        $this->assertSame($altra->id, $docente->sede_id);   // il docente nasce nella sede in cui si lavora
     }
 
     public function test_importa_docenti_da_csv(): void

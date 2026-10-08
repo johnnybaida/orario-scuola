@@ -30,7 +30,6 @@
                 <tr>
                     @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Nome</th>
-                    <th class="px-4 py-2">Sede</th>
                     <th class="px-4 py-2">Tipo</th>
                     <th class="px-4 py-2">Usata da</th>
                     <th class="px-4 py-2">Piano</th>
@@ -43,7 +42,6 @@
                     <tr>
                         @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('aule.destroy', $aula) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $aula->nome }}</td>
-                        <td class="px-4 py-2">{{ $aula->sede->nome }}</td>
                         <td class="px-4 py-2">{{ \App\Enums\TipoAula::etichettaDi($aula->tipo) }}</td>
                         <td class="px-4 py-2">{{ $usataDa[$aula->tipo] ?? '—' }}</td>
                         <td class="px-4 py-2">{{ $aula->piano ?? '—' }}</td>

@@ -23,6 +23,30 @@ class ScansioneOraria
         ])->all();
     }
 
+    /** Scansione standard della sede corrente: lun-ven, 6 ore al mattino da 50' (ricreazione di 10' dopo la 3ª) e 3 ore al pomeriggio. */
+    public function creaStandard(): void
+    {
+        $durata = 50;
+        DB::transaction(function () use ($durata) {
+            for ($giorno = 1; $giorno <= 5; $giorno++) {
+                $inizio = \Carbon\Carbon::createFromTime(8, 0);
+                for ($ordine = 1; $ordine <= 9; $ordine++) {
+                    if ($ordine === 7) {
+                        $inizio = \Carbon\Carbon::createFromTime(14, 0);
+                    }
+                    $fine = $inizio->copy()->addMinutes($durata);
+                    $pausa = $ordine === 3;
+                    Slot::query()->create([
+                        'giorno' => $giorno, 'ordine' => $ordine, 'inizio' => $inizio->format('H:i:s'), 'fine' => $fine->format('H:i:s'),
+                        'intervallo_dopo' => $pausa, 'ricreazione_minuti' => $pausa ? 10 : null,
+                    ]);
+                    $inizio = $fine->copy()->addMinutes($pausa ? 10 : 0);
+                }
+            }
+        });
+        AuditLog::registra('ScansioneOraria', 0, 'creazione', null, ['standard' => true]);
+    }
+
     /**
      * Imposta le ore (ordine => [inizio, fine, ricreazione]) su tutti i giorni e lo registra nell'audit log.
      * I dati sono già validati (ScansioneOrariaRequest).

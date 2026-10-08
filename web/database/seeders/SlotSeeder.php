@@ -15,42 +15,6 @@ class SlotSeeder extends Seeder
 {
     public function run(): void
     {
-        $durataMinuti = 50;
-
-        for ($giorno = 1; $giorno <= 5; $giorno++) {
-            $inizio = Carbon::createFromTime(8, 0);
-
-            for ($ordine = 1; $ordine <= 6; $ordine++) {
-                $fine = $inizio->copy()->addMinutes($durataMinuti);
-                $intervalloDopo = $ordine === 3;
-
-                Slot::query()->create([
-                    'giorno' => $giorno,
-                    'ordine' => $ordine,
-                    'inizio' => $inizio->format('H:i:s'),
-                    'fine' => $fine->format('H:i:s'),
-                    'intervallo_dopo' => $intervalloDopo,
-                    'ricreazione_minuti' => $intervalloDopo ? 10 : null,
-                ]);
-
-                $inizio = $fine->copy()->addMinutes($intervalloDopo ? 10 : 0);
-            }
-
-            $inizio = Carbon::createFromTime(14, 0);
-
-            for ($ordine = 7; $ordine <= 9; $ordine++) {
-                $fine = $inizio->copy()->addMinutes($durataMinuti);
-
-                Slot::query()->create([
-                    'giorno' => $giorno,
-                    'ordine' => $ordine,
-                    'inizio' => $inizio->format('H:i:s'),
-                    'fine' => $fine->format('H:i:s'),
-                    'intervallo_dopo' => false,
-                ]);
-
-                $inizio = $fine;
-            }
-        }
+        app(\App\Services\ScansioneOraria::class)->creaStandard();
     }
 }
