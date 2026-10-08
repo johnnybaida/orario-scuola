@@ -23,7 +23,7 @@ class CopiaDaSede
 {
     /** area => [etichetta, modello, route dell'elenco] */
     public const AREE = [
-        'scansione' => ['Scansione oraria e impostazioni', Slot::class, 'scansione.index'],
+        'scansione' => ['Scansione oraria e impostazioni (conteggio del sostegno)', Slot::class, 'scansione.index'],
         'discipline' => ['Discipline', Disciplina::class, 'discipline.index'],
         'quadri' => ['Quadri orari', QuadroOrario::class, 'quadri-orari.index'],
         'aule' => ['Aule', Aula::class, 'aule.index'],
@@ -85,7 +85,7 @@ class CopiaDaSede
 
         $impostazioni = Impostazioni::query()->withoutGlobalScopes()->where('sede_id', $origine->id)->first();
         if ($impostazioni) {
-            Impostazioni::correnti()->update($impostazioni->only(['durata_ora_minuti', 'giorni_settimana', 'conteggio_sostegno']));
+            Impostazioni::correnti()->update($impostazioni->only(['conteggio_sostegno']));
         }
 
         return ['copiati' => $slot->count(), 'saltati' => 0, 'note' => []];

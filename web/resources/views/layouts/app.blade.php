@@ -25,6 +25,7 @@
                 ['classi.index', 'Classi', 'classi.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>', 'consulta'],
                 ['cattedre.index', 'Cattedre', 'cattedre.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>', 'consulta'],
                 ['laboratori.index', 'Laboratori', 'laboratori.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>', 'consulta'],
+                ['impostazioni.index', 'Impostazioni', 'impostazioni.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>', 'consulta'],
                 ['vincoli.index', 'Vincoli', 'vincoli.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>', 'consulta'],
                 ['generazioni.index', 'Genera orario', 'generazioni.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>', 'consulta'],
                 ['orari.index', 'Orari', 'orari.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>', 'consulta'],
@@ -32,12 +33,12 @@
                 ['dati.index', 'Dati', 'dati.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>', 'gestisci-utenze'],
                 ['audit.index', 'Registro attività', 'audit.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>', 'approva-orari'],
             ])
+            @php($inFondo = ['impostazioni.index', 'audit.index', 'dati.index', 'utenze.index']) {{-- amministrazione: non nella sidebar ma nel menu del profilo, in alto a destra --}}
             @php($classeVoce = fn ($attiva) => 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 '.($attiva ? 'bg-white/15 text-white font-medium' : 'text-white/75 hover:bg-white/10 hover:text-white'))
             {{-- Su desktop la sidebar è alta quanto la viewport e resta ferma: le info utente e "Esci" stanno sempre in fondo. --}}
             <aside class="bg-primary text-white md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:self-start">
                 <nav class="p-3 md:p-4 flex md:flex-col gap-1 overflow-x-auto md:h-full md:overflow-y-auto md:overflow-x-hidden" aria-label="Menu principale">
                     <a href="{{ route('dashboard') }}" class="hidden md:block font-semibold text-lg px-3 pb-4 text-white">Orario Scuola</a>
-                    @php($inFondo = ['audit.index', 'dati.index', 'utenze.index']) {{-- amministrazione: in basso, sopra l'utente --}}
                     @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
                         @continue(in_array($rotta, $inFondo))
                         {{-- Le voci si vedono solo con il permesso giusto (null = tutti): 'consulta' per le anagrafiche, 'gestisci-utenze' per le utenze. --}}
@@ -45,26 +46,9 @@
                         @php($attiva = request()->routeIs(...explode('|', $pattern)))
                         <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="{{ $classeVoce($attiva) }}">{!! $icona !!}{{ $etichetta }}</a>
                     @endforeach
-                    
-                    <div class="contents md:block md:mt-auto md:pt-4">
-                    @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
-                        @continue(! in_array($rotta, $inFondo) || ($permesso && ! auth()->user()->can($permesso)))
-                        @php($attiva = request()->routeIs(...explode('|', $pattern)))
-                        <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="{{ $classeVoce($attiva) }}">{!! $icona !!}{{ $etichetta }}</a>
-                    @endforeach
 
-                    <div class="shrink-0 ml-auto md:ml-0 flex items-center gap-3 md:block md:mt-2 md:pt-4 md:border-t md:border-white/15 text-sm px-3 md:px-0">
-                        <p class="text-white/70 whitespace-nowrap"><span class="text-white font-medium">{{ auth()->user()->name }}</span><br class="hidden md:inline"> {{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</p>
-                        <form method="POST" action="{{ route('logout') }}" class="md:mt-2">
-                            @csrf
-                            <button type="submit" class="text-white/75 hover:text-white underline transition-colors duration-200 cursor-pointer">Esci</button>
-                        </form>
-                        {{-- Versione installata (l'avviso di nuova versione per l'amministratore sta accanto al pulsante Aiuto). --}}
-                        <p class="hidden md:block mt-3 text-xs text-white/60">
-                            Versione {{ config('app.versione') }}
-                        </p>
-                    </div>
-                    </div>
+                    {{-- Versione installata (l'avviso di nuova versione per l'amministratore sta accanto al pulsante Aiuto). --}}
+                    <p class="hidden md:block mt-auto pt-4 px-3 text-xs text-white/60">Versione {{ config('app.versione') }}</p>
                 </nav>
             </aside>
         @endauth
@@ -95,6 +79,31 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                             Aiuto <kbd class="hidden sm:inline rounded border border-gray-300 px-1 text-[10px] text-gray-500">F1</kbd>
                         </button>
+                        @php($nome = trim(auth()->user()->name))
+                        @php($parti = preg_split('/\s+/', $nome))
+                        @php($iniziali = mb_strtoupper(mb_substr($parti[0], 0, 1).(count($parti) > 1 ? mb_substr(end($parti), 0, 1) : '')))
+                        @php($vociProfilo = collect($voci)->filter(fn ($v) => in_array($v[0], $inFondo) && (! $v[4] || auth()->user()->can($v[4]))))
+                        <details data-menu-profilo class="relative">
+                            <summary class="list-none flex items-center justify-center size-9 rounded-full bg-primary text-white text-sm font-semibold cursor-pointer select-none [&::-webkit-details-marker]:hidden {{ $vociProfilo->contains(fn ($v) => request()->routeIs(...explode('|', $v[2]))) ? 'ring-2 ring-offset-2 ring-primary/50' : '' }}"
+                                     title="{{ $nome }}" aria-label="Menu del profilo di {{ $nome }}">{{ $iniziali }}</summary>
+                            <div class="absolute right-0 mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg z-30 py-1 text-sm">
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="font-medium text-gray-900">{{ $nome }}</p>
+                                    <p class="text-xs text-gray-500">{{ \App\Support\Ruoli::etichetta(auth()->user()->ruolo) }}</p>
+                                </div>
+                                @foreach ($vociProfilo as [$rotta, $etichetta, $pattern, $icona])
+                                    @php($attiva = request()->routeIs(...explode('|', $pattern)))
+                                    <a href="{{ route($rotta) }}" @if ($attiva) aria-current="page" @endif class="flex items-center gap-2.5 px-4 py-2 text-gray-700 {{ $attiva ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50' }}">{!! $icona !!}{{ $etichetta }}</a>
+                                @endforeach
+                                <form method="POST" action="{{ route('logout') }}" class="mt-1 border-t border-gray-100 pt-1">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center gap-2.5 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+                                        Esci
+                                    </button>
+                                </form>
+                            </div>
+                        </details>
                     </div>
                 @endauth
 

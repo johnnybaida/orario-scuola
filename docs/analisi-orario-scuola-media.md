@@ -547,6 +547,8 @@ SaldoRecupero(docente_id, minuti_dovuti, minuti_recuperati)
 AuditLog(...)
 ```
 
+> **Implementazione.** `Impostazioni` è per sede e contiene solo `conteggio_sostegno` (pagina **Impostazioni**, modificabile da chi gestisce l'anagrafica, con audit). La durata dell'ora non è un'impostazione (si ricava dalla scansione oraria) e le priorità delle sostituzioni non sono realizzate (Fase 2).
+
 > **Implementazione — differenze e aggiunte.** `Slot` non ha il campo `tipo` (le ore 7ª–9ª sono pomeridiane per convenzione) e non esiste `Intervallo` (l'intervallo è un flag `intervallo_dopo` dello slot); `Classe` ↔ `Slot` tramite `classe_slot` (slot attivi); indisponibilità docenti in `docente_indisponibilita`; `FabbisognoSostegno` ha anche `docente_unico`; `CompresenzaSostegno(orario_id, docente_id, classe_id, slot_id, codice_anonimo)` per le compresenze pianificate; `AvvisoOrario(orario_id, tipo, messaggio)` per il pannello avvisi; `User(ruolo, docente_id)` per gli accessi. `Gruppo`, `Assenza`, `Sostituzione` e `SaldoRecupero` non sono ancora realizzati.
 
 ---

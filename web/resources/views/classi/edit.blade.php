@@ -91,7 +91,7 @@
                     <div class="mb-4 flex items-center gap-2">
                         <label for="conteggio_sostegno" class="text-sm text-gray-700">Conteggio ore</label>
                         <select name="conteggio_sostegno" id="conteggio_sostegno">
-                            <option value="" @selected(is_null($classe->conteggio_sostegno))>Default istituto ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
+                            <option value="" @selected(is_null($classe->conteggio_sostegno))>Default della sede ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
                             <option value="per_alunno" @selected($classe->conteggio_sostegno === 'per_alunno')>Per alunno</option>
                             <option value="per_classe" @selected($classe->conteggio_sostegno === 'per_classe')>Per classe</option>
                         </select>

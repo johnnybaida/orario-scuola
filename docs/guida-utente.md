@@ -36,6 +36,8 @@ La **Dashboard** ti dice a che punto sei:
 
 **Eliminare.** Nelle liste si spuntano le righe e si usa *Elimina selezionati*. Se l'eliminazione porta via anche altri dati (per esempio eliminando un docente spariscono le sue cattedre e le sue lezioni negli orari, eliminando una sede tutto ciò che contiene), l'avviso **te lo elenca con i numeri** e ti chiede una **seconda conferma**. Quello che resta ma perde un collegamento (per esempio le classi di un'aula eliminata) è indicato a parte. Non si può annullare.
 
+In alto a destra, sotto l'icona con le tue **iniziali**, c'è il **menu del profilo**: mostra il tuo nome e ruolo, le **Impostazioni** (per chi può consultare), le voci di amministrazione (*Utenze* e *Dati* per l'amministratore, *Registro attività* per amministratore e dirigente scolastico) e **Esci**.
+
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
 **Esporta e importa CSV.** Sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi e cattedre hanno in alto il collegamento **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**: servono per caricare molti dati insieme o per portarli da un'installazione all'altra.
@@ -249,6 +251,19 @@ Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. I
 - **Controllo dell'orario:** se un laboratorio sovrappone una lezione (di un docente o dell'aula), o un docente è in due laboratori insieme o indisponibile, compare un errore nel Controllo, come per le lezioni. Non blocca nulla: lo risolvi spostando il laboratorio o la lezione. Gli stessi conflitti sono in cima all'elenco dei laboratori.
 - **Dove si vedono:** sotto l'orario del docente e dell'aula, e nei loro PDF («Laboratori pomeridiani»).
 - **Ore dei docenti:** i minuti di laboratorio compaiono nel carico dei docenti della dashboard, come ore di servizio a parte (non toccano le ore dovute).
+
+## Impostazioni
+<!-- sezione: consulta -->
+
+Si apre dal **menu del profilo** (le tue iniziali, in alto a destra). Le impostazioni valgono per la **sede in cui stai lavorando**: ogni sede ha le sue. Per ora ce n'è una sola.
+
+- **Conteggio predefinito delle ore di sostegno**: *per alunno* (ogni ora di un docente di sostegno vale per un solo alunno) oppure *per classe* (un docente di sostegno segue più alunni della classe insieme e l'ora vale per ciascuno). Vale per tutte le classi che non scelgono un conteggio proprio: nella scheda di una classe, sezione *Sostegno*, il campo **Conteggio ore** mostra «Default della sede» e il valore attuale.
+
+<!-- permesso: gestisci-anagrafica -->
+Modifica e salva con il pulsante in basso a destra. Amministratore e referente orario; gli altri la vedono in sola lettura. Con più sedi, cambia sede dal menu in alto per modificare le impostazioni di un'altra.
+<!-- /permesso -->
+
+La durata di ogni ora e i giorni della settimana non sono impostazioni: si ricavano dalla **scansione oraria**.
 
 ## Vincoli
 <!-- sezione: consulta -->
@@ -622,7 +637,7 @@ Le voci del menu e i pulsanti che non vedi dipendono dal ruolo: chiedi all'ammin
 ## Utenze
 <!-- sezione: gestisci-utenze -->
 
-Le utenze sono account locali. Solo l'**amministratore** vede la voce **Utenze**, dove crea, modifica ed elimina gli accessi. Gli account **non** passano con *Dati: esporta e importa*: su un'altra installazione vanno creati da qui.
+Le utenze sono account locali. Solo l'**amministratore** vede la voce **Utenze** (nel menu del profilo, in alto a destra), dove crea, modifica ed elimina gli accessi. Gli account **non** passano con *Dati: esporta e importa*: su un'altra installazione vanno creati da qui.
 
 Campi di un'utenza:
 
@@ -648,7 +663,7 @@ Questa pagina, riservata all'**amministratore**, serve a fare un **backup** dei 
 ## Registro attività
 <!-- sezione: approva-orari -->
 
-Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore) elenca **tutto ciò che viene fatto** nell'applicazione: ogni **creazione**, **modifica** ed **eliminazione** di sedi, aule, discipline, quadri orari, docenti, classi, cattedre, sostegno, vincoli e utenze; ogni **generazione** dell'orario; i cambi di stato, le duplicazioni e le modifiche manuali alla griglia (con annullamenti e ripristini).
+Il **Registro attività** (nel menu del profilo in alto a destra, per il dirigente scolastico e l'amministratore) elenca **tutto ciò che viene fatto** nell'applicazione: ogni **creazione**, **modifica** ed **eliminazione** di sedi, aule, discipline, quadri orari, docenti, classi, cattedre, sostegno, vincoli e utenze; ogni **generazione** dell'orario; i cambi di stato, le duplicazioni e le modifiche manuali alla griglia (con annullamenti e ripristini).
 
 - Per ogni voce vedi **quando**, **chi** (le operazioni automatiche risultano come *Sistema*), l'**azione**, l'**elemento** con il suo nome e il **dettaglio**: per le modifiche i valori *prima → dopo*.
 - Il nome dell'elemento resta leggibile anche dopo che è stato eliminato.
@@ -660,7 +675,7 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 ## Versione e aggiornamenti
 <!-- sezione: gestisci-utenze -->
 
-In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede in alto a destra, accanto al pulsante **Aiuto**, un pulsante giallo lampeggiante «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
+In fondo alla barra laterale compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede in alto a destra, accanto al pulsante **Aiuto**, un pulsante giallo lampeggiante «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
 
 - Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene quando **apri la dashboard** (quindi a ogni accesso), senza memorizzare nulla e, se manca la rete, semplicemente non succede nulla. Il pulsante resta visibile nelle altre pagine fino alla fine della sessione; se esce una versione mentre sei già collegato, lo vedi alla prossima apertura della dashboard (GitHub può impiegare qualche minuto a pubblicare il file).
 - Per **aggiornare**: apri `WIN-Orario-Scuola.bat` (Windows) o `MAC-Orario-Scuola.app` (Mac) nella cartella del programma, con Docker acceso, e premi **Aggiorna**. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. La cartella del programma viene allineata alla nuova versione (i file che non esistono più vengono cancellati): non tenerci dentro file tuoi. Poi ricarica la pagina.

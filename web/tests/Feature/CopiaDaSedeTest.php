@@ -48,7 +48,7 @@ class CopiaDaSedeTest extends TestCase
         $this->in($this->a);
         Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00', 'ricreazione_minuti' => 10, 'ricreazione_nome' => 'Mensa']);
         Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '09:00:00', 'fine' => '09:50:00']);
-        Impostazioni::correnti()->update(['durata_ora_minuti' => 55]);
+        Impostazioni::correnti()->update(['conteggio_sostegno' => 'per_classe']);
         $utente = $this->utenteInB();
 
         $utente->get('/scansione-oraria')->assertOk()->assertSee('è vuota in questa sede')->assertSee('Centrale (2)');
@@ -57,7 +57,7 @@ class CopiaDaSedeTest extends TestCase
         $this->in($this->b);
         $this->assertSame(2, Slot::query()->count());
         $this->assertDatabaseHas('slot', ['sede_id' => $this->b->id, 'ordine' => 1, 'ricreazione_nome' => 'Mensa']);
-        $this->assertSame(55, Impostazioni::correnti()->durata_ora_minuti);
+        $this->assertSame('per_classe', Impostazioni::correnti()->conteggio_sostegno);
         $this->assertSame(2, Slot::query()->withoutGlobalScopes()->where('sede_id', $this->a->id)->count());   // l'origine non cambia
         $this->assertSame(1, \App\Models\AuditLog::query()->where('azione', 'duplicazione')->count());          // un solo rigo di registro
 

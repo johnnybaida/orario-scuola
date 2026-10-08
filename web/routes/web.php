@@ -66,6 +66,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::resource('docenti', DocenteController::class)->parameters($parametriRisorse['docenti'])->except(['store', 'update', 'destroy']);
         Route::resource('classi', ClasseController::class)->parameters($parametriRisorse['classi'])->except(['store', 'update', 'destroy']);
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->except(['store', 'update', 'destroy']);
+        Route::get('/impostazioni', [\App\Http\Controllers\ImpostazioniController::class, 'index'])->name('impostazioni.index');
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->except(['store', 'update', 'destroy']);
         Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->except(['store', 'update', 'destroy', 'show']);
         Route::get('/laboratori-disponibilita', [\App\Http\Controllers\LaboratorioController::class, 'disponibilita'])->name('laboratori.disponibilita');
@@ -107,6 +108,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
 
         Route::post('/copia-da-sede/{area}', \App\Http\Controllers\CopiaDaSedeController::class)->name('sede.copia');
         Route::post('/scansione-oraria/standard', [ScansioneOrariaController::class, 'standard'])->name('scansione.standard');
+        Route::put('/impostazioni', [\App\Http\Controllers\ImpostazioniController::class, 'update'])->name('impostazioni.update');
         Route::put('/scansione-oraria', [ScansioneOrariaController::class, 'update'])->name('scansione.update');
 
         Route::post('/worker/avvia', [WorkerController::class, 'avvia'])->name('worker.avvia');

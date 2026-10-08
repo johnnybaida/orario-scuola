@@ -18,6 +18,7 @@ class Guida
         'docenti.*' => 'docenti',
         'classi.*' => 'classi',
         'cattedre.*' => 'cattedre',
+        'impostazioni.*' => 'impostazioni',
         'vincoli.*' => 'vincoli',
         'laboratori.*' => 'laboratori',
         'generazioni.*' => 'genera-orario',

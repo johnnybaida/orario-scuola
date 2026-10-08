@@ -56,7 +56,7 @@ Per **aggiornare** a una nuova versione apri `WIN-Orario-Scuola.bat` o `MAC-Orar
 
 Si apre una finestra con **tre pulsanti**: *Avvia*, *Aggiorna* e *Ferma*. Premi **Avvia**: controlla che Docker sia installato e acceso (lo accende se serve), avvia l'applicazione (`docker compose up -d --build`, vedi [Avvio con Docker](#avvio-con-docker)), attende che risponda e apre il browser su <http://localhost:8080>. **La prima volta ci vogliono alcuni minuti (anche 10): non chiudere la finestra.** Su Windows, in quella finestra, **Crea icona sul Desktop** crea l'icona «Orario Scuola» con cui non vedrai più il file `.bat`.
 
-**Primo accesso:** email `amministratore@scuola.test`, password `password`. Appena entri cambia la password dalla voce *Utenze* del menu. Nella scuola di esempio ci sono anche altri utenti di prova: sono elencati in [Accessi di prova](#accessi-di-prova-seed).
+**Primo accesso:** email `amministratore@scuola.test`, password `password`. Appena entri cambia la password dalla voce *Utenze* del menu del profilo (le tue iniziali, in alto a destra). Nella scuola di esempio ci sono anche altri utenti di prova: sono elencati in [Accessi di prova](#accessi-di-prova-seed).
 
 ### Uso quotidiano
 
