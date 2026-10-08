@@ -77,7 +77,8 @@ Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spo
 3. La disciplina viene collegata automaticamente a quell'aula. Le **seconde lingue** (francese, spagnolo, tedesco…) condividono un unico tipo, **«DADA · Seconda lingua»**: crea più aule di quel tipo se servono e scegli una qualunque delle lingue.
 4. Nelle classi lascia vuoto il campo **Aula base**.
 5. Ogni disciplina DADA può avere **più aule** (due aule di Italiano, per esempio): il generatore sceglie quella libera a ogni ora.
-6. Per leggere l'orario ci sono tre modi, tutti nella pagina **Orari**: la **vista classe** (dove deve andare la classe a ogni ora, con il nome dell'aula in ogni lezione), la **vista aula** (chi arriva in aula a ogni ora: è anche il foglio da appendere alla porta) e la **vista docente**. Con la didattica tradizionale restano utili le stesse viste, ma nella classe l'aula compare solo quando non è la sua (palestra, laboratori).
+6. Per ridurre i **salti di piano** degli alunni tra un'ora e l'altra, indica il **piano** di ogni aula e aggiungi il vincolo **Spostamenti tra piani (C5)** da *Vincoli* (vedi gli esempi lì).
+7. Per leggere l'orario ci sono tre modi, tutti nella pagina **Orari**: la **vista classe** (dove deve andare la classe a ogni ora, con il nome dell'aula in ogni lezione), la **vista aula** (chi arriva in aula a ogni ora: è anche il foglio da appendere alla porta) e la **vista docente**. Con la didattica tradizionale restano utili le stesse viste, ma nella classe l'aula compare solo quando non è la sua (palestra, laboratori).
 <!-- /permesso -->
 
 
