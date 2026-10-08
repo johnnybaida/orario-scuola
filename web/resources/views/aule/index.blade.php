@@ -33,6 +33,7 @@
                     <th class="px-4 py-2">Sede</th>
                     <th class="px-4 py-2">Tipo</th>
                     <th class="px-4 py-2">Usata da</th>
+                    <th class="px-4 py-2">Piano</th>
                     <th class="px-4 py-2">Capienza</th>
                     <th class="px-4 py-2"></th>
                 </tr>
@@ -45,6 +46,7 @@
                         <td class="px-4 py-2">{{ $aula->sede->nome }}</td>
                         <td class="px-4 py-2">{{ \App\Enums\TipoAula::etichettaDi($aula->tipo) }}</td>
                         <td class="px-4 py-2">{{ $usataDa[$aula->tipo] ?? '—' }}</td>
+                        <td class="px-4 py-2">{{ $aula->piano ?? '—' }}</td>
                         <td class="px-4 py-2">{{ $aula->capienza }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')

@@ -39,6 +39,15 @@
 
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
+        <label for="piano" class="block text-sm font-medium text-gray-700">Piano della classe</label>
+        <input type="number" name="piano" id="piano" min="-3" max="10" value="{{ old('piano', $classe?->piano) }}"
+               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <p class="mt-1 text-xs text-gray-500">Dove sta la classe (0 = piano terra). Facoltativo: conta per le ore senza aula assegnata, nel vincolo «Spostamenti tra piani».</p>
+    </div>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-4">
+    <div>
         <label for="quadro_orario_id" class="block text-sm font-medium text-gray-700">Quadro orario</label>
         <select name="quadro_orario_id" id="quadro_orario_id" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach ($quadri as $quadro)

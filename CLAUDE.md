@@ -51,6 +51,8 @@ php artisan test
 solver/.venv/bin/pytest solver/tests
 ```
 
+I test PHP sono deterministici: `tests/TestCase.php` fissa il seme di Faker, quindi i dati delle factory sono gli stessi a ogni esecuzione (un test non deve dipendere dal caso, per esempio da un cognome casuale che compare in una pagina). Il venv Python contiene percorsi assoluti: se sposti la cartella del progetto, ricrealo (`python3.11 -m venv solver/.venv && solver/.venv/bin/pip install -r solver/requirements.txt`) o usa `solver/.venv/bin/python3 -m pytest`.
+
 Se un comando non esiste ancora o cambia, aggiorna questa sezione.
 
 ---
@@ -172,6 +174,8 @@ H1 classe max una lezione per slot (salvo compresenze/gruppi paralleli) · H2 do
 ### Vincoli configurabili
 Catalogo parametrico (codici D*, T*, C*, S*, R*, F* — dettaglio nel §8 dell'analisi). Ogni vincolo ha: `tipo`, `ambito` (globale/classe/docente/disciplina/aula + ids), `parametri`, `severita` (`rigido` | `preferenziale`), `peso` (1–100), `attivo`. Il vincolo più specifico prevale su quello globale. I blocchi a cavallo dell'intervallo sono ammessi di default (vietabili con D7).
 
+Realizzati: D1, D3, D6, T2, T3 e **C5_SPOSTAMENTI_PIANO** (`aule.piano` e `classi.piano`, interi facoltativi; piano di una lezione = piano dell'aula assegnata, altrimenti della classe, altrimenti ignorata; per classe e coppia di ore consecutive penalizza/vieta il salto di piani oltre `soglia`; pensato per gli spostamenti degli alunni in DADA; modulo `solver/constraints/c5.py`).
+
 ### Generazione
 - Sempre asincrona (job in coda) con time limit, avanzamento via polling e annullamento.
 - **Seed** registrato per ogni generazione, così il risultato è riproducibile.
@@ -194,9 +198,9 @@ Proposta automatica secondo l'ordine configurabile (default §10.2 dell'analisi)
   "seed": 12345,
   "time_limit_s": 120,
   "slots": [{ "id": 1, "giorno": 1, "ordine": 1, "intervallo_dopo": false }],
-  "aule": [{ "id": 1, "tipo": "palestra", "capacita": 2 }],
+  "aule": [{ "id": 1, "tipo": "palestra", "capacita": 2, "piano": 0 }],   // piano: int o null
   "docenti": [{ "id": 1, "indisponibili": [3, 4] }],
-  "classi": [{ "id": 1, "slots_attivi": [1, 2, 3] }],
+  "classi": [{ "id": 1, "slots_attivi": [1, 2, 3], "piano": 1 }],        // piano: int o null
   "lezioni": [{ "id": 1, "classi": [1], "docenti": [1], "disciplina": "ITA",
                "durata": 1, "tipo_aula": null, "gruppo_parallelo": null,
                "bloccata_slot": null }],

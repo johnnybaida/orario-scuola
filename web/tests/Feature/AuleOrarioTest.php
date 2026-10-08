@@ -41,7 +41,7 @@ class AuleOrarioTest extends TestCase
 
     private function referente(): User
     {
-        return User::factory()->create(['ruolo' => 'referente_orario']);
+        return User::factory()->create(['ruolo' => 'referente_orario', 'name' => 'Utente Prova']);
     }
 
     private function aula(string $nome, string $tipo = 'classe', int $capienza = 1): Aula

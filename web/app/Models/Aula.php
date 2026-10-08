@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'nome', 'tipo', 'capienza'])]
+#[Fillable(['sede_id', 'nome', 'tipo', 'capienza', 'piano'])]
 class Aula extends Model
 {
     use HasFactory, \App\Models\Concerns\Auditable;

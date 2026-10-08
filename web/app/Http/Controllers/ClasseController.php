@@ -68,7 +68,7 @@ class ClasseController extends Controller
         }
 
         DB::transaction(function () use ($request, $classe, $cattedre) {
-            $classe->update($request->safe()->only(['anno_corso', 'sezione', 'sede_id', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni']));
+            $classe->update($request->safe()->only(['anno_corso', 'sezione', 'sede_id', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni', 'piano']));
 
             if ($request->boolean('sezioni_extra')) {
                 // La griglia degli slot è completa e prevale sui giorni di rientro (che servono solo a spuntarla).

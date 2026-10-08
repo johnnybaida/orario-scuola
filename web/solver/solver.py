@@ -11,7 +11,7 @@ from ortools.sat.python import cp_model
 
 import sostegno as sostegno_modulo
 from contesto import Contesto
-from constraints import d1, d3, d6, t2, t3
+from constraints import c5, d1, d3, d6, t2, t3
 
 MODULI_VINCOLI = {
     'D1_BLOCCO_MIN_CONSECUTIVO': d1,
@@ -19,6 +19,7 @@ MODULI_VINCOLI = {
     'D6_FASCIA_ORARIA': d6,
     'T2_GIORNO_LIBERO': t2,
     'T3_MAX_ORE_BUCHE': t3,
+    'C5_SPOSTAMENTI_PIANO': c5,
 }
 
 

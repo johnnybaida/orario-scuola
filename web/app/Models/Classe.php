@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'anno_corso', 'sezione', 'sede_id', 'aula_base_id', 'quadro_orario_id', 'tempo_scuola', 'n_alunni',
-    'conteggio_sostegno',
+    'conteggio_sostegno', 'piano',
 ])]
 class Classe extends Model
 {

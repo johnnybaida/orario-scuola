@@ -140,6 +140,14 @@
     </div>
 </div>
 
+<div data-parametri-per="C5_SPOSTAMENTI_PIANO">
+    <label class="block text-sm font-medium text-gray-700">Piani di differenza senza penalità
+        <x-info testo="Tra due ore consecutive la classe può cambiare piano di questo numero di piani senza penalità; oltre, ogni piano in più pesa. 0 = ogni cambio di piano pesa. Serve soprattutto con la didattica DADA. I piani si indicano su aule e classi; le aule e le classi senza piano non contano." />
+    </label>
+    <input type="number" name="parametri[soglia]" min="0" max="10" value="{{ $parametri['soglia'] ?? 0 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <hr class="border-gray-100">
 
 <div class="grid sm:grid-cols-3 gap-4">

@@ -348,6 +348,7 @@ Requisiti comuni a ogni opzione:
 | C2 | Rientri pomeridiani | Tempo prolungato: rientro mar e gio |
 | C3 | Mensa | Slot mensa fisso con docente di assistenza |
 | C4 | Stesso docente non più di N ore/giorno in classe | Lettere max 3h/giorno |
+| C5 | Spostamenti tra piani | Gli alunni in DADA non vanno dal piano 1 al 3 e ritorno al 1 in ore consecutive |
 
 **Sostegno**
 
@@ -373,7 +374,7 @@ Requisiti comuni a ogni opzione:
 | F1 | Lezione fissata in uno slot (bloccata) |
 | F2 | Slot vietato per una classe |
 
-> **Implementazione.** Realizzati D1 (conteggia i *giorni* con almeno un blocco, non i blocchi), D3, D6 (*preferita* = la disciplina va solo negli slot indicati, ogni lezione fuori conta come violazione), T2 e T3; l'indisponibilità (T1) è una funzione dell'anagrafica docente. Ambiti consentiti: D1/D3/D6 globale o classe; T2/T3 globale o docente. Gli altri vincoli del catalogo non sono realizzati.
+> **Implementazione.** Realizzati D1 (conteggia i *giorni* con almeno un blocco, non i blocchi), D3, D6 (*preferita* = la disciplina va solo negli slot indicati, ogni lezione fuori conta come violazione), T2 e T3; l'indisponibilità (T1) è una funzione dell'anagrafica docente. **C5** (spostamenti tra piani) è realizzato: aule e classi hanno un *piano* facoltativo (0 = terra); il piano di una lezione è quello dell'aula assegnata, altrimenti quello della classe, e le lezioni senza piano non contano; per ogni classe e per ogni coppia di ore consecutive dello stesso giorno si penalizza (preferenziale, peso) o si vieta (rigido) il salto di piani oltre una soglia (parametro `soglia`, default 0). Ambiti consentiti: D1/D3/D6 globale o classe; C5 globale o classe; T2/T3 globale o docente. Gli altri vincoli del catalogo non sono realizzati.
 
 ### 8.3 Rappresentazione (esempio JSON)
 

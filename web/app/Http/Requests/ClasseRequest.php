@@ -27,6 +27,7 @@ class ClasseRequest extends FormRequest
             'quadro_orario_id' => ['required', 'exists:quadri_orari,id'],
             'tempo_scuola' => ['required', 'in:normale,prolungato'],
             'n_alunni' => ['required', 'integer', 'min:0', 'max:35'],
+            'piano' => ['nullable', 'integer', 'between:-3,10'],
             'rientri' => ['nullable', 'array'],
             'rientri.*' => ['integer', 'between:1,6'],
             // Sezioni della pagina di modifica (assenti alla creazione).

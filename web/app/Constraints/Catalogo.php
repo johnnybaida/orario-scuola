@@ -2,6 +2,7 @@
 
 namespace App\Constraints;
 
+use App\Constraints\Tipi\C5SpostamentiPiano;
 use App\Constraints\Tipi\D1BloccoMinConsecutivo;
 use App\Constraints\Tipi\D3MaxOreGiorno;
 use App\Constraints\Tipi\D6FasciaOraria;
@@ -17,6 +18,7 @@ class Catalogo
         'D6_FASCIA_ORARIA' => D6FasciaOraria::class,
         'T2_GIORNO_LIBERO' => T2GiornoLibero::class,
         'T3_MAX_ORE_BUCHE' => T3MaxOreBuche::class,
+        'C5_SPOSTAMENTI_PIANO' => C5SpostamentiPiano::class,
     ];
 
     public static function istanza(string $tipo): VincoloTipoInterface

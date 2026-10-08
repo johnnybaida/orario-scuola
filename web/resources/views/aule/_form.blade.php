@@ -38,6 +38,13 @@
 </div>
 
 <div>
+    <label for="piano" class="block text-sm font-medium text-gray-700">Piano</label>
+    <input type="number" name="piano" id="piano" min="-3" max="10" value="{{ old('piano', $aula?->piano) }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <p class="mt-1 text-xs text-gray-500">0 = piano terra, negativo = interrato. Facoltativo: serve al vincolo «Spostamenti tra piani».</p>
+</div>
+
+<div>
     <label for="capienza" class="block text-sm font-medium text-gray-700">Capienza (lezioni contemporanee)</label>
     <input type="number" name="capienza" id="capienza" min="1" value="{{ old('capienza', $aula?->capienza ?? 1) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">

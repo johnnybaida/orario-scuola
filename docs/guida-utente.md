@@ -62,6 +62,7 @@ Ogni aula appartiene a una sede.
 - **Sede**: il plesso in cui si trova.
 - **Nome**: es. "Aula 12" o "Palestra".
 - **Tipo**: la categoria dell'aula (classe, laboratorio, palestra, aula di musica, ...). Il tipo serve a collegare le discipline che richiedono un'aula speciale: una lezione di Scienze motorie, se la disciplina richiede il tipo "palestra", si svolge in un'aula di quel tipo.
+- **Piano**: il piano dell'edificio (0 = piano terra, negativo = interrato). Facoltativo: serve al vincolo *Spostamenti tra piani* (C5).
 - **Capienza**: quante lezioni possono svolgersi **nello stesso momento** in aule di quel tipo. 1 = una sola classe alla volta; 2 = due classi insieme (es. palestra divisibile). Non è il numero di alunni.
 
 La colonna **Usata da** mostra quali discipline richiedono quel tipo di aula.
@@ -176,6 +177,7 @@ Ogni classe ha:
 - **Sezione**: la lettera (A, B, C, ...). Anno e sezione insieme devono essere unici nella stessa sede.
 - **Sede**: il plesso della classe.
 - **Aula base**: l'aula in cui la classe fa le lezioni che non richiedono un'aula speciale. Lasciala vuota con la didattica DADA.
+- **Piano della classe**: dove sta la classe (0 = piano terra). Facoltativo: conta, nel vincolo *Spostamenti tra piani* (C5), per le ore che si svolgono senza un'aula assegnata.
 - **Quadro orario**: il monte ore settimanali per disciplina.
 - **Tempo scuola**:
   - *Normale*: 30 ore settimanali, solo la mattina.
@@ -236,6 +238,7 @@ Tipi disponibili:
 - **Max ore/giorno per disciplina (D3)**: limite di ore al giorno della stessa disciplina. Campi: disciplina, *max ore/giorno*.
 - **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: disciplina, *tipo fascia* (vietata/preferita), gli *slot* interessati, indicati con giorno e ora (LUN-1ª, MAR-3ª, ...).
 - **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
+- **Spostamenti tra piani (C5)**: riduce i cambi di piano di una classe tra due ore consecutive (utile con la didattica DADA, dove sono gli alunni a spostarsi). Ambito *globale* o *classe*. Campo: *piani di differenza senza penalità* (0 = ogni cambio di piano pesa). Il piano di una lezione è quello dell'aula in cui si svolge, o della classe se non ha un'aula; le aule e le classi **senza piano** non contano.
 - **Max ore buche (T3)**: limite alle *buche* (ore vuote tra due lezioni dello stesso docente nello stesso giorno). Campi: *max buche/giorno*, *max buche/settimana*.
 
 <!-- permesso: gestisci-anagrafica -->
@@ -269,6 +272,15 @@ Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso gio
 
 - *Al massimo una buca al giorno per tutti.* Tipo T3 · Ambito **Globale** · Max buche/giorno **1** · Preferenziale, peso **60**.
 - *Una docente con al massimo tre buche a settimana.* Tipo T3 · Ambito **Docente → la docente** · Max buche/settimana **3** · **Rigido**. Basta compilare uno solo dei due limiti (giorno o settimana).
+
+**Spostamenti tra piani (C5)**
+
+Serve a evitare, per esempio, che gli alunni vadano dal piano 1 al piano 3 e poi tornino al piano 1 in tre ore consecutive. Indica prima il **piano** delle aule (e, se serve, delle classi).
+
+- *Meno spostamenti possibile per tutte le classi.* Tipo C5 · Ambito **Globale** · Piani senza penalità **0** · Preferenziale, peso **30**. Il generatore sceglie gli orari in modo da ridurre la somma dei piani percorsi.
+- *Mai più di un piano di differenza tra due ore consecutive.* Tipo C5 · Ambito **Classe → le classi** · Piani senza penalità **1** · **Rigido**. Può rendere impossibile l'orario: se succede, ammorbidiscilo o rendilo preferenziale.
+
+Conta solo il passaggio tra **ore consecutive** dello stesso giorno; un'ora vuota in mezzo dà il tempo di spostarsi.
 
 **Consigli**
 
@@ -414,7 +426,7 @@ Stai usando l'applicazione come **{ruolo}**. Il ruolo decide quali voci del menu
 
 | Ruolo | Cosa può fare |
 | --- | --- |
-| Amministratore | Tutto, comprese le utenze, l'approvazione degli orari e il registro attività |
+| Amministratore | Tutto, comprese le utenze, l'esportazione e l'importazione dei dati, l'approvazione degli orari e il registro attività |
 | Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
 | Segreteria | Consulta tutto; gestisce docenti e classi |
 | Dirigente Scolastico | Consulta tutto; approva, pubblica e archivia gli orari; consulta il registro attività |
@@ -426,7 +438,7 @@ Le voci del menu e i pulsanti che non vedi dipendono dal ruolo: chiedi all'ammin
 ## Utenze
 <!-- sezione: gestisci-utenze -->
 
-Le utenze sono account locali. Solo l'**amministratore** vede la voce **Utenze**, dove crea, modifica ed elimina gli accessi.
+Le utenze sono account locali. Solo l'**amministratore** vede la voce **Utenze**, dove crea, modifica ed elimina gli accessi. Gli account **non** passano con *Dati: esporta e importa*: su un'altra installazione vanno creati da qui.
 
 Campi di un'utenza:
 
@@ -494,6 +506,7 @@ In fondo alla barra laterale, sotto il tuo nome, compare la **versione** install
 - **Indisponibilità**: slot in cui un docente non può avere lezione.
 - **IRC**: Insegnamento della Religione Cattolica.
 - **Registro attività**: l'elenco, non modificabile, di chi ha fatto che cosa e quando.
+- **Supplente**: docente a cui passano le cattedre di un titolare sospeso o assente a lungo; si indica sulla sospensione (scheda del docente).
 - **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot. Ha uno **stato** (bozza, in revisione, approvato, pubblicato, archiviato) e una **versione**.
 - **Ore a disposizione**: ore dovute dal docente non coperte da lezioni (ore dovute − ore di cattedra); servono ad esempio per le sostituzioni.
 - **Ore dovute**: ore settimanali di lezione previste dal contratto del docente.

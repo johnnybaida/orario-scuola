@@ -55,6 +55,7 @@ class ProblemBuilder
             'id' => $a->id,
             'tipo' => $a->tipo,
             'capacita' => $a->capienza,
+            'piano' => $a->piano,
         ])->all();
     }
 
@@ -71,6 +72,7 @@ class ProblemBuilder
         return Classe::query()->with('slotAttivi')->get()->map(fn (Classe $c) => [
             'id' => $c->id,
             'slots_attivi' => $c->slotAttivi->pluck('id')->all(),
+            'piano' => $c->piano,
         ])->all();
     }
 
