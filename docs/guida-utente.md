@@ -31,7 +31,7 @@ La **Dashboard** ti dice a che punto sei:
 - **Sei pronto a generare?**: i problemi che bloccherebbero la generazione, ognuno con il link **Correggi** alla pagina giusta. Se non ce ne sono, vedi "Tutto a posto".
 - **Generazione e worker**: stato del worker di coda (con **Avvia**), ultima generazione con seed e punteggio, e **Nuova generazione**.
 - **Ultimo orario**: versione, stato, punteggio e avvisi aperti, con il tabellone PDF e la ricerca di una classe o di un docente.
-- **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*.
+- **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*. Accanto al nome compaiono i minuti di **assistenza alle pause** (ore di servizio a parte, che non toccano le ore dovute).
 - **Percorso di avvio**: i passi del percorso tipico, spuntati quando hai già inserito qualcosa.
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
@@ -41,7 +41,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
 - **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la sede di un'aula, la disciplina di una cattedra, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
-- **Scansione oraria:** una riga per ora; l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
+- **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltativa, `nome_pausa`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Non si importano:** vincoli, sostegno e le altre impostazioni.
 
@@ -670,7 +670,8 @@ In fondo alla barra laterale, sotto il tuo nome, compare la **versione** install
 - **Potenziamento**: organico dell'autonomia; ore per progetti e sostituzioni.
 - **Quadro orario**: il monte ore settimanale per disciplina di una classe.
 - **Rientro pomeridiano**: giorno in cui una classe a tempo prolungato fa lezione anche il pomeriggio.
-- **Ricreazione**: pausa tra due ore di lezione (nella scansione oraria si spunta «Ricreazione dopo» sull'ora che la precede); compare nei PDF con orario e durata.
+- **Ricreazione** (o **pausa**): intervallo tra due ore di lezione; nella scansione oraria si indicano i minuti sull'ora che la precede e si può dare un **nome** (per esempio «Mensa»). Compare nei PDF con nome, orario e durata.
+- **Assistenza alle pause**: sorveglianza degli alunni da parte di un docente durante una pausa, per esempio la mensa; si assegna per giorno e pausa nella scheda del docente e vale per tutti gli orari.
 - **Seed**: numero che rende riproducibile una generazione; lo scegli da un elenco (casuale o uno già usato).
 - **Slot**: una singola ora della settimana (giorno + ora, es. martedì 3ª ora). La scansione oraria di istituto è l'insieme di tutti gli slot.
 - **Sostegno**: supporto agli alunni con disabilità; nell'applicazione si indicano solo il fabbisogno orario (con codici anonimi) e i docenti assegnati.
