@@ -218,7 +218,7 @@ Una cattedra assegna un docente a una disciplina per una classe. La pagina **Cat
 - **Classe**, **Disciplina**, **Docente**: chi insegna cosa e dove.
 - **Ore settimanali** (1–20): quante ore di quella disciplina il docente fa in quella classe.
 - **Stato** (nell'elenco): un'etichetta colorata confronta le ore delle cattedre della classe in quella disciplina con quelle del quadro orario: **OK** (verde), **Mancano N h** (giallo), **N h in più** o **Non nel quadro** (rosso). Le cattedre in compresenza non contano nel confronto e hanno l'etichetta grigia *Compresenza*. Passando il mouse sull'etichetta vedi il dettaglio.
-- **Compresenza**: segnala che la cattedra è svolta insieme a un altro docente nella stessa ora. Per ora è un'indicazione e non cambia il calcolo; le compresenze di sostegno si gestiscono invece dalla scheda della classe.
+- **Compresenza**: segnala che la cattedra è svolta insieme a un altro docente nella stessa ora. Per ora è un'indicazione: **non conta nell'etichetta Stato**, ma il generatore e i controlli prima di generare contano comunque le sue ore (quindi, se le inserisci, il totale della classe può superare il quadro orario). Le compresenze di sostegno si gestiscono invece dalla scheda della classe.
 
 La stessa combinazione docente + classe + disciplina può comparire una sola volta. La somma delle cattedre di una classe deve coincidere col suo quadro orario; quella di un docente non dovrebbe superare le sue ore dovute.
 
@@ -246,41 +246,176 @@ Tipi disponibili:
 <!-- permesso: gestisci-anagrafica -->
 ### Esempi di utilizzo
 
-Ogni esempio indica come compilare il form di **Nuovo vincolo**. I pesi sono indicativi: 1–30 = desiderio lieve, 40–70 = importante, 80–100 = quasi obbligatorio.
+Ogni esempio è una tabella con i campi del form **Nuovo vincolo** e il valore da inserire. I campi non elencati si lasciano come sono. I pesi sono indicativi: 1–30 = desiderio lieve, 40–70 = importante, 80–100 = quasi obbligatorio.
 
 **Blocco consecutivo minimo (D1)**
 
-- *Arte in due ore di fila, per il laboratorio.* Tipo D1 · Ambito **Globale** · Disciplina *Arte e immagine* · Min ore consecutive **2** · N. blocchi minimi **1** · Preferenziale, peso **50**. In ogni classe il generatore cerca di avere almeno un giorno con due ore di Arte consecutive; se non ci riesce paga una penalità.
-- *Scienze sempre in due ore per una sola classe.* Tipo D1 · Ambito **Classe → 2ª B** · Disciplina *Scienze* · Min ore consecutive **2** · N. blocchi minimi **1** · **Rigido**. Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione risulta infattibile.
+*Arte in due ore di fila, per il laboratorio.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Blocco consecutivo minimo (D1) |
+| Ambito | Globale |
+| Disciplina | Arte e immagine |
+| Min ore consecutive | 2 |
+| N. blocchi minimi | 1 |
+| Severità | Preferenziale |
+| Peso | 50 |
+
+In ogni classe il generatore cerca di avere almeno un giorno con due ore di Arte consecutive; se non ci riesce paga una penalità.
+
+*Scienze sempre in due ore per una sola classe.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Blocco consecutivo minimo (D1) |
+| Ambito | Classe |
+| Classi | 2ª B |
+| Disciplina | Scienze |
+| Min ore consecutive | 2 |
+| N. blocchi minimi | 1 |
+| Severità | Rigido |
+
+Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione risulta infattibile.
 
 **Max ore/giorno per disciplina (D3)**
 
-- *Scienze motorie al massimo un'ora al giorno.* Tipo D3 · Ambito **Globale** · Disciplina *Scienze motorie* · Max ore/giorno **1** · **Rigido**. In nessuna classe ci saranno due ore di motoria lo stesso giorno.
-- *Italiano non più di due ore al giorno nella 1ª A.* Tipo D3 · Ambito **Classe → 1ª A** · Disciplina *Italiano* · Max ore/giorno **2** · Preferenziale, peso **70**.
+*Scienze motorie al massimo un'ora al giorno.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Max ore/giorno per disciplina (D3) |
+| Ambito | Globale |
+| Disciplina | Scienze motorie |
+| Max ore/giorno | 1 |
+| Severità | Rigido |
+
+In nessuna classe ci saranno due ore di motoria lo stesso giorno.
+
+*Italiano non più di due ore al giorno nella 1ª A.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Max ore/giorno per disciplina (D3) |
+| Ambito | Classe |
+| Classi | 1ª A |
+| Disciplina | Italiano |
+| Max ore/giorno | 2 |
+| Severità | Preferenziale |
+| Peso | 70 |
+
 
 **Fascia oraria vietata o preferita (D6)**
 
-- *Matematica mai all'ultima ora.* Tipo D6 · Ambito **Globale** · Disciplina *Matematica* · Tipo fascia **Vietata** · Slot: la **6ª ora** di tutti i giorni · Preferenziale, peso **40**. Ogni lezione di Matematica messa alla 6ª ora aggiunge una penalità.
-- *Matematica preferibilmente nelle prime tre ore.* Tipo D6 · Ambito **Globale** · Disciplina *Matematica* · Tipo fascia **Preferita** · Slot: **1ª, 2ª e 3ª ora** di tutti i giorni · Preferenziale, peso **30**. Ogni lezione fuori da quelle ore aggiunge una penalità. Con severità *Rigido* la disciplina potrebbe stare **solo** in quegli slot.
+*Matematica mai all'ultima ora.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Fascia oraria vietata/preferita (D6) |
+| Ambito | Globale |
+| Disciplina | Matematica |
+| Tipo fascia | Vietata |
+| Slot | 6ª ora di tutti i giorni |
+| Severità | Preferenziale |
+| Peso | 40 |
+
+Ogni lezione di Matematica messa alla 6ª ora aggiunge una penalità.
+
+*Matematica preferibilmente nelle prime tre ore.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Fascia oraria vietata/preferita (D6) |
+| Ambito | Globale |
+| Disciplina | Matematica |
+| Tipo fascia | Preferita |
+| Slot | 1ª, 2ª e 3ª ora di tutti i giorni |
+| Severità | Preferenziale |
+| Peso | 30 |
+
+Ogni lezione fuori da quelle ore aggiunge una penalità. Con severità *Rigido* la disciplina potrebbe stare **solo** in quegli slot.
 
 **Giorno libero (T2)**
 
-- *Ogni docente ha almeno un giorno senza lezioni, meglio il venerdì.* Tipo T2 · Ambito **Globale** · N. giorni liberi **1** · Giorno preferito **Venerdì** · Preferenziale, peso **20**. Il giorno preferito è solo un piccolo bonus.
-- *Un docente deve avere due giorni liberi, a scelta del generatore.* Tipo T2 · Ambito **Docente → il docente** · N. giorni liberi **2** · **Rigido**. Se i giorni liberi sono già decisi (per esempio un part-time verticale con giorni fissi) è meglio segnare le **indisponibilità** del docente: T2 lascia scegliere i giorni al generatore.
+*Ogni docente ha almeno un giorno senza lezioni, meglio il venerdì.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Giorno libero (T2) |
+| Ambito | Globale |
+| N. giorni liberi richiesti | 1 |
+| Giorno preferito (opzionale) | Venerdì |
+| Severità | Preferenziale |
+| Peso | 20 |
+
+Il giorno preferito è solo un piccolo bonus.
+
+*Un docente deve avere due giorni liberi, a scelta del generatore.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Giorno libero (T2) |
+| Ambito | Docente |
+| Docenti | il docente |
+| N. giorni liberi richiesti | 2 |
+| Severità | Rigido |
+
+Se i giorni liberi sono già decisi (per esempio un part-time verticale con giorni fissi) è meglio segnare le **indisponibilità** del docente: T2 lascia scegliere i giorni al generatore.
 
 **Max ore buche (T3)**
 
 Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso giorno.
 
-- *Al massimo una buca al giorno per tutti.* Tipo T3 · Ambito **Globale** · Max buche/giorno **1** · Preferenziale, peso **60**.
-- *Una docente con al massimo tre buche a settimana.* Tipo T3 · Ambito **Docente → la docente** · Max buche/settimana **3** · **Rigido**. Basta compilare uno solo dei due limiti (giorno o settimana).
+*Al massimo una buca al giorno per tutti.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Max ore buche (T3) |
+| Ambito | Globale |
+| Max buche/giorno | 1 |
+| Severità | Preferenziale |
+| Peso | 60 |
+
+
+*Una docente con al massimo tre buche a settimana.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Max ore buche (T3) |
+| Ambito | Docente |
+| Docenti | la docente |
+| Max buche/settimana | 3 |
+| Severità | Rigido |
+
+Basta compilare uno solo dei due limiti (giorno o settimana).
 
 **Spostamenti tra piani (C5)**
 
 Serve a evitare, per esempio, che gli alunni vadano dal piano 1 al piano 3 e poi tornino al piano 1 in tre ore consecutive. Indica prima il **piano** delle aule (e, se serve, delle classi).
 
-- *Meno spostamenti possibile per tutte le classi.* Tipo C5 · Ambito **Globale** · Piani senza penalità **0** · Preferenziale, peso **30**. Il generatore sceglie gli orari in modo da ridurre la somma dei piani percorsi.
-- *Mai più di un piano di differenza tra due ore consecutive.* Tipo C5 · Ambito **Classe → le classi** · Piani senza penalità **1** · **Rigido**. Può rendere impossibile l'orario: se succede, ammorbidiscilo o rendilo preferenziale.
+*Meno spostamenti possibile per tutte le classi.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Spostamenti tra piani (C5) |
+| Ambito | Globale |
+| Piani di differenza senza penalità | 0 |
+| Severità | Preferenziale |
+| Peso | 30 |
+
+Il generatore sceglie gli orari in modo da ridurre la somma dei piani percorsi.
+
+*Mai più di un piano di differenza tra due ore consecutive.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Spostamenti tra piani (C5) |
+| Ambito | Classe |
+| Classi | le classi interessate |
+| Piani di differenza senza penalità | 1 |
+| Severità | Rigido |
+
+Può rendere impossibile l'orario: se succede, ammorbidiscilo o rendilo preferenziale.
 
 Conta solo il passaggio tra **ore consecutive** dello stesso giorno; un'ora vuota in mezzo dà il tempo di spostarsi.
 
