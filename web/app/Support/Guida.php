@@ -22,6 +22,7 @@ class Guida
         'generazioni.*' => 'genera-orario',
         'orari.*' => 'orari-e-modifica-manuale',
         'utenze.*' => 'utenze',
+        'dati.*' => 'dati-esporta-e-importa',
         'audit.*' => 'registro-attivita',
     ];
 

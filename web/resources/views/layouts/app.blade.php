@@ -28,6 +28,7 @@
                 ['generazioni.index', 'Genera orario', 'generazioni.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>', 'consulta'],
                 ['orari.index', 'Orari', 'orari.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>', 'consulta'],
                 ['utenze.index', 'Utenze', 'utenze.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>', 'gestisci-utenze'],
+                ['dati.index', 'Dati', 'dati.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>', 'gestisci-utenze'],
                 ['audit.index', 'Registro attività', 'audit.*', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>', 'approva-orari'],
             ])
             @php($classeVoce = fn ($attiva) => 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors duration-200 '.($attiva ? 'bg-white/15 text-white font-medium' : 'text-white/75 hover:bg-white/10 hover:text-white'))
@@ -35,7 +36,7 @@
             <aside class="bg-primary text-white md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:self-start">
                 <nav class="p-3 md:p-4 flex md:flex-col gap-1 overflow-x-auto md:h-full md:overflow-y-auto md:overflow-x-hidden" aria-label="Menu principale">
                     <a href="{{ route('dashboard') }}" class="hidden md:block font-semibold text-lg px-3 pb-4 text-white">Orario Scuola</a>
-                    @php($inFondo = ['audit.index', 'utenze.index']) {{-- amministrazione: in basso, sopra l'utente --}}
+                    @php($inFondo = ['audit.index', 'dati.index', 'utenze.index']) {{-- amministrazione: in basso, sopra l'utente --}}
                     @foreach ($voci as [$rotta, $etichetta, $pattern, $icona, $permesso])
                         @continue(in_array($rotta, $inFondo))
                         {{-- Le voci si vedono solo con il permesso giusto (null = tutti): 'consulta' per le anagrafiche, 'gestisci-utenze' per le utenze. --}}

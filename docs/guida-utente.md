@@ -438,6 +438,17 @@ Campi di un'utenza:
 
 Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
+## Dati: esporta e importa
+<!-- sezione: gestisci-utenze -->
+
+Questa pagina, riservata all'**amministratore**, serve a fare un **backup** dei dati della scuola o a **trasferirli** su un'altra installazione. Il registro delle attività e le **utenze** (account e password) non sono compresi: gli account si creano e si gestiscono da *Utenze* su ciascuna installazione.
+
+- **Esporta:** spunta le tabelle che vuoi (di norma tutte) e premi **Scarica lo ZIP**. Il file contiene un JSON per tabella: custodiscilo comunque con cura, ha tutti i dati della scuola.
+- **Importa:** carica uno ZIP esportato da Orario Scuola. Nel passo successivo vedi cosa contiene e scegli le tabelle da importare; le tabelle spuntate vengono **sostituite** con quelle dell'archivio. Prima di sostituire ti conviene scaricare un backup dei dati attuali. L'import avviene in un colpo solo: se qualcosa non va, **non cambia nulla**.
+- **Tabelle collegate:** molte tabelle dipendono da altre (le cattedre da docenti, classi e discipline, per esempio). Se importi solo una parte e i riferimenti non tornano, l'import si ferma con un messaggio che dice cosa manca: in quel caso importa anche le tabelle collegate, o tutte.
+- **Limiti:** l'archivio deve venire da questa versione o da una precedente; se viene da una più recente, aggiorna prima l'installazione. L'import non parte se c'è una generazione in corso. Chi aveva creato un orario o una generazione nell'archivio, se non esiste su questa installazione, resta senza autore; un account collegato a un docente che l'archivio non contiene perde il collegamento.
+- **Altro formato:** per un backup completo del database (per chi gestisce il server) resta possibile `docker compose exec db mariadb-dump …`.
+
 ## Registro attività
 <!-- sezione: approva-orari -->
 

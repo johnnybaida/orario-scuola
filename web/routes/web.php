@@ -124,6 +124,14 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
     Route::get('/csv/{lista}/importa', [\App\Http\Controllers\CsvController::class, 'form'])->name('csv.form');
     Route::post('/csv/{lista}/importa', [\App\Http\Controllers\CsvController::class, 'importa'])->name('csv.importa');
 
+    // Esporta/importa i dati (ZIP con un JSON per tabella): solo l'amministratore.
+    Route::middleware('can:gestisci-utenze')->prefix('dati')->name('dati.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DatiController::class, 'index'])->name('index');
+        Route::post('/esporta', [\App\Http\Controllers\DatiController::class, 'esporta'])->name('esporta');
+        Route::post('/importa/controlla', [\App\Http\Controllers\DatiController::class, 'anteprima'])->name('anteprima');
+        Route::post('/importa', [\App\Http\Controllers\DatiController::class, 'importa'])->name('importa');
+    });
+
     // Controllo nuove versioni: solo chi amministra (quindi chi può aggiornare l'installazione).
     Route::get('/aggiornamenti', \App\Http\Controllers\AggiornamentiController::class)->middleware('can:gestisci-utenze')->name('aggiornamenti');
 

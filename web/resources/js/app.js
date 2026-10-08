@@ -12,3 +12,4 @@ import './guida-pannello.js';
 import './toast.js';
 import './aggiornamenti.js';
 import './modifica-viste.js';
+import './dati.js';
