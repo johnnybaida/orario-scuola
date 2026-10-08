@@ -13,7 +13,7 @@
         o archiviati.
     </x-guida>
 
-    <x-barra-selezione />
+    <x-barra-selezione tabella="orari" />
 
     @php($puoEliminare = auth()->user()->can('gestisci-anagrafica'))
     @php($bordo = ['bozza' => 'border-l-gray-300', 'in_revisione' => 'border-l-amber-400', 'approvato' => 'border-l-blue-400', 'pubblicato' => 'border-l-green-500', 'archiviato' => 'border-l-gray-400'])

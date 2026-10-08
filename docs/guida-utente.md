@@ -34,6 +34,8 @@ La **Dashboard** ti dice a che punto sei:
 - **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*. Accanto al nome compaiono i minuti di **assistenza alle pause** (ore di servizio a parte, che non toccano le ore dovute).
 - **Percorso di avvio**: i passi del percorso tipico, spuntati quando hai già inserito qualcosa.
 
+**Eliminare.** Nelle liste si spuntano le righe e si usa *Elimina selezionati*. Se l'eliminazione porta via anche altri dati (per esempio eliminando un docente spariscono le sue cattedre e le sue lezioni negli orari, eliminando una sede tutto ciò che contiene), l'avviso **te lo elenca con i numeri** e ti chiede una **seconda conferma**. Quello che resta ma perde un collegamento (per esempio le classi di un'aula eliminata) è indicato a parte. Non si può annullare.
+
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
 **Esporta e importa CSV.** Sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi e cattedre hanno in alto il collegamento **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**: servono per caricare molti dati insieme o per portarli da un'installazione all'altra.

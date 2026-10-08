@@ -30,7 +30,7 @@
         </x-slot:azioni>
     </x-barra-tabella>
 
-    <x-barra-selezione />
+    <x-barra-selezione tabella="laboratori" />
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">

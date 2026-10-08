@@ -43,6 +43,7 @@ $parametriRisorse = [
 ];
 
 Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
+    Route::get('/elimina/conseguenze', \App\Http\Controllers\ConseguenzeEliminazioneController::class)->name('elimina.conseguenze');
     Route::post('/sede', \App\Http\Controllers\SedeCorrenteController::class)->name('sede.imposta');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

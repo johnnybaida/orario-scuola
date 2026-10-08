@@ -30,10 +30,47 @@ document.addEventListener('change', (e) => {
     if (e.target.matches('.js-sel, .js-sel-tutti')) aggiorna();
 });
 
+// L'id del record è l'ultimo segmento dell'URL di eliminazione (/docenti/5).
+const idDa = (url) => Number(url.replace(/\/+$/, '').split('/').pop());
+
+// Cosa viene eliminato a cascata (o perde il collegamento): lo calcola il server. null = non disponibile.
+async function conseguenze(barra, scelte) {
+    if (!barra?.dataset.tabella) return null;
+    const params = new URLSearchParams({ tabella: barra.dataset.tabella });
+    scelte.forEach((c) => params.append('ids[]', idDa(c.value)));
+    try {
+        const r = await fetch(`${barra.dataset.urlConseguenze}?${params}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+        return r.ok ? await r.json() : null;
+    } catch {
+        return null;
+    }
+}
+
+const elenco = (voci) => voci.map((v) => `• ${v}`).join('\n');
+
+// Un avviso che dice cosa va perso; se l'eliminazione porta via altri dati (cascata) serve una seconda conferma.
+async function confermaEliminazione(scelte) {
+    const nome = `${scelte.length} element${scelte.length === 1 ? 'o' : 'i'}`;
+    const c = await conseguenze(document.querySelector('[data-barra-selezione]'), scelte);
+    const cascata = c?.cascata ?? [];
+    const collegamenti = c?.collegamenti ?? [];
+
+    if (c && !cascata.length && !collegamenti.length) return confirm(`Eliminare ${nome}?`);
+
+    let testo = `Eliminare ${nome}?`;
+    if (!c) testo += '\n\nPotrebbero essere eliminati anche dati collegati (non è stato possibile elencarli).';
+    if (cascata.length) testo += `\n\nVerranno eliminati ANCHE:\n${elenco(cascata)}`;
+    if (collegamenti.length) testo += `\n\nPerderanno il collegamento (restano, ma senza questo dato):\n${elenco(collegamenti)}`;
+    testo += '\n\nL\'operazione non si può annullare.';
+    if (!confirm(testo)) return false;
+
+    return !cascata.length && c ? true : confirm(`ULTIMA CONFERMA: eliminare definitivamente ${nome} e i dati collegati?\n\nNon sarà possibile recuperarli.`);
+}
+
 document.addEventListener('click', async (e) => {
     if (!e.target.matches('[data-azione="elimina"]')) return;
     const scelte = selezionate();
-    if (!confirm(`Eliminare ${scelte.length} element${scelte.length === 1 ? 'o' : 'i'}?`)) return;
+    if (!(await confermaEliminazione(scelte))) return;
 
     const token = document.querySelector('meta[name="csrf-token"]').content;
     let falliti = 0;
