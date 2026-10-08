@@ -52,6 +52,7 @@
                     <th class="px-4 py-2">Docente</th>
                     <th class="px-4 py-2">Ore</th>
                     <th class="px-4 py-2">Compresenza</th>
+                    <th class="px-4 py-2">Stato <x-info testo="Confronta le ore delle cattedre della classe in quella disciplina con quelle del quadro orario (le cattedre in compresenza non contano)." /></th>
                     <th class="px-4 py-2"></th>
                 </tr>
             </thead>
@@ -64,6 +65,7 @@
                         <td class="px-4 py-2">{{ $cattedra->docente->nomeCompleto() }}</td>
                         <td class="px-4 py-2">{{ $cattedra->ore }}</td>
                         <td class="px-4 py-2">{{ $cattedra->compresenza ? 'Sì' : 'No' }}</td>
+                        <td class="px-4 py-2"><span title="{{ $stati[$cattedra->id]['titolo'] }}" class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap {{ $stati[$cattedra->id]['colore'] }}">{{ $stati[$cattedra->id]['etichetta'] }}</span></td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')
                                 <a data-modale href="{{ route('cattedre.edit', $cattedra) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>

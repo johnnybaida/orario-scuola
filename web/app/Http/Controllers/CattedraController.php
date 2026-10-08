@@ -7,13 +7,14 @@ use App\Models\Cattedra;
 use App\Models\Classe;
 use App\Models\Disciplina;
 use App\Models\Docente;
+use App\Services\StatoCattedre;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CattedraController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, StatoCattedre $stato): View
     {
         $cattedre = Cattedra::query()
             ->with('docente', 'classe', 'disciplina')
@@ -25,6 +26,7 @@ class CattedraController extends Controller
 
         return view('cattedre.index', [
             'cattedre' => $cattedre,
+            'stati' => $stato->per($cattedre->getCollection()),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
             'docenti' => Docente::query()->orderBy('cognome')->get(),
             'filtroClasse' => $request->integer('classe_id'),

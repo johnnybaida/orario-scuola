@@ -49,6 +49,9 @@ class SostituzioniTest extends TestCase
         $s = Sospensione::query()->firstOrFail();
         $this->assertSame([$supplente->id], $s->supplenti->pluck('id')->all());
 
+        // nella scheda i supplenti sono caselle da spuntare (non una select multipla), con quelli scelti già spuntati
+        $this->get("/docenti/{$titolare->id}/edit")->assertOk()->assertSee('name="sospensioni[0][supplenti][]" value="'.$supplente->id.'" checked', false);
+
         // non può essere supplente di se stesso
         $this->put("/docenti/{$titolare->id}", $dati([$titolare->id], $s->id))->assertSessionHasErrors('sospensioni.0.supplenti.0');
         // senza supplenti inviati la selezione si svuota

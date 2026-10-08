@@ -68,7 +68,11 @@ class Diagnostica
         }
 
         // Ultime ~200 righe, ciascuna accorciata: le stack trace sono lunghe e solo le prime righe servono.
-        $righe = array_slice(file($file, FILE_IGNORE_NEW_LINES), -200);
+        // Si legge solo la coda del file: il log può pesare decine di MB.
+        $f = fopen($file, 'r');
+        fseek($f, max(0, filesize($file) - 300_000));
+        $righe = array_slice(explode("\n", rtrim((string) stream_get_contents($f))), -200);
+        fclose($f);
 
         return implode("\n", array_map(fn ($r) => mb_substr($r, 0, 400), $righe));
     }

@@ -1,4 +1,4 @@
-<div data-riga class="flex flex-wrap items-end gap-2">
+<div data-riga class="flex flex-wrap items-end gap-2 border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
     <div>
         <label class="block text-xs text-gray-500">Dal</label>
         <input type="date" name="sospensioni[{{ $i }}][dal]" required value="{{ $riga['dal'] ?? '' }}">
@@ -15,19 +15,22 @@
             @endforeach
         </select>
     </div>
-    <div class="flex-1 min-w-40">
+    <div class="basis-full">
         <label class="block text-xs text-gray-500">Note</label>
         <input type="text" name="sospensioni[{{ $i }}][note]" maxlength="255" value="{{ $riga['note'] ?? '' }}" class="w-full">
     </div>
-    <div class="min-w-48">
+    <div class="basis-full">
         <label class="block text-xs text-gray-500">Supplenti (facoltativo)
-            <x-info testo="Tieni premuto Ctrl (Cmd su Mac) per sceglierne più d'uno. Dopo aver salvato, «Gestisci sostituzione» passa le cattedre del titolare ai supplenti scelti." />
+            <x-info testo="Spunta i docenti che sostituiscono il titolare. Dopo aver salvato, «Gestisci sostituzione» passa loro le cattedre." />
         </label>
-        <select name="sospensioni[{{ $i }}][supplenti][]" multiple size="3" class="w-full">
+        <div class="flex flex-wrap gap-x-4 gap-y-1 max-h-32 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
             @foreach ($docentiSupplenti as $d)
-                <option value="{{ $d->id }}" @selected(in_array($d->id, $riga['supplenti'] ?? []))>{{ $d->nomeCompleto() }}</option>
+                <label class="flex items-center gap-1.5">
+                    <input type="checkbox" name="sospensioni[{{ $i }}][supplenti][]" value="{{ $d->id }}" @checked(in_array($d->id, $riga['supplenti'] ?? []))>
+                    {{ $d->nomeCompleto() }}
+                </label>
             @endforeach
-        </select>
+        </div>
     </div>
     <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
         <input type="checkbox" name="sospensioni[{{ $i }}][esclude_da_orario]" value="1" @checked($riga['esclude_da_orario'] ?? true)> Escludi dall'orario
