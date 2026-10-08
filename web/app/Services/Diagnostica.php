@@ -37,13 +37,13 @@ class Diagnostica
     private function generazione(Generazione $g): string
     {
         return "id: {$g->id}\nstato: {$g->stato}\nseed: {$g->seed}\ntempo limite: {$g->time_limit_s}s\ncreata: {$g->created_at}\n"
-            ."diagnostica:\n".implode("\n---\n", $g->diagnostica ?? ['(nessuna)']);
+            ."diagnostica:\n".implode("\n---\n", array_column($g->righeDiagnostica(), 'testo') ?: ['(nessuna)']);
     }
 
     private function ultime(): string
     {
         return Generazione::query()->orderByDesc('id')->limit(10)->get()
-            ->map(fn (Generazione $x) => "#{$x->id} {$x->created_at} {$x->stato} seed {$x->seed}".($x->diagnostica ? ' - '.strtok($x->diagnostica[0], "\n") : ''))
+            ->map(fn (Generazione $x) => "#{$x->id} {$x->created_at} {$x->stato} seed {$x->seed}".($x->diagnostica ? ' - '.strtok($x->righeDiagnostica()[0]['testo'], "\n") : ''))
             ->implode("\n");
     }
 

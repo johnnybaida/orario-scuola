@@ -34,10 +34,17 @@
                 <div class="text-red-700 text-sm">
                     <p class="font-medium mb-1">Non è stato possibile generare un orario valido:</p>
                     <ul class="list-disc list-inside space-y-1">
-                        @foreach ($generazione->diagnostica ?? [] as $riga)
-                            <li>{{ $riga }}</li>
+                        @foreach ($generazione->righeDiagnostica() as $riga)
+                            <li>{{ $riga['testo'] }}
+                                @if ($riga['url'])
+                                    <a href="{{ $riga['url'] }}" class="ml-1 inline-block rounded border border-red-300 bg-white px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 whitespace-nowrap">Correggi</a>
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
+                    @can('gestisci-anagrafica')
+                        <p class="mt-3 text-gray-600">Corretti i problemi, <a href="{{ route('generazioni.create') }}" class="underline text-primary">genera di nuovo</a>.</p>
+                    @endcan
                 </div>
             @elseif ($generazione->stato === 'fallita')
                 <p class="text-red-700 text-sm">Errore tecnico durante la generazione.</p>

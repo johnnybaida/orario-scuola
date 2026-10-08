@@ -491,7 +491,7 @@ Lo **stato** di una generazione:
    - *In coda*: aspetta che il worker la prenda in carico (se non parte, il worker è fermo).
    - *In corso*: il calcolo è in esecuzione; la barra mostra l'avanzamento.
    - *Completata*: l'orario è pronto e compare tra gli **Orari**.
-   - *Infattibile*: non esiste un orario valido con i dati e i vincoli attuali (o il tempo è finito senza trovarne uno). La pagina elenca **quali vincoli o risorse sono in conflitto**.
+   - *Infattibile*: non esiste un orario valido con i dati e i vincoli attuali (o il tempo è finito senza trovarne uno). La pagina elenca **quali vincoli o risorse sono in conflitto**, e accanto a ogni problema che si sa dove correggere c'è il pulsante **Correggi**, che apre la pagina giusta (la classe, il docente, le aule, i vincoli, come nei controlli della dashboard). Corretti i problemi, usa **genera di nuovo**.
    - *Fallita*: errore tecnico durante il calcolo. Premi **Scarica diagnostica** nella pagina della generazione e invia il file a chi gestisce l'applicazione: contiene l'errore, i vincoli attivi, i controlli sui dati e il log.
 
 Il **punteggio** di un orario somma le penalità dei vincoli preferenziali violati: **0 = tutti rispettati, più è basso meglio è**.

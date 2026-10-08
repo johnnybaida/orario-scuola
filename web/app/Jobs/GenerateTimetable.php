@@ -35,7 +35,7 @@ class GenerateTimetable implements ShouldQueue
         app(\App\Services\SedeCorrente::class)->imposta($generazione->sede_id);
         $generazione->update(['stato' => 'in_corso', 'progresso' => 10]);
 
-        $problemi = $preValidator->esegui();
+        $problemi = $preValidator->problemi();   // con il link alla pagina dove correggere ciascuno
         if ($problemi) {
             $generazione->update(['stato' => 'infattibile', 'progresso' => 100, 'diagnostica' => $problemi]);
 
@@ -52,7 +52,7 @@ class GenerateTimetable implements ShouldQueue
             $generazione->update([
                 'stato' => 'infattibile',
                 'progresso' => 100,
-                'diagnostica' => $risultato['diagnostica'],
+                'diagnostica' => app(\App\Services\Solver\DiagnosticaSolver::class)->conLink($risultato['diagnostica'], $problemBuilder->mappaLezioni()),
             ]);
 
             return;

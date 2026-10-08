@@ -23,6 +23,12 @@ class Generazione extends Model
         ];
     }
 
+    /** Le righe di diagnostica sempre come [testo, url]: le generazioni vecchie le hanno come semplici testi. */
+    public function righeDiagnostica(): array
+    {
+        return collect($this->diagnostica ?? [])->map(fn ($r) => is_array($r) ? ['testo' => $r['testo'] ?? '', 'url' => $r['url'] ?? null] : ['testo' => (string) $r, 'url' => null])->all();
+    }
+
     public function periodo(): BelongsTo
     {
         return $this->belongsTo(Periodo::class);
