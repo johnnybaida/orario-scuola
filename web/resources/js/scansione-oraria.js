@@ -46,4 +46,16 @@ if (form) {
             attesa = ora.f0 + ora.ric;
         }
     });
+
+    // La pausa prima della prima ora finisce quando comincia la prima ora: si mostra l'orario calcolato mentre si scrive.
+    const minutiPausa = form.querySelector('[data-pausa-prima-minuti]');
+    const orarioPausa = form.querySelector('[data-pausa-prima-orario]');
+    const primaOra = campo(ore[0], 'inizio');
+    const aggiornaPausaPrima = () => {
+        const durata = Number(minutiPausa?.value || 0);
+        if (!orarioPausa || !primaOra?.value) return;
+        orarioPausa.textContent = durata > 0 ? `${testo(Math.max(0, minuti(primaOra.value) - durata))}–${primaOra.value}` : '—';
+    };
+    minutiPausa?.addEventListener('input', aggiornaPausaPrima);
+    primaOra?.addEventListener('change', aggiornaPausaPrima);
 }

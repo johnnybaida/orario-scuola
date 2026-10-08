@@ -50,8 +50,8 @@ class ListeCsv
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'disciplina', 'ore', 'compresenza']],
         'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa'],
-            'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. Se c\'è un errore non cambia nulla.'],
+            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome'],
+            'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. La pausa prima della prima ora (colonne pausa_prima_minuti e pausa_prima_nome) si scrive sulla riga della prima ora. Se c\'è un errore non cambia nulla.'],
         'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali'],
             'nota' => 'Una riga per disciplina del quadro (la disciplina si scrive con il codice, quindi importa prima le discipline). Ogni quadro è importato per intero o per niente; quelli già presenti con lo stesso nome vengono saltati. Le ore totali si ricalcolano dalle righe: la colonna ore_totali è ignorata.'],
@@ -71,7 +71,8 @@ class ListeCsv
                 ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano]),
             // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
             'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
-                ->map(fn ($s) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]),
+                ->map(fn ($s, $ordine) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]
+                    + [5 => $s->first()->pausa_prima_minuti, 6 => $s->first()->pausa_prima_nome]),   // la pausa prima della prima ora sta sulla riga della prima ora
             // Una riga per disciplina del quadro (un quadro senza righe compare con le ultime due colonne vuote).
             'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
                 ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
@@ -123,7 +124,7 @@ class ListeCsv
             $mancanti = array_diff($mancanti, ['piano']); // facoltativa: i file più vecchi non l'hanno
         }
         if ($lista === 'scansione') {
-            $mancanti = array_diff($mancanti, ['nome_pausa']); // facoltativa: i file più vecchi non l'hanno
+            $mancanti = array_diff($mancanti, ['nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome']); // facoltative: i file più vecchi non le hanno
         }
         if ($lista === 'quadri-orari') {
             $mancanti = array_diff($mancanti, ['ore_totali']);
@@ -185,6 +186,7 @@ class ListeCsv
     private function importaScansione(array $righe, array &$esito): void
     {
         $ore = [];
+        $righeOra = [];
         foreach ($righe as $n => $r) {
             $ora = (int) $r['ora'];
             if (! ctype_digit((string) $r['ora']) || isset($ore[$ora])) {
@@ -192,6 +194,7 @@ class ListeCsv
 
                 continue;
             }
+            $righeOra[$ora] = $r;
             $ore[$ora] = [
                 'inizio' => preg_replace('/^(\d):/', '0$1:', (string) $r['inizio']), 'fine' => preg_replace('/^(\d):/', '0$1:', (string) $r['fine']),
                 'ricreazione' => $r['ricreazione_minuti'], 'nome' => $r['nome_pausa'] ?? null,
@@ -209,8 +212,12 @@ class ListeCsv
             return;
         }
 
+        // La pausa prima della prima ora sta sulla riga della prima ora.
+        $prima = $righeOra[array_key_first($ore)];
+        $pausaPrima = ['minuti' => $prima['pausa_prima_minuti'] ?? null, 'nome' => $prima['pausa_prima_nome'] ?? null];
+
         $richiesta = new ScansioneOrariaRequest;
-        $richiesta->merge(['ore' => $ore]);
+        $richiesta->merge(['ore' => $ore, 'pausa_prima' => $pausaPrima]);
         $validatore = Validator::make($richiesta->all(), $richiesta->rules());
         $richiesta->withValidator($validatore);
         if ($validatore->fails()) {
@@ -219,7 +226,7 @@ class ListeCsv
             return;
         }
 
-        app(ScansioneOraria::class)->applica($ore);
+        app(ScansioneOraria::class)->applica($ore, $pausaPrima);
         $esito['importate'] = count($ore);
     }
 

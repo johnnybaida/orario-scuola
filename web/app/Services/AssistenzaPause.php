@@ -12,7 +12,7 @@ class AssistenzaPause
     /** @return Collection<int, array{ordine: int, nome: string, da: string, a: string, minuti: int, etichetta: string}> per ordine dell'ora che precede la pausa */
     public function pause(): Collection
     {
-        return Slot::query()->whereNotNull('ricreazione_minuti')->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
+        $dopo = Slot::query()->whereNotNull('ricreazione_minuti')->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
             ->map(function (Collection $slot) {
                 $s = $slot->first();
                 $da = substr($s->fine, 0, 5);
@@ -20,6 +20,16 @@ class AssistenzaPause
                 return ['ordine' => $s->ordine, 'nome' => $s->nomePausa(), 'da' => $da, 'a' => $s->fineRicreazione(), 'minuti' => (int) $s->ricreazione_minuti,
                     'etichetta' => "{$s->nomePausa()} {$da}–{$s->fineRicreazione()} (dopo la {$s->ordine}ª ora)"];
             });
+
+        // La pausa prima della prima ora ha chiave 0 («ordine» dell'ora che la precede: nessuna).
+        $primo = Slot::query()->orderBy('ordine')->orderBy('giorno')->first();
+        if ($primo?->pausa_prima_minuti) {
+            $a = substr($primo->inizio, 0, 5);
+            $dopo->prepend(['ordine' => 0, 'nome' => $primo->nomePausaPrima(), 'da' => $primo->inizioPausaPrima(), 'a' => $a, 'minuti' => (int) $primo->pausa_prima_minuti,
+                'etichetta' => "{$primo->nomePausaPrima()} {$primo->inizioPausaPrima()}–{$a} (prima della {$primo->ordine}ª ora)"], 0);
+        }
+
+        return $dopo;
     }
 
     /** @return list<string> es. «Lun · Mensa 13:00–13:40», ordinate per giorno; le assistenze su pause non più esistenti sono omesse */

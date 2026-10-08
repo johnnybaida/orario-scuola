@@ -22,6 +22,6 @@ class AssistenzaPausa extends Model
 
     public function etichettaAudit(): ?string
     {
-        return trim(($this->docente?->nomeCompleto() ?? '').' – '.(Slot::GIORNI[$this->giorno] ?? $this->giorno).', pausa dopo la '.$this->ordine.'ª ora');
+        return trim(($this->docente?->nomeCompleto() ?? '').' – '.(Slot::GIORNI[$this->giorno] ?? $this->giorno).', '.($this->ordine === 0 ? 'pausa prima della prima ora' : 'pausa dopo la '.$this->ordine.'ª ora'));
     }
 }

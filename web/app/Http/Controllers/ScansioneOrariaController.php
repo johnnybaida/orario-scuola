@@ -25,7 +25,7 @@ class ScansioneOrariaController extends Controller
 
     public function update(ScansioneOrariaRequest $request, ScansioneOraria $scansione): RedirectResponse
     {
-        $scansione->applica($request->validated('ore'));
+        $scansione->applica($request->validated('ore'), $request->validated('pausa_prima') ?? []);
 
         return redirect()->route('scansione.index')->with('successo', 'Scansione oraria aggiornata.');
     }

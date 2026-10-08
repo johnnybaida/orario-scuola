@@ -43,10 +43,29 @@
                         <th class="px-4 py-2">Fine</th>
                         <th class="px-4 py-2">Durata</th>
                         <th class="px-4 py-2">Ricreazione dopo (minuti)</th>
-                        <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo: scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
+                        <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo (vale anche per la pausa prima della prima ora, che finisce quando comincia la prima ora): scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
+                    @php($primaOra = $ore->first())
+                    <tr class="bg-gray-50/60">
+                        <td class="px-4 py-2 text-gray-600 whitespace-nowrap">Prima della {{ $ore->keys()->first() }}ª</td>
+                        <td class="px-4 py-2 text-gray-600" colspan="3">
+                            <span data-pausa-prima-orario>@if ($primaOra->pausa_prima_minuti){{ $primaOra->inizioPausaPrima() }}–{{ substr($primaOra->inizio, 0, 5) }}@else — @endif</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center gap-2">
+                                <input type="number" min="0" max="240" step="1" inputmode="numeric" class="w-20" placeholder="nessuna" data-pausa-prima-minuti
+                                       name="pausa_prima[minuti]" aria-label="Minuti di pausa prima della {{ $ore->keys()->first() }}ª ora"
+                                       value="{{ old('pausa_prima.minuti', $primaOra->pausa_prima_minuti) }}">
+                                <span class="text-gray-500">min</span>
+                            </span>
+                        </td>
+                        <td class="px-4 py-2">
+                            <input type="text" maxlength="40" class="w-40" placeholder="Pausa" name="pausa_prima[nome]" aria-label="Nome della pausa prima della {{ $ore->keys()->first() }}ª ora"
+                                   value="{{ old('pausa_prima.nome', $primaOra->pausa_prima_nome) }}">
+                        </td>
+                    </tr>
                     @foreach ($ore as $ordine => $ora)
                         @php($prossima = $ore->get($ordine + 1))
                         <tr>

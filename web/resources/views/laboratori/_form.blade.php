@@ -38,21 +38,39 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Quando (ore del pomeriggio)
             <x-info testo="Le ore in giallo non sono libere (docente o aula occupati): passa il mouse per il motivo. Il calcolo usa l'orario pubblicato, o l'ultimo se non ce n'è uno pubblicato." />
         </label>
-        <div class="space-y-1 text-sm">
-            @forelse ($slotPerGiorno as $giorno => $slotGiorno)
-                <div class="flex flex-wrap items-center gap-3">
-                    <span class="w-20 text-gray-500">{{ \App\Models\Slot::GIORNI[$giorno] ?? $giorno }}</span>
-                    @foreach ($slotGiorno as $s)
-                        <label class="flex items-center gap-1.5 rounded px-1.5" data-slot-etichetta="{{ $s->id }}">
-                            <input type="checkbox" name="slot_ids[]" value="{{ $s->id }}" @checked($slotSel->contains($s->id))>
-                            {{ $s->ordine }}ª <span class="text-gray-400">{{ substr($s->inizio, 0, 5) }}–{{ substr($s->fine, 0, 5) }}</span>
-                        </label>
+        @php($tutte = $slotPerGiorno->flatten())
+        @php($ordini = $tutte->pluck('ordine')->unique()->sort()->values())
+        @if ($ordini->isEmpty())
+            <p class="text-sm text-gray-500">Nessuna ora pomeridiana nella scansione oraria.</p>
+        @else
+            {{-- Giorni in righe, ore in colonne: ogni casella è un riquadro intero da cliccare; gli orari stanno nell'intestazione. --}}
+            <div class="overflow-x-auto">
+                <div class="grid w-full items-center gap-x-2 gap-y-1.5 text-sm" style="grid-template-columns: 5.5rem repeat({{ $ordini->count() }}, minmax(0, 1fr));">
+                    <span></span>
+                    @foreach ($ordini as $ordine)
+                        @php($riferimento = $tutte->firstWhere('ordine', $ordine))
+                        <div class="text-center leading-tight">
+                            <div class="font-medium text-gray-700">{{ $ordine }}ª ora</div>
+                            <div class="text-xs text-gray-400">{{ substr($riferimento->inizio, 0, 5) }}–{{ substr($riferimento->fine, 0, 5) }}</div>
+                        </div>
+                    @endforeach
+                    @foreach ($slotPerGiorno as $giorno => $slotGiorno)
+                        <span class="text-gray-600">{{ \App\Models\Slot::GIORNI[$giorno] ?? $giorno }}</span>
+                        @foreach ($ordini as $ordine)
+                            @php($s = $slotGiorno->firstWhere('ordine', $ordine))
+                            @if ($s)
+                                <label class="flex cursor-pointer items-center justify-center rounded border border-gray-200 py-2 hover:bg-gray-50" data-slot-etichetta="{{ $s->id }}"
+                                       title="{{ \App\Models\Slot::GIORNI[$giorno] ?? $giorno }}, {{ $ordine }}ª ora ({{ substr($s->inizio, 0, 5) }}–{{ substr($s->fine, 0, 5) }})">
+                                    <input type="checkbox" name="slot_ids[]" value="{{ $s->id }}" class="size-4" aria-label="{{ \App\Models\Slot::GIORNI[$giorno] ?? $giorno }}, {{ $ordine }}ª ora" @checked($slotSel->contains($s->id))>
+                                </label>
+                            @else
+                                <span></span>
+                            @endif
+                        @endforeach
                     @endforeach
                 </div>
-            @empty
-                <p class="text-gray-500">Nessuna ora pomeridiana nella scansione oraria.</p>
-            @endforelse
-        </div>
+            </div>
+        @endif
     </div>
 
     <div>

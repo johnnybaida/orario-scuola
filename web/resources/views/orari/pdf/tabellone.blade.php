@@ -70,6 +70,7 @@
     <p class="legenda">
         <strong>Orari:</strong>
         @foreach ($legendaOre as $ora)
+            @if ($ora['prima'])<strong>{{ $ora['prima']['nome'] }}</strong> {{ $ora['prima']['da'] }}-{{ $ora['inizio'] }} ({{ $ora['prima']['minuti'] }}') &middot; @endif
             {{ $ora['ordine'] }}ª {{ $ora['inizio'] }}-{{ $ora['fine'] }}
             @if ($ora['ricreazione'])
                 &middot; <strong>{{ $ora['ricreazione']['nome'] }}</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}')

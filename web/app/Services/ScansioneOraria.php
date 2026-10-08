@@ -20,6 +20,7 @@ class ScansioneOraria
     {
         return $this->ore()->map(fn (Slot $s) => [
             'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti, 'ricreazione_nome' => $s->ricreazione_nome,
+            'pausa_prima_minuti' => $s->pausa_prima_minuti, 'pausa_prima_nome' => $s->pausa_prima_nome,
         ])->all();
     }
 
@@ -48,14 +49,14 @@ class ScansioneOraria
     }
 
     /**
-     * Imposta le ore (ordine => [inizio, fine, ricreazione]) su tutti i giorni e lo registra nell'audit log.
+     * Imposta le ore (ordine => [inizio, fine, ricreazione, nome]) e la pausa prima della prima ora ([minuti, nome]) su tutti i giorni e lo registra nell'audit log.
      * I dati sono già validati (ScansioneOrariaRequest).
      */
-    public function applica(array $ore): void
+    public function applica(array $ore, array $pausaPrima = []): void
     {
         $prima = $this->descrizione();
 
-        DB::transaction(function () use ($ore) {
+        DB::transaction(function () use ($ore, $pausaPrima) {
             foreach ($ore as $ordine => $ora) {
                 Slot::query()->where('ordine', $ordine)->update([
                     'inizio' => $ora['inizio'].':00',
@@ -63,6 +64,12 @@ class ScansioneOraria
                     'intervallo_dopo' => ! empty($ora['ricreazione']),
                     'ricreazione_minuti' => ! empty($ora['ricreazione']) ? (int) $ora['ricreazione'] : null,
                     'ricreazione_nome' => ! empty($ora['ricreazione']) && ! empty($ora['nome']) ? $ora['nome'] : null,
+                ]);
+            }
+            Slot::query()->update(['pausa_prima_minuti' => null, 'pausa_prima_nome' => null]);
+            if (! empty($pausaPrima['minuti']) && $ore) {
+                Slot::query()->where('ordine', min(array_keys($ore)))->update([
+                    'pausa_prima_minuti' => (int) $pausaPrima['minuti'], 'pausa_prima_nome' => ! empty($pausaPrima['nome']) ? $pausaPrima['nome'] : null,
                 ]);
             }
         });

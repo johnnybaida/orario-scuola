@@ -38,6 +38,18 @@
                     @php($maxOrdine = $slotPerGiorno->flatten()->max('ordine'))
                     {{-- Ricreazioni: ore seguite da una pausa (intervallo_dopo), con orario e durata; il loro spazio si toglie all'altezza delle ore. --}}
                     @php($nRicreazioni = collect(range(1, max(1, $maxOrdine) - 1))->filter(fn ($o) => $slotPerGiorno->flatten()->firstWhere('ordine', $o)?->ricreazione_minuti)->count())
+                    {{-- Pausa prima della prima ora (es. accoglienza): una riga sopra la prima ora; finisce quando questa comincia. --}}
+                    @php($primoSlotAssoluto = $slotPerGiorno->flatten()->sortBy('ordine')->first())
+                    @php($pausaPrima = $primoSlotAssoluto?->pausa_prima_minuti ? $primoSlotAssoluto : null)
+                    @if ($pausaPrima)
+                        @php($nRicreazioni++)
+                        <tr class="ricreazione">
+                            <td colspan="{{ $slotPerGiorno->count() + 1 }}">
+                                {{ $pausaPrima->nomePausaPrima() }} {{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }}
+                                ({{ $pausaPrima->pausa_prima_minuti }} minuti)
+                            </td>
+                        </tr>
+                    @endif
                     @for ($ordine = 1; $ordine <= $maxOrdine; $ordine++)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
                         {{-- Celle alte quanto serve perché la settimana riempia il foglio A4 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome'])]
+#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome', 'pausa_prima_minuti', 'pausa_prima_nome'])]
 class Slot extends Model
 {
     use \App\Models\Concerns\PerSede;
@@ -42,6 +42,19 @@ class Slot extends Model
     public function nomePausa(): string
     {
         return $this->ricreazione_nome ?: 'Ricreazione';
+    }
+
+    /** Nome della pausa prima della prima ora (solo sulle ore con ordine 1): quello scelto in Scansione oraria o «Pausa». */
+    public function nomePausaPrima(): string
+    {
+        return $this->pausa_prima_nome ?: 'Pausa';
+    }
+
+    /** Inizio della pausa che precede quest'ora («H:i»), null se non c'è: finisce all'inizio dell'ora. */
+    public function inizioPausaPrima(): ?string
+    {
+        return $this->pausa_prima_minuti
+            ? \Carbon\Carbon::createFromTimeString($this->inizio)->subMinutes($this->pausa_prima_minuti)->format('H:i') : null;
     }
 
     /** Fine della ricreazione che segue quest'ora ("H:i"), null se non ce n'è. */

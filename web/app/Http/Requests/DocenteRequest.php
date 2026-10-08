@@ -42,7 +42,7 @@ class DocenteRequest extends FormRequest
             'assistenze' => ['nullable', 'array'],
             'assistenze.*.id' => ['nullable', 'integer'],
             'assistenze.*.giorno' => ['required', Rule::in(array_keys(\App\Models\Slot::GIORNI))],
-            'assistenze.*.ordine' => ['required', app(\App\Services\SedeCorrente::class)->esiste('slot', 'ordine')->whereNotNull('ricreazione_minuti')],
+            'assistenze.*.ordine' => ['required', Rule::in(app(\App\Services\AssistenzaPause::class)->pause()->keys()->all())],
             'cattedre' => ['nullable', 'array'],
             'cattedre.*.id' => ['nullable', 'integer'],
             'cattedre.*.classe_id' => ['required', app(\App\Services\SedeCorrente::class)->esiste('classi')],

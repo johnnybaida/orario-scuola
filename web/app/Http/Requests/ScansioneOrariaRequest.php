@@ -21,6 +21,9 @@ class ScansioneOrariaRequest extends FormRequest
             'ore.*.fine' => ['required', 'date_format:H:i'],
             'ore.*.ricreazione' => ['nullable', 'integer', 'min:0', 'max:240'],
             'ore.*.nome' => ['nullable', 'string', 'max:40'],
+            'pausa_prima' => ['nullable', 'array'],
+            'pausa_prima.minuti' => ['nullable', 'integer', 'min:0', 'max:240'],
+            'pausa_prima.nome' => ['nullable', 'string', 'max:40'],
         ];
     }
 
@@ -35,6 +38,11 @@ class ScansioneOrariaRequest extends FormRequest
             }
             if ($v->errors()->isNotEmpty()) {
                 return;
+            }
+
+            $minutiPrima = (int) $this->input('pausa_prima.minuti', 0);
+            if ($minutiPrima > 0 && $ordini && (int) substr($ore[$ordini[0]]['inizio'], 0, 2) * 60 + (int) substr($ore[$ordini[0]]['inizio'], 3, 2) < $minutiPrima) {
+                $v->errors()->add('pausa_prima.minuti', "La pausa prima della {$ordini[0]}ª ora ({$minutiPrima} minuti) comincerebbe prima di mezzanotte: accorciala o sposta in avanti l'inizio dell'ora.");
             }
 
             $precedenteFine = null;
