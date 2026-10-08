@@ -155,7 +155,7 @@ Per ogni docente puoi indicare:
   - *Part-time orizzontale*: lavora **tutti i giorni**, ma con un orario ridotto in ciascun giorno.
   - *Part-time verticale*: lavora **solo in alcuni giorni** della settimana, con orario pieno nei giorni di servizio.
   - *Part-time misto*: combina i due modelli (giorni ridotti più giorni di assenza).
-- **Ore dovute**: le ore settimanali di lezione previste dal contratto (1–24). 18 = cattedra intera; un part-time al 50% ne ha 9. La differenza tra ore dovute e ore assegnate nelle cattedre sono le *ore a disposizione*.
+- **Ore dovute**: le ore settimanali di lezione previste dal contratto (1–24). Nell'elenco dei docenti la colonna **Assegnate / dovute** le confronta con le ore già assegnate (cattedre e sostegno), in giallo quando non coincidono. 18 = cattedra intera; un part-time al 50% ne ha 9. La differenza tra ore dovute e ore assegnate nelle cattedre sono le *ore a disposizione*.
 - **COE** (Cattedra Orario Esterna): il docente ha ore anche in un'altra scuola. Per lui l'applicazione gestisce solo le **indisponibilità**: segnala tu gli slot in cui è impegnato nell'altra scuola.
 - **Classi di concorso abilitanti**: i codici di abilitazione (es. A022 Lettere, A028 Matematica e scienze, AB25 Inglese). L'elenco è preso dalle discipline e accanto a ogni codice vedi le materie che abilita a insegnare (es. *A022 — Geografia, Italiano, Storia*): una sola spunta vale per tutte.
 

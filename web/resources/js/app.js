@@ -15,3 +15,4 @@ import './modifica-viste.js';
 import './dati.js';
 import './laboratori.js';
 import './menu-profilo.js';
+import './info.js';

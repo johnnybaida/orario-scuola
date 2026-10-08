@@ -35,7 +35,7 @@
                     <th class="px-4 py-2">Email</th>
                     <th class="px-4 py-2">Tipo posto</th>
                     <th class="px-4 py-2">Regime</th>
-                    <th class="px-4 py-2">Ore dovute</th>
+                    <th class="px-4 py-2">Assegnate / dovute <x-info testo="Ore assegnate (cattedre e sostegno) su ore dovute. In giallo quando non coincidono: ore a disposizione se sono meno, ore oltre quelle dovute se sono di più." /></th>
                     <th class="px-4 py-2">Cattedre</th>
                     <th class="px-4 py-2"></th>
                 </tr>
@@ -52,7 +52,8 @@
                         <td class="px-4 py-2">{{ $docente->email }}</td>
                         <td class="px-4 py-2">{{ $docente->tipo_posto }}</td>
                         <td class="px-4 py-2">{{ $docente->regime }}</td>
-                        <td class="px-4 py-2">{{ $docente->ore_dovute }}</td>
+                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore)
+                        <td class="px-4 py-2 {{ $assegnate !== $docente->ore_dovute ? 'text-amber-700 font-medium' : '' }}">{{ $assegnate }} / {{ $docente->ore_dovute }}</td>
                         <td class="px-4 py-2">{{ $docente->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             <a href="{{ route('docenti.edit', $docente) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
