@@ -1,4 +1,4 @@
-# CLAUDE.md — Orario Scuola Media
+# CLAUDE.md — Orario Scuola
 
 Applicativo web per **generare e gestire l'orario settimanale** di una scuola secondaria di I grado (una sola scuola per installazione), con **vincoli configurabili**, **modifica manuale**, **assenze e sostituzioni**.
 

@@ -1,4 +1,4 @@
-# Orario Scuola Media
+# Orario Scuola
 
 Applicativo web per generare e gestire l'orario settimanale di una scuola secondaria di I grado: anagrafiche, cattedre, vincoli configurabili, generazione automatica (OR-Tools CP-SAT), editor a griglia con drag&drop ed export PDF.
 
