@@ -74,6 +74,7 @@ class DashboardController extends Controller
             ->map(fn (Docente $d) => [
                 'docente' => $d,
                 'assistenza' => $assistenza->minuti($d),
+                'laboratori' => app(\App\Services\Laboratori::class)->minuti($d),
                 'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore,
                 'dovute' => $d->ore_dovute,
             ])

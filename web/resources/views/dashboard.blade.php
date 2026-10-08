@@ -113,7 +113,8 @@
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($caricoDocenti->take(8) as $riga)
                                 <tr>
-                                    <td class="py-1"><a href="{{ route('docenti.edit', $riga['docente']) }}" class="hover:underline">{{ $riga['docente']->nomeCompleto() }}</a>@if ($riga['assistenza']) <span class="text-xs text-gray-500" title="Ore di servizio a parte: assistenza alle pause">· assistenza {{ $riga['assistenza'] }}'</span>@endif</td>
+                                    <td class="py-1"><a href="{{ route('docenti.edit', $riga['docente']) }}" class="hover:underline">{{ $riga['docente']->nomeCompleto() }}</a>@if ($riga['assistenza']) <span class="text-xs text-gray-500" title="Ore di servizio a parte: assistenza alle pause">· assistenza {{ $riga['assistenza'] }}'</span>@endif
+                                        @if ($riga['laboratori']) <span class="text-xs text-gray-500" title="Ore di servizio a parte: laboratori pomeridiani">· laboratori {{ $riga['laboratori'] }}'</span>@endif</td>
                                     <td class="py-1">{{ $riga['assegnate'] }} / {{ $riga['dovute'] }}</td>
                                     <td class="py-1 {{ $riga['diff'] > 0 ? 'text-red-700' : 'text-amber-700' }}">
                                         {{ $riga['diff'] > 0 ? '+'.$riga['diff'].' (oltre le dovute)' : abs($riga['diff']).' a disposizione' }}

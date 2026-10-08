@@ -38,6 +38,7 @@ $parametriRisorse = [
     'classi' => ['classi' => 'classe'],
     'cattedre' => ['cattedre' => 'cattedra'],
     'vincoli' => ['vincoli' => 'vincolo'],
+    'laboratori' => ['laboratori' => 'laboratorio'],
     'generazioni' => ['generazioni' => 'generazione'],
 ];
 
@@ -63,6 +64,8 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('classi', ClasseController::class)->parameters($parametriRisorse['classi'])->except(['store', 'update', 'destroy']);
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->except(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->except(['store', 'update', 'destroy']);
+        Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->except(['store', 'update', 'destroy', 'show']);
+        Route::get('/laboratori-disponibilita', [\App\Http\Controllers\LaboratorioController::class, 'disponibilita'])->name('laboratori.disponibilita');
         Route::resource('generazioni', GenerazioneController::class)->parameters($parametriRisorse['generazioni'])->only(['index', 'show']);
         Route::get('/generazioni/{generazione}/stato', [GenerazioneController::class, 'stato'])->name('generazioni.stato');
         Route::get('/generazioni/{generazione}/diagnostica', [GenerazioneController::class, 'diagnostica'])->middleware('can:gestisci-anagrafica')->name('generazioni.diagnostica');
@@ -93,6 +96,7 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('quadri-orari', QuadroOrarioController::class)->parameters($parametriRisorse['quadri-orari'])->only(['store', 'update', 'destroy']);
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
+        Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->only(['store', 'update', 'destroy']);
 
         Route::get('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'form'])->name('sostituzioni.form');
         Route::post('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'assegna'])->name('sostituzioni.assegna');

@@ -225,6 +225,28 @@ Una cattedra assegna un docente a una disciplina per una classe. La pagina **Cat
 
 La stessa combinazione docente + classe + disciplina può comparire una sola volta. La somma delle cattedre di una classe deve coincidere col suo quadro orario; quella di un docente non dovrebbe superare le sue ore dovute.
 
+## Laboratori
+<!-- sezione: consulta -->
+
+I **laboratori pomeridiani** (per esempio Latino) sono attività **fuori dal monte ore e dalla generazione**: li assegni tu a mano. L'orario però ne tiene conto, perché un docente in laboratorio non può fare lezione e un'aula occupata da un laboratorio non è libera.
+
+- **Nome**: es. «Latino».
+- **Aula**: facoltativa. Se indicata, il laboratorio la occupa nelle ore scelte.
+- **Docenti**: uno o più; sono occupati nelle ore scelte.
+- **Quando**: le ore del **pomeriggio** (7ª–9ª) di uno o più giorni. Quando hai scelto docenti e aula, le ore **non libere** si colorano di **giallo**: passando il mouse vedi il motivo (il docente ha lezione in quell'ora, è indisponibile, è già in un altro laboratorio, l'aula è occupata). Il confronto usa l'orario **pubblicato**, o l'ultimo se non ce n'è uno pubblicato.
+- **Classi destinatarie**, **partecipanti** e **note**: facoltativi, solo informativi.
+- **Attivo**: se tolto, il laboratorio resta salvato ma non occupa nessuno.
+
+<!-- permesso: gestisci-anagrafica -->
+Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. Amministratore e referente orario.
+<!-- /permesso -->
+
+**Effetti**
+- **Generazione:** il generatore non mette lezioni a un docente, né usa un'aula, nelle ore in cui hanno un laboratorio.
+- **Controllo dell'orario:** se un laboratorio sovrappone una lezione (di un docente o dell'aula), o un docente è in due laboratori insieme o indisponibile, compare un errore nel Controllo, come per le lezioni. Non blocca nulla: lo risolvi spostando il laboratorio o la lezione. Gli stessi conflitti sono in cima all'elenco dei laboratori.
+- **Dove si vedono:** sotto l'orario del docente e dell'aula, e nei loro PDF («Laboratori pomeridiani»).
+- **Ore dei docenti:** i minuti di laboratorio compaiono nel carico dei docenti della dashboard, come ore di servizio a parte (non toccano le ore dovute).
+
 ## Vincoli
 <!-- sezione: consulta -->
 
@@ -661,6 +683,7 @@ In fondo alla barra laterale, sotto il tuo nome, compare la **versione** install
 - **DADA**: didattica per ambienti di apprendimento: le classi non hanno un'aula fissa, gli alunni si spostano nell'aula della disciplina.
 - **Indisponibilità**: slot in cui un docente non può avere lezione.
 - **IRC**: Insegnamento della Religione Cattolica.
+- **Laboratorio**: attività pomeridiana (es. Latino) assegnata a mano, fuori dal monte ore e dalla generazione, che occupa docenti e aula.
 - **Registro attività**: l'elenco, non modificabile, di chi ha fatto che cosa e quando.
 - **Supplente**: docente a cui passano le cattedre di un titolare sospeso o assente a lungo; si indica sulla sospensione (scheda del docente).
 - **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot. Ha uno **stato** (bozza, in revisione, approvato, pubblicato, archiviato) e una **versione**.

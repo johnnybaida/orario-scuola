@@ -9,6 +9,7 @@ use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
 use App\Services\AssistenzaPause;
+use App\Services\Laboratori;
 use App\Services\Editor\SpostamentiAula;
 use App\Support\ColoriDiscipline;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -89,6 +90,7 @@ class OrarioPdfExporter
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
+                'laboratori' => app(Laboratori::class)->elenco($docente),
             ];
         })->all();
 
@@ -115,6 +117,7 @@ class OrarioPdfExporter
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
                 'sostegni' => [],
+                'laboratori' => app(Laboratori::class)->elenco(null, $aula->id),
             ];
         })->all();
 

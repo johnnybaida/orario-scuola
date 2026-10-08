@@ -87,4 +87,8 @@
             </tbody>
         </table>
     </div>
+
+    @if ($laboratori)
+        <p class="mt-3 text-sm text-gray-600"><strong>Laboratori pomeridiani:</strong> {{ implode(' · ', $laboratori) }}</p>
+    @endif
 @endsection

@@ -33,6 +33,7 @@ class ProblemBuilder
             'aule' => $this->aule(),
             'docenti' => $this->docenti(),
             'classi' => $this->classi(),
+            'occupazioni_fisse' => app(\App\Services\Laboratori::class)->perSolver(),
             'lezioni' => $this->lezioni(),
             'sostegno' => $this->sostegno(),
             'vincoli' => $this->vincoli(),

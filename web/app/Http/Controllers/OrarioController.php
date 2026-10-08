@@ -107,6 +107,7 @@ class OrarioController extends Controller
             'problemiPerLezione' => $controllo->mappaPerLezione($problemi),
             'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
             'assistenze' => app(\App\Services\AssistenzaPause::class)->elenco($docente->load('assistenzePausa')),
+            'laboratori' => app(\App\Services\Laboratori::class)->elenco($docente),
         ] + $this->datiModifica($orario, $servizio));
     }
 
@@ -205,6 +206,7 @@ class OrarioController extends Controller
             'problemi' => $controllo->perLezioni($problemi, $lezioni->flatten()->pluck('id')->all()),
             'problemiPerLezione' => $controllo->mappaPerLezione($problemi),
             'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
+            'laboratori' => app(\App\Services\Laboratori::class)->elenco(null, $aula->id),
         ] + $this->datiModifica($orario, $servizio));
     }
 

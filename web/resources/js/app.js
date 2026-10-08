@@ -13,3 +13,4 @@ import './toast.js';
 import './aggiornamenti.js';
 import './modifica-viste.js';
 import './dati.js';
+import './laboratori.js';

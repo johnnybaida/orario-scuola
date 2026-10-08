@@ -31,6 +31,7 @@ class ControlloOrario
             ...$this->auleDoppie($lezioni),
             ...$this->oreDiverseDalQuadro($lezioni),
             ...$this->oreSenzaLezione($lezioni),
+            ...$this->laboratori($lezioni),
         ];
 
         usort($problemi, fn ($a, $b) => [$a['gravita'] === 'errore' ? 0 : 1] <=> [$b['gravita'] === 'errore' ? 0 : 1]);
@@ -170,6 +171,13 @@ class ControlloOrario
         }
 
         return $problemi;
+    }
+
+    /** Laboratori pomeridiani (assegnati a mano) in conflitto con le lezioni, tra loro o con le indisponibilità. */
+    private function laboratori(Collection $lezioni): array
+    {
+        return array_map(fn (array $c) => $this->p('errore', $c['testo'], $c['lezioni'], $lezioni->whereIn('id', $c['lezioni'])->map(fn (Lezione $l) => $l->cattedra->classe_id), $c['docenti']),
+            app(\App\Services\Laboratori::class)->conflitti($lezioni));
     }
 
     private function oreDiverseDalQuadro(Collection $lezioni): array

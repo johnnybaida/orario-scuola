@@ -19,6 +19,7 @@ class Guida
         'classi.*' => 'classi',
         'cattedre.*' => 'cattedre',
         'vincoli.*' => 'vincoli',
+        'laboratori.*' => 'laboratori',
         'generazioni.*' => 'genera-orario',
         'orari.*' => 'orari-e-modifica-manuale',
         'utenze.*' => 'utenze',

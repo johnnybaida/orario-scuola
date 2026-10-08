@@ -71,6 +71,9 @@
                     @endfor
                 </tbody>
             </table>
+            @if (! empty($foglio['laboratori']))
+                <p style="font-size: 11px; margin-top: 6px;"><strong>Laboratori pomeridiani:</strong> {{ implode(' · ', $foglio['laboratori']) }}</p>
+            @endif
             @if (! empty($foglio['assistenze']))
                 <p style="font-size: 11px; margin-top: 6px;"><strong>Assistenza alle pause:</strong> {{ implode(' · ', $foglio['assistenze']) }}</p>
             @endif

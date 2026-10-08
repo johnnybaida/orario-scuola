@@ -25,6 +25,15 @@ class Contesto:
         self.docenti_indisponibili = {d['id']: set(d.get('indisponibili', [])) for d in problema['docenti']}
         self.classi_slot_attivi = {c['id']: set(c['slots_attivi']) for c in problema['classi']}
 
+        # Laboratori (assegnati a mano): il docente non è disponibile in quello slot e l'aula è già occupata.
+        self.occupazioni_fisse = problema.get('occupazioni_fisse', [])
+        for occ in self.occupazioni_fisse:
+            self.docenti_indisponibili.setdefault(occ['docente'], set()).add(occ['slot'])
+        self.aula_fissi = defaultdict(int)
+        for occ in self.occupazioni_fisse:
+            if occ.get('aula') is not None:
+                self.aula_fissi[(occ['aula'], occ['slot'])] += 1
+
         self.lezioni = problema['lezioni']
         self.diagnostica = []
 
@@ -190,4 +199,4 @@ class Contesto:
                         self.model.Add(z >= occ_s + scelta_aula - 1)
                         occupanti.append(z)
                     if occupanti:
-                        self.model.Add(sum(occupanti) <= aula['capacita'])
+                        self.model.Add(sum(occupanti) <= max(0, aula['capacita'] - self.aula_fissi.get((aula['id'], s), 0)))
