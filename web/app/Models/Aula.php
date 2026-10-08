@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['sede_id', 'nome', 'tipo', 'capienza', 'piano'])]
 class Aula extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;
 
     protected $table = 'aule';
 

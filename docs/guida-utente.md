@@ -50,6 +50,8 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 
 ### Sedi
 
+Se l'istituto ha **più sedi**, in alto a destra compare il menu **Sede**: scegli la sede in cui lavorare. Ogni sede ha i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; tutte le pagine mostrano e salvano solo i dati della sede scelta. L'ultima sede usata viene ricordata. Una persona che lavora in due sedi ha una scheda docente per ciascuna.
+
 Le **sedi** sono i plessi: se l'istituto ne ha uno solo, basta una sede.
 
 - **Nome**: il nome del plesso.

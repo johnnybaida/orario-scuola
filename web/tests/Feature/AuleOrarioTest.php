@@ -34,7 +34,7 @@ class AuleOrarioTest extends TestCase
     {
         parent::setUp();
         $this->orario = Orario::factory()->create();
-        $this->sede = Sede::factory()->create();
+        $this->sede = Sede::query()->firstOrFail(); // la sede predefinita: quella in cui lavora l'utente nei test
         $this->s1 = Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
         $this->s2 = Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '08:50:00', 'fine' => '09:40:00']);
     }

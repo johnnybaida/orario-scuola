@@ -74,6 +74,19 @@
                 @auth
                     <div class="flex justify-end items-center gap-3 mb-3" @can('gestisci-utenze') data-aggiornamenti data-url="{{ route('aggiornamenti') }}" @if (request()->routeIs('dashboard')) data-controlla @endif @endcan>
                         {{-- Avviso di nuova versione (per chi amministra): lo mostra resources/js/aggiornamenti.js se su GitHub c'è una versione più recente. --}}
+                        @isset($sedi)
+                            @if ($sedi->count() > 1)
+                                <form method="POST" action="{{ route('sede.imposta') }}" class="mr-auto flex items-center gap-2 text-sm">
+                                    @csrf
+                                    <label for="sede-corrente" class="text-gray-500">Sede</label>
+                                    <select id="sede-corrente" name="sede_id" data-invia-al-cambio class="rounded border-gray-300 text-sm font-medium focus:border-primary focus:ring-primary">
+                                        @foreach ($sedi as $sede)
+                                            <option value="{{ $sede->id }}" @selected($sede->id === $sedeCorrente?->id)>{{ $sede->nome }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            @endif
+                        @endisset
                         <a data-aggiornamento-link hidden target="_blank" rel="noopener" class="rounded-md bg-amber-400 px-3 py-1.5 text-sm font-semibold text-gray-900 shadow animate-pulse motion-reduce:animate-none hover:bg-amber-300 hover:animate-none"></a>
                         <button type="button" data-apri-guida aria-controls="pannello-guida" aria-expanded="false" title="Aiuto (F1)"
                                 class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">

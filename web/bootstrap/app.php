@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'ruolo' => EnsureRuolo::class,
+            'sede' => \App\Http\Middleware\ImpostaSedeCorrente::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

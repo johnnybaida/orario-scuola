@@ -42,7 +42,9 @@ $parametriRisorse = [
     'generazioni' => ['generazioni' => 'generazione'],
 ];
 
-Route::middleware('auth')->group(function () use ($parametriRisorse) {
+Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
+    Route::post('/sede', \App\Http\Controllers\SedeCorrenteController::class)->name('sede.imposta');
+
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

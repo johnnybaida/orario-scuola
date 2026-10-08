@@ -14,8 +14,8 @@ class DatabaseSeeder extends Seeder
     {
         // La scuola di esempio non è attività degli utenti: non va nell'audit log.
         \App\Models\AuditLog::senza(fn () => $this->call([
+            SedeAulaSeeder::class,   // per prima: le sedi devono esistere prima dei dati che ne dipendono
             ImpostazioniSeeder::class,
-            SedeAulaSeeder::class,
             SlotSeeder::class,
             DisciplinaSeeder::class,
             QuadroOrarioSeeder::class,

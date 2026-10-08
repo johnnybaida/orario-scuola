@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable([
+#[Fillable(['sede_id', 
     'profilo_vincoli_id', 'tipo', 'ambito_livello', 'ambito_ids', 'parametri', 'severita', 'peso', 'attivo', 'nota',
 ])]
 class Vincolo extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;
 
     protected $table = 'vincoli';
 

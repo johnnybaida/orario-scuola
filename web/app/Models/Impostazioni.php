@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['durata_ora_minuti', 'giorni_settimana', 'conteggio_sostegno'])]
+#[Fillable(['sede_id', 'durata_ora_minuti', 'giorni_settimana', 'conteggio_sostegno'])]
 class Impostazioni extends Model
 {
+    use \App\Models\Concerns\PerSede;
+
     protected $table = 'impostazioni';
 
     public static function correnti(): self

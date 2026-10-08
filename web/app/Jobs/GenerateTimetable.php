@@ -31,6 +31,8 @@ class GenerateTimetable implements ShouldQueue
         ResultImporter $resultImporter,
     ): void {
         $generazione = Generazione::query()->findOrFail($this->generazioneId);
+        // Il worker non ha una sessione: si lavora nella sede della generazione (con la coda «sync» è già quella in uso).
+        app(\App\Services\SedeCorrente::class)->imposta($generazione->sede_id);
         $generazione->update(['stato' => 'in_corso', 'progresso' => 10]);
 
         $problemi = $preValidator->esegui();

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Classe extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;
 
     protected $table = 'classi';
 

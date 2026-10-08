@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['periodo_id', 'versione', 'nome', 'stato', 'seed', 'punteggio', 'creato_da'])]
+#[Fillable(['sede_id', 'periodo_id', 'versione', 'nome', 'stato', 'seed', 'punteggio', 'creato_da'])]
 class Orario extends Model
 {
+    use \App\Models\Concerns\PerSede;
+
     use HasFactory;
 
     protected $table = 'orari';

@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable([
+#[Fillable(['sede_id', 
     'periodo_id', 'orario_id', 'nome', 'seed', 'time_limit_s', 'stato', 'progresso', 'diagnostica', 'creato_da',
 ])]
 class Generazione extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;
 
     protected $table = 'generazioni';
 

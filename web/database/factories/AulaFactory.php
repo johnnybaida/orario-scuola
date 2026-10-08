@@ -14,7 +14,7 @@ class AulaFactory extends Factory
     public function definition(): array
     {
         return [
-            'sede_id' => Sede::factory(),
+            'sede_id' => fn () => app(\App\Services\SedeCorrente::class)->predefinita(),
             'nome' => 'Aula '.$this->faker->unique()->numberBetween(1, 200),
             'tipo' => 'classe',
             'capienza' => 30,

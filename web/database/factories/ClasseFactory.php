@@ -17,7 +17,7 @@ class ClasseFactory extends Factory
         return [
             'anno_corso' => $this->faker->numberBetween(1, 3),
             'sezione' => $this->faker->unique()->randomLetter(),
-            'sede_id' => Sede::factory(),
+            'sede_id' => fn () => app(\App\Services\SedeCorrente::class)->predefinita(),
             'quadro_orario_id' => QuadroOrario::factory(),
             'tempo_scuola' => 'normale',
             'n_alunni' => $this->faker->numberBetween(18, 27),

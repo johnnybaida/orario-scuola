@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['nome', 'aula_id', 'n_partecipanti', 'attivo', 'note'])]
+#[Fillable(['sede_id', 'nome', 'aula_id', 'n_partecipanti', 'attivo', 'note'])]
 class Laboratorio extends Model
 {
-    use HasFactory, \App\Models\Concerns\Auditable;
+    use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;
 
     protected $table = 'laboratori';
 
