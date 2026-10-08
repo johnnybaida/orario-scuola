@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['docente_id', 'classe_id', 'disciplina_id', 'ore', 'compresenza'])]
+#[Fillable(['docente_id', 'classe_id', 'disciplina_id', 'ore', 'compresenza', 'sospensione_id'])]
 class Cattedra extends Model
 {
     use HasFactory, \App\Models\Concerns\Auditable;

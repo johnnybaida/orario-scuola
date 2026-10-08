@@ -13,7 +13,8 @@ use Illuminate\Validation\ValidationException;
  */
 class SincronizzaRighe
 {
-    public static function applica(HasMany $relazione, array $righe, array $campi): void
+    /** @param callable(\Illuminate\Database\Eloquent\Model, array): void|null $dopo chiamata per ogni riga salvata (es. per sincronizzare una relazione collegata) */
+    public static function applica(HasMany $relazione, array $righe, array $campi, ?callable $dopo = null): void
     {
         $righe = array_values($righe);
         $base = fn () => $relazione->getRelated()->newQuery()
@@ -27,7 +28,15 @@ class SincronizzaRighe
             foreach ($campi as $campo) {
                 $dati[$campo] = array_key_exists($campo, $riga) ? $riga[$campo] : false; // null esplicito = NULL (es. data di fine aperta); campo assente = casella non spuntata
             }
-            empty($riga['id']) ? $relazione->create($dati) : $base()->whereKey($riga['id'])->first()?->update($dati);
+            if (empty($riga['id'])) {
+                $modello = $relazione->create($dati);
+            } else {
+                $modello = $base()->whereKey($riga['id'])->first();
+                $modello?->update($dati);
+            }
+            if ($dopo && $modello) {
+                $dopo($modello, $riga);
+            }
         }
     }
 

@@ -5,7 +5,10 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\Substitution\SostituzioneCattedre;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['docente_id', 'dal', 'al', 'motivo', 'esclude_da_orario', 'note'])]
 class Sospensione extends Model
@@ -24,6 +27,23 @@ class Sospensione extends Model
     protected function casts(): array
     {
         return ['dal' => 'date', 'al' => 'date', 'esclude_da_orario' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        // Togliere la sospensione = il titolare è di nuovo in servizio: le cattedre ai supplenti tornano a lui.
+        static::deleting(fn (self $s) => app(SostituzioneCattedre::class)->ripristina($s));
+    }
+
+    public function supplenti(): BelongsToMany
+    {
+        return $this->belongsToMany(Docente::class, 'sospensione_supplente', 'sospensione_id', 'docente_id');
+    }
+
+    /** Cattedre del titolare passate ai supplenti per questa sospensione. */
+    public function cattedreSostituite(): HasMany
+    {
+        return $this->hasMany(Cattedra::class);
     }
 
     public function docente(): BelongsTo

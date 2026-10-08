@@ -39,6 +39,8 @@ class DocenteRequest extends FormRequest
             'sospensioni.*.motivo' => ['required', Rule::in(array_keys(\App\Models\Sospensione::MOTIVI))],
             'sospensioni.*.esclude_da_orario' => ['nullable', 'boolean'],
             'sospensioni.*.note' => ['nullable', 'string', 'max:255'],
+            'sospensioni.*.supplenti' => ['nullable', 'array'],
+            'sospensioni.*.supplenti.*' => ['exists:docenti,id', Rule::notIn([$docente?->id])],
             'cattedre' => ['nullable', 'array'],
             'cattedre.*.id' => ['nullable', 'integer'],
             'cattedre.*.classe_id' => ['required', 'exists:classi,id'],

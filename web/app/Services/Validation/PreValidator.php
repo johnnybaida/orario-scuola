@@ -8,6 +8,7 @@ use App\Models\Classe;
 use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\Slot;
+use App\Models\Sospensione;
 use App\Models\Vincolo;
 
 /**
@@ -28,6 +29,7 @@ class PreValidator
         return [
             ...$this->oreQuadroVsCattedre(),
             ...$this->docentiSospesi(),
+            ...$this->sostituzioniDaChiudere(),
             ...$this->oreDocenteVsSlotDisponibili(),
             ...$this->capacitaAuleTipo(),
             ...$this->vincoliContraddittori(),
@@ -71,8 +73,26 @@ class PreValidator
         foreach (Docente::query()->whereHas('cattedre')->withCount('cattedre')->with('sospensioni')->get() as $docente) {
             $sospensione = $docente->sospensioni->first(fn ($s) => $s->esclude_da_orario && $s->attivaIl(now()));
             if ($sospensione) {
-                $problemi[] = $this->p("Docente {$docente->nomeCompleto()}: {$sospensione->etichettaMotivo()} {$sospensione->periodo()}, "
-                    ."ma ha {$docente->cattedre_count} cattedre: riassegnale a un supplente o chiudi la sospensione.", route('docenti.edit', $docente));
+                $problemi[] = $sospensione->supplenti()->exists()
+                    ? $this->p("Docente {$docente->nomeCompleto()}: {$sospensione->etichettaMotivo()} {$sospensione->periodo()}, "
+                        ."ma ha {$docente->cattedre_count} cattedre: passale ai supplenti indicati (Gestisci sostituzione) o chiudi la sospensione.", route('sostituzioni.form', $sospensione))
+                    : $this->p("Docente {$docente->nomeCompleto()}: {$sospensione->etichettaMotivo()} {$sospensione->periodo()}, "
+                        ."ma ha {$docente->cattedre_count} cattedre: riassegnale a un supplente o chiudi la sospensione.", route('docenti.edit', $docente));
+            }
+        }
+
+        return $problemi;
+    }
+
+    /** Sospensione finita ma con cattedre ancora ai supplenti: il titolare è rientrato, vanno riportate a lui. */
+    private function sostituzioniDaChiudere(): array
+    {
+        $problemi = [];
+
+        foreach (Sospensione::query()->with('docente')->withCount('cattedreSostituite')->whereHas('cattedreSostituite')->get() as $sospensione) {
+            if ($sospensione->al && $sospensione->al->endOfDay()->lt(now())) {
+                $problemi[] = $this->p("Docente {$sospensione->docente->nomeCompleto()}: la sospensione è terminata il {$sospensione->al->format('d/m/Y')}, "
+                    ."ma {$sospensione->cattedre_sostituite_count} cattedre sono ancora ai supplenti: riportale al titolare.", route('sostituzioni.form', $sospensione));
             }
         }
 

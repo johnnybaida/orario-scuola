@@ -69,8 +69,8 @@
 
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-1">Sospensioni e assenze lunghe</h2>
-                    <p class="mb-3 text-sm text-gray-500">Periodi in cui il docente non presta servizio (sospensione, malattia lunga, congedo). Lascia vuota la data di fine se non è nota.</p>
-                    <x-righe-ripetibili :righe="old('sospensioni', $sospensioni)" partial="docenti._riga-sospensione" etichetta="Aggiungi sospensione" />
+                    <p class="mb-3 text-sm text-gray-500">Periodi in cui il docente non presta servizio (sospensione, malattia lunga, congedo). Lascia vuota la data di fine se non è nota. Indica i supplenti, poi dalla sospensione salvata passa loro le cattedre con un clic (e le riporti al titolare quando rientra).</p>
+                    <x-righe-ripetibili :righe="old('sospensioni', $sospensioni)" partial="docenti._riga-sospensione" :dati="['docentiSupplenti' => $docentiSupplenti]" etichetta="Aggiungi sospensione" />
                 </div>
 
                 <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">

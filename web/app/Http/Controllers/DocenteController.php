@@ -49,11 +49,13 @@ class DocenteController extends Controller
     public function edit(Docente $docente): View
     {
         return view('docenti.edit', [
-            'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita'),
+            'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita', 'sospensioni.supplenti'),
             'sospensioni' => $docente->sospensioni->map(fn ($s) => [
                 'id' => $s->id, 'dal' => $s->dal->format('Y-m-d'), 'al' => $s->al?->format('Y-m-d'),
                 'motivo' => $s->motivo, 'esclude_da_orario' => $s->esclude_da_orario, 'note' => $s->note,
+                'supplenti' => $s->supplenti->pluck('id')->all(),
             ])->all(),
+            'docentiSupplenti' => Docente::query()->whereKeyNot($docente->id)->orderBy('cognome')->orderBy('nome')->get(),
             'sedi' => Sede::query()->orderBy('nome')->get(),
             'classiConcorso' => $this->classiConcorso(),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
@@ -81,7 +83,8 @@ class DocenteController extends Controller
             }
             if ($request->boolean('sospensioni_inviate')) {
                 $righe = array_map(fn ($r) => ['al' => $r['al'] ?: null, 'note' => $r['note'] ?: null] + $r, $request->input('sospensioni', []));
-                SincronizzaRighe::applica($docente->sospensioni(), $righe, ['dal', 'al', 'motivo', 'esclude_da_orario', 'note']);
+                SincronizzaRighe::applica($docente->sospensioni(), $righe, ['dal', 'al', 'motivo', 'esclude_da_orario', 'note'],
+                    fn ($sospensione, $riga) => $sospensione->supplenti()->sync($riga['supplenti'] ?? []));
             }
             if ($request->boolean('cattedre_inviate')) {
                 SincronizzaRighe::applica($docente->cattedre(), $cattedre, ['classe_id', 'disciplina_id', 'ore', 'compresenza']);

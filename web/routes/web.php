@@ -94,6 +94,10 @@ Route::middleware('auth')->group(function () use ($parametriRisorse) {
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
 
+        Route::get('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'form'])->name('sostituzioni.form');
+        Route::post('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'assegna'])->name('sostituzioni.assegna');
+        Route::post('/sospensioni/{sospensione}/ripristina', [\App\Http\Controllers\SostituzioneController::class, 'ripristina'])->name('sostituzioni.ripristina');
+
         Route::put('/scansione-oraria', [ScansioneOrariaController::class, 'update'])->name('scansione.update');
 
         Route::post('/worker/avvia', [WorkerController::class, 'avvia'])->name('worker.avvia');
