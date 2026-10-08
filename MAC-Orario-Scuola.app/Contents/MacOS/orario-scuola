@@ -1,0 +1,161 @@
+#!/bin/bash
+# Orario Scuola - avvio, aggiornamento e spegnimento su Mac: fai doppio clic su questa app.
+# Una finestra con tre pulsanti (Avvia, Aggiorna, Ferma); nessun terminale. I dati (nel database Docker) non si perdono mai.
+#
+# Per le prove: ORARIO_AZIONE=avvia|aggiorna|ferma salta la scelta, ORARIO_SENZA_DIALOGHI=1 scrive su terminale invece di
+# aprire finestre, ORARIO_ZIP cambia l'indirizzo dello ZIP dell'aggiornamento, ORARIO_PROGETTO indica la cartella.
+
+export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin"
+APP="$(cd "$(dirname "$0")/../.." && pwd)"
+export ORARIO_ICONA="$APP/Contents/Resources/icona.icns"
+CONFIG="$HOME/Library/Application Support/Orario Scuola"
+LOG="$(mktemp -t orario-scuola)"
+ZIP="${ORARIO_ZIP:-https://github.com/johnnybaida/orario-scuola/archive/refs/heads/main.zip}"
+SENZA_DIALOGHI="${ORARIO_SENZA_DIALOGHI:-}"
+ATTESA_PID=""
+
+# ---------- finestre ----------
+
+# dialogo "titolo" "testo" bottone... -> stampa il bottone premuto (l'ultimo è quello predefinito)
+dialogo() {
+    local testo; testo="$(printf '%b' "$1")"; shift   # \n nei testi = a capo
+    if [ -n "$SENZA_DIALOGHI" ]; then echo "[finestra] $testo" >&2; echo "${!#}"; return; fi
+    osascript - "$testo" "$@" <<'APPLESCRIPT' 2>/dev/null
+on run argv
+    set testo to item 1 of argv
+    set bottoni to items 2 thru -1 of argv
+    set icona to POSIX file (system attribute "ORARIO_ICONA") as alias
+    try
+        return button returned of (display dialog testo with title "Orario Scuola" buttons bottoni default button (last item of bottoni) with icon icona)
+    on error
+        return ""
+    end try
+end run
+APPLESCRIPT
+}
+
+# "In corso": finestra con un solo pulsante «Nascondi», chiusa a lavoro finito
+in_corso() {
+    local testo; testo="$(printf '%b' "$1")"
+    if [ -n "$SENZA_DIALOGHI" ]; then echo "[in corso] $testo" >&2; return; fi
+    osascript - "$testo" <<'APPLESCRIPT' >/dev/null 2>&1 &
+on run argv
+    set icona to POSIX file (system attribute "ORARIO_ICONA") as alias
+    display dialog (item 1 of argv) with title "Orario Scuola" buttons {"Nascondi"} default button "Nascondi" with icon icona
+end run
+APPLESCRIPT
+    ATTESA_PID=$!
+}
+
+fine_in_corso() {
+    [ -n "$ATTESA_PID" ] && kill "$ATTESA_PID" 2>/dev/null
+    ATTESA_PID=""
+}
+
+# errore "testo": mostra le ultime righe del registro e permette di aprirlo intero
+errore() {
+    fine_in_corso
+    local ultime; ultime="$(tail -n 8 "$LOG" 2>/dev/null)"
+    local scelta; scelta="$(dialogo "$1"$'\n\n'"${ultime}" "Chiudi" "Mostra tutto")"
+    [ "$scelta" = "Mostra tutto" ] && open -t "$LOG"
+    exit 1
+}
+
+# ---------- cartella del progetto ----------
+
+# La app sta nella cartella del progetto; se è stata spostata (o macOS la esegue da una copia temporanea) si chiede una volta la cartella.
+cartella_progetto() {
+    local c
+    for c in "${ORARIO_PROGETTO:-}" "$APP/.." "$(cat "$CONFIG/percorso" 2>/dev/null)"; do
+        [ -n "$c" ] && [ -f "$c/compose.yaml" ] && [ -f "$c/VERSION" ] && { (cd "$c" && pwd); return 0; }
+    done
+    [ -n "$SENZA_DIALOGHI" ] && return 1
+    dialogo "Non trovo la cartella di Orario Scuola. Scegli la cartella che contiene il file «compose.yaml»." "Annulla" "Scegli la cartella" >/dev/null
+    c="$(osascript -e 'POSIX path of (choose folder with prompt "Cartella di Orario Scuola")' 2>/dev/null)"
+    [ -f "$c/compose.yaml" ] || return 1
+    mkdir -p "$CONFIG" && printf '%s' "$c" >"$CONFIG/percorso"
+    (cd "$c" && pwd)
+}
+
+# ---------- passi comuni ----------
+
+porta() {
+    local p="8080"
+    if [ -f .env ]; then
+        local dal_file; dal_file="$(grep -E '^DOCKER_APP_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '\r"'"'")"
+        [ -n "$dal_file" ] && p="$dal_file"
+    fi
+    echo "$p"
+}
+
+# Docker deve essere installato e acceso (se spento lo avvia e aspetta fino a 5 minuti).
+serve_docker() {
+    if ! command -v docker >/dev/null 2>&1; then
+        fine_in_corso
+        local s; s="$(dialogo "Docker Desktop non è installato su questo computer.\n\nScaricalo e installalo, aprilo una volta e attendi che sia pronto, poi apri di nuovo Orario Scuola." "Annulla" "Scarica Docker")"
+        [ "$s" = "Scarica Docker" ] && open "https://www.docker.com/products/docker-desktop/"
+        exit 1
+    fi
+    if ! docker info >/dev/null 2>&1; then
+        echo "Docker non è acceso: lo avvio..." >>"$LOG"
+        open -a Docker
+        local i
+        for i in $(seq 1 60); do docker info >/dev/null 2>&1 && break; sleep 5; done
+        docker info >/dev/null 2>&1 || errore "Docker non si è avviato. Aprilo a mano, attendi che sia pronto (l'icona della balena smette di muoversi) e riprova."
+    fi
+}
+
+# ---------- azioni ----------
+
+avvia() {
+    in_corso "Avvio in corso. La PRIMA volta può richiedere alcuni minuti."
+    serve_docker
+    docker compose up -d --build >>"$LOG" 2>&1 || errore "Qualcosa non ha funzionato nell'avvio. Se serve assistenza, manda a chi gestisce l'installazione il testo che segue."
+    local indirizzo="http://localhost:$(porta)" pronta=0 i
+    for i in $(seq 1 90); do curl -s -f -o /dev/null "$indirizzo/login" && { pronta=1; break; }; sleep 2; done
+    [ "$pronta" = 1 ] || errore "L'applicazione ci sta mettendo più del previsto. Prova ad aprire $indirizzo tra un minuto; se non si apre, riprova."
+    fine_in_corso
+    [ -n "$SENZA_DIALOGHI" ] || open "$indirizzo"
+    dialogo "PRONTO!\n\nL'applicazione è aperta nel browser all'indirizzo:\n$indirizzo\n\nPrimo accesso:\nemail: amministratore@scuola.test\npassword: password\nDopo l'accesso cambia la password dalla voce Utenze.\n\nDagli altri computer della scuola: http://INDIRIZZO-DI-QUESTO-COMPUTER:$(porta)\n\nPuoi chiudere questa finestra: l'applicazione resta attiva." "Chiudi" "Apri di nuovo" | grep -q "Apri di nuovo" && open "$indirizzo"
+}
+
+ferma() {
+    in_corso "Spegnimento in corso..."
+    if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
+        fine_in_corso; dialogo "Docker non è acceso: l'applicazione risulta già spenta." "Chiudi" >/dev/null; return
+    fi
+    docker compose down >>"$LOG" 2>&1 || errore "Non sono riuscito a spegnere l'applicazione. Chiudi Docker Desktop per fermarla."
+    fine_in_corso
+    dialogo "Applicazione spenta. I dati sono al sicuro e ci saranno al prossimo avvio." "Chiudi" >/dev/null
+}
+
+aggiorna() {
+    [ -d web ] || errore "Questa non sembra la cartella di Orario Scuola: non cambio nulla."
+    in_corso "Aggiornamento in corso: scarico l'ultima versione e ricostruisco l'applicazione. Ci vogliono alcuni minuti."
+    [ -n "${ORARIO_TEST_SENZA_DOCKER:-}" ] || serve_docker
+    local tmp; tmp="$(mktemp -d)"
+    curl -fsSL "$ZIP" -o "$tmp/p.zip" >>"$LOG" 2>&1 && unzip -q "$tmp/p.zip" -d "$tmp" >>"$LOG" 2>&1 || errore "Download non riuscito: controlla la connessione."
+    # Prima si scarica e si scompatta tutto, solo poi si allinea la cartella (--delete toglie i file non più nel progetto).
+    rsync -a --delete --exclude .env --exclude .git --exclude /web/vendor --exclude /web/node_modules --exclude /web/storage --exclude /web/solver/.venv \
+        "$tmp"/orario-scuola-*/ ./ >>"$LOG" 2>&1 || errore "Allineamento dei file non riuscito."
+    rm -rf "$tmp"
+    [ -n "${ORARIO_TEST_SENZA_DOCKER:-}" ] || docker compose up -d --build >>"$LOG" 2>&1 || errore "Ricostruzione non riuscita."
+    fine_in_corso
+    dialogo "Aggiornato alla versione $(cat VERSION).\n\nI dati non sono stati toccati." "Chiudi" >/dev/null
+}
+
+# ---------- avvio ----------
+
+PROGETTO="$(cartella_progetto)" || { dialogo "Non trovo la cartella di Orario Scuola." "Chiudi" >/dev/null; exit 1; }
+cd "$PROGETTO" || exit 1
+
+SCELTA="${ORARIO_AZIONE:-}"
+if [ -z "$SCELTA" ]; then
+    SCELTA="$(dialogo "Cosa vuoi fare?\n\nAvvia: accende l'applicazione e la apre nel browser.\nAggiorna: scarica l'ultima versione.\nFerma: spegne l'applicazione (i dati restano)." "Ferma" "Aggiorna" "Avvia")"
+fi
+case "$(echo "$SCELTA" | tr '[:upper:]' '[:lower:]')" in
+    avvia) avvia ;;
+    aggiorna) aggiorna ;;
+    ferma) ferma ;;
+esac
+exit 0

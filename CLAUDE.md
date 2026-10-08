@@ -44,7 +44,7 @@ php artisan queue:work          # necessario per la generazione; l'app lo avvia/
 # tutto su Docker (dalla radice: app + database + worker, con la scuola di esempio): http://localhost:8080
 docker compose up -d --build
 docker compose down -v          # ferma e cancella i dati
-# per chi non è sviluppatore: doppio clic su Avvia-Orario-Scuola-Windows.bat (Windows) o Avvia-Orario-Scuola-Mac.command (Mac); istruzioni nel README
+# per chi non è sviluppatore: doppio clic su WIN-Orario-Scuola.bat (Windows) o MAC-Orario-Scuola.app (Mac): una finestra con tre pulsanti (Avvia, Aggiorna, Ferma); istruzioni nel README
 
 # test (da web/)
 php artisan test
@@ -61,7 +61,7 @@ Se un comando non esiste ancora o cambia, aggiorna questa sezione.
 
 ```
 README.md, CLAUDE.md, AGENTS.md, VERSION, LICENSE          # nella radice: pochi file, per chi installa e per chi sviluppa
-Avvia-/Ferma-/Aggiorna-Orario-Scuola-Windows.bat|-Mac.command   # launcher a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes)
+WIN-Orario-Scuola.bat, MAC-Orario-Scuola.app, risorse/   # avviatori a doppio clic per chi non è sviluppatore (.bat con fine riga CRLF: vedi .gitattributes; risorse/ = icone). Il .bat contiene uno script PowerShell (dopo la riga `#PS#`) con una finestra WinForms; la .app (cartella di file di testo, `Contents/MacOS/orario-scuola` è un bash con finestre `osascript`) cerca la cartella del progetto accanto a sé o in `~/Library/Application Support/Orario Scuola/percorso`. Variabili per le prove della .app: `ORARIO_AZIONE`, `ORARIO_SENZA_DIALOGHI`, `ORARIO_ZIP`, `ORARIO_PROGETTO`, `ORARIO_TEST_SENZA_DOCKER`. **Non lanciare «Aggiorna» sulla cartella di lavoro**: allinea tutto a GitHub e cancella ciò che non è lì
 Dockerfile, compose.yaml, docker/         # avvio con Docker; docker/ = entrypoint, Caddyfile e script di avvio del container
 docs/
   analisi-orario-scuola-media.md   # specifica funzionale (fonte di verità)

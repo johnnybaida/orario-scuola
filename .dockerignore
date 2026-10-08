@@ -6,6 +6,8 @@ web/.env
 !.env.example
 *.bat
 *.command
+MAC-Orario-Scuola.app
+risorse
 *.log
 **/__pycache__
 .pytest_cache

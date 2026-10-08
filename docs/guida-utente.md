@@ -52,7 +52,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 
 ### Sedi
 
-In alto, a sinistra dei pulsanti, vedi sempre la **sede** in cui stai lavorando. Se l'istituto ha **più sedi** diventa un menu **Sede**: scegli la sede in cui lavorare. Ogni sede ha i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; tutte le pagine mostrano e salvano solo i dati della sede scelta. L'ultima sede usata viene ricordata. Una persona che lavora in due sedi ha una scheda docente per ciascuna. Ogni elemento nasce nella sede in cui stai lavorando; lo stesso codice disciplina, la stessa sezione o la stessa email possono esistere in sedi diverse. **Una sede appena creata è vuota**: nella pagina *Scansione oraria* trovi il pulsante **Crea la scansione standard**, poi inserisci aule, discipline, quadri orari, docenti e classi. L'ultima sede non si può eliminare.
+In alto, a sinistra dei pulsanti, vedi sempre la **sede** in cui stai lavorando. Se l'istituto ha **più sedi** diventa un menu **Sede**: scegli la sede in cui lavorare. Ogni sede ha i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; tutte le pagine mostrano e salvano solo i dati della sede scelta. L'ultima sede usata viene ricordata. Una persona che lavora in due sedi ha una scheda docente per ciascuna. Ogni elemento nasce nella sede in cui stai lavorando; lo stesso codice disciplina, la stessa sezione o la stessa email possono esistere in sedi diverse. **Una sede appena creata è vuota**: nella pagina *Scansione oraria* trovi il pulsante **Crea la scansione standard**, poi inserisci aule, discipline, quadri orari, docenti e classi. L'ultima sede non si può eliminare. Eliminare una sede elimina anche tutto ciò che contiene: l'avviso te lo elenca con i numeri e chiede una seconda conferma.
 
 **Copiare da un'altra sede.** Per non ripartire da zero, nelle pagine *Scansione oraria*, *Discipline*, *Quadri orari*, *Aule* e *Vincoli*, se l'area è **vuota** nella sede in cui lavori e un'altra sede ha dei dati, compare un riquadro azzurro: scegli la sede e premi **Copia**. Si copia solo su un'area vuota. Cosa viene copiato: la scansione oraria con le impostazioni (durata dell'ora, sostegno), le discipline (con le discipline padre), i quadri orari, le aule (con piano e capienza) e i vincoli **per tutte le classi e i docenti**. L'ordine conta: i **quadri** richiedono le stesse discipline (copiale prima); i **vincoli** su una disciplina o su certe ore richiedono le stesse discipline e la stessa scansione, altrimenti vengono saltati e ti viene detto quali. Docenti, classi, cattedre e vincoli di classi o docenti specifici non si copiano. Ogni copia è un solo rigo nel registro attività.
 
@@ -241,7 +241,7 @@ I **laboratori pomeridiani** (per esempio Latino) sono attività **fuori dal mon
 - **Attivo**: se tolto, il laboratorio resta salvato ma non occupa nessuno.
 
 <!-- permesso: gestisci-anagrafica -->
-Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. Amministratore e referente orario.
+Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. I laboratori sono della sede in cui stai lavorando. Amministratore e referente orario.
 <!-- /permesso -->
 
 **Effetti**
@@ -629,7 +629,7 @@ Campi di un'utenza:
 - **Nome**: come viene mostrato nell'applicazione.
 - **Email**: è il nome utente per accedere; deve essere unica.
 - **Ruolo**: cosa può fare (vedi tabella).
-- **Docente collegato**: solo per il ruolo Docente, collega l'accesso alla sua scheda.
+- **Docente collegato**: solo per il ruolo Docente, collega l'accesso alla sua scheda. L'elenco mostra i docenti della sede in cui stai lavorando: per collegare un account a un docente di un'altra sede, cambia prima sede.
 - **Password**: almeno 8 caratteri. In modifica, lasciandola vuota, quella esistente non cambia.
 
 Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
@@ -639,7 +639,7 @@ Non puoi eliminare la tua utenza né toglierti il ruolo di amministratore.
 
 Questa pagina, riservata all'**amministratore**, serve a fare un **backup** dei dati della scuola o a **trasferirli** su un'altra installazione. Il registro delle attività e le **utenze** (account e password) non sono compresi: gli account si creano e si gestiscono da *Utenze* su ciascuna installazione.
 
-- **Esporta:** spunta le tabelle che vuoi (di norma tutte) e premi **Scarica lo ZIP**. Il file contiene un JSON per tabella: custodiscilo comunque con cura, ha tutti i dati della scuola.
+- **Esporta:** spunta le tabelle che vuoi (di norma tutte) e premi **Scarica lo ZIP**. Il file contiene un JSON per tabella e comprende **tutte le sedi** (l'esportazione non dipende dalla sede in cui stai lavorando; i CSV invece sì): custodiscilo comunque con cura, ha tutti i dati della scuola.
 - **Importa:** carica uno ZIP esportato da Orario Scuola. Nel passo successivo vedi cosa contiene e scegli le tabelle da importare; le tabelle spuntate vengono **sostituite** con quelle dell'archivio. Prima di sostituire ti conviene scaricare un backup dei dati attuali. L'import avviene in un colpo solo: se qualcosa non va, **non cambia nulla**.
 - **Tabelle collegate:** molte tabelle dipendono da altre (le cattedre da docenti, classi e discipline, per esempio). Se importi solo una parte e i riferimenti non tornano, l'import si ferma con un messaggio che dice cosa manca: in quel caso importa anche le tabelle collegate, o tutte.
 - **Limiti:** l'archivio deve venire da questa versione o da una precedente; se viene da una più recente, aggiorna prima l'installazione. L'import non parte se c'è una generazione in corso. Chi aveva creato un orario o una generazione nell'archivio, se non esiste su questa installazione, resta senza autore; un account collegato a un docente che l'archivio non contiene perde il collegamento.
@@ -663,7 +663,7 @@ Il **Registro attività** (menu, per il dirigente scolastico e l'amministratore)
 In fondo alla barra laterale, sotto il tuo nome, compare la **versione** installata (per esempio *Versione 0.1.0*). Se nel progetto su GitHub il numero di versione (il file `VERSION` del ramo principale) è **più alto** di quello installato, **l'amministratore** vede in alto a destra, accanto al pulsante **Aiuto**, un pulsante giallo lampeggiante «Disponibile la versione X»: cliccandolo si apre la pagina del progetto. Non servono tag né release: basta che il file `VERSION` online sia aggiornato.
 
 - Il controllo è l'**unica connessione verso l'esterno** dell'applicazione: legge il file `VERSION` pubblico del progetto, non invia alcun dato della scuola, avviene quando **apri la dashboard** (quindi a ogni accesso), senza memorizzare nulla e, se manca la rete, semplicemente non succede nulla. Il pulsante resta visibile nelle altre pagine fino alla fine della sessione; se esce una versione mentre sei già collegato, lo vedi alla prossima apertura della dashboard (GitHub può impiegare qualche minuto a pubblicare il file).
-- Per **aggiornare**: fai doppio clic su `Aggiorna-Orario-Scuola-Windows.bat` (Windows) o `Aggiorna-Orario-Scuola-Mac.command` (Mac) nella cartella del programma, con Docker acceso. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. La cartella del programma viene allineata alla nuova versione (i file che non esistono più vengono cancellati): non tenerci dentro file tuoi. Poi ricarica la pagina.
+- Per **aggiornare**: apri `WIN-Orario-Scuola.bat` (Windows) o `MAC-Orario-Scuola.app` (Mac) nella cartella del programma, con Docker acceso, e premi **Aggiorna**. Scarica da GitHub l'ultima versione (non serve Git) e ricostruisce l'applicazione: ci vuole qualche minuto e i dati nel database restano. La cartella del programma viene allineata alla nuova versione (i file che non esistono più vengono cancellati): non tenerci dentro file tuoi. Poi ricarica la pagina.
 - Per **disattivare** il controllo, chi gestisce l'installazione imposta `CONTROLLO_AGGIORNAMENTI=false` nel file di configurazione.
 
 ## Consigli d'uso

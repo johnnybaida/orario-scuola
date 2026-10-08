@@ -13,7 +13,11 @@ CHANGELOG.md export-ignore
 # Fine riga fissa: i file .bat devono avere CRLF per funzionare su Windows; gli script per Linux/Mac e quelli
 # copiati nell'immagine Docker devono avere LF (con CRLF "#!/bin/sh^M" non parte il container).
 *.bat text eol=crlf
-*.command text eol=lf
+MAC-Orario-Scuola.app/Contents/MacOS/* text eol=lf
+MAC-Orario-Scuola.app/Contents/Info.plist text eol=lf
+*.ico binary
+*.icns binary
+*.png binary
 *.sh text eol=lf
 docker/** text eol=lf
 Dockerfile text eol=lf
