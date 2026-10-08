@@ -129,6 +129,8 @@ Regole:
 
 Varianti da supportare come template distinti:
 - **Tempo prolungato** (36h, fino a 40h): ore aggiuntive di lettere/matematica + **mensa** (slot di mensa con assistenza docente, conteggiata nel servizio).
+
+> **Implementazione.** La mensa è una *pausa con nome* della scansione oraria (campo «Nome della pausa»: la pausa lunga prima dei rientri; l'hanno le classi con ore dopo di essa). I docenti che assistono si indicano a mano per giorno e pausa nella scheda del docente (tabella `assistenze_pausa`, anagrafica, uguale per tutti gli orari); conta come ore di servizio a parte nel carico dei docenti. L'assegnazione automatica da parte del solver (C3) non è realizzata.
 - **Inglese potenziato**.
 - **Indirizzo musicale**: ore di strumento/teoria/musica d'insieme per gruppi, anche pomeridiane.
 - **LEL (Latino)**: +1h opzionale per classi 2ª e 3ª dal 2026/27.
@@ -374,7 +376,7 @@ Requisiti comuni a ogni opzione:
 | F1 | Lezione fissata in uno slot (bloccata) |
 | F2 | Slot vietato per una classe |
 
-> **Implementazione.** Realizzati D1 (conteggia i *giorni* con almeno un blocco, non i blocchi), D3, D6 (*preferita* = la disciplina va solo negli slot indicati, ogni lezione fuori conta come violazione), T2 e T3; l'indisponibilità (T1) è una funzione dell'anagrafica docente. **C5** (spostamenti tra piani) è realizzato: aule e classi hanno un *piano* facoltativo (0 = terra); il piano di una lezione è quello dell'aula assegnata, altrimenti quello della classe, e le lezioni senza piano non contano; per ogni classe e per ogni coppia di ore consecutive dello stesso giorno si penalizza (preferenziale, peso) o si vieta (rigido) il salto di piani oltre una soglia (parametro `soglia`, default 0). Ambiti consentiti: D1/D3/D6 globale o classe; C5 globale o classe; T2/T3 globale o docente. Gli altri vincoli del catalogo non sono realizzati.
+> **Implementazione.** Realizzati D1 (conteggia i *giorni* con almeno un blocco, non i blocchi), D3, D6 (*preferita* = la disciplina va solo negli slot indicati, ogni lezione fuori conta come violazione), T2 e T3; l'indisponibilità (T1) è una funzione dell'anagrafica docente. **C5** (spostamenti tra piani) è realizzato: aule e classi hanno un *piano* facoltativo (0 = terra); il piano di una lezione è quello dell'aula assegnata, altrimenti quello della classe, e le lezioni senza piano non contano; per ogni classe e per ogni coppia di ore consecutive dello stesso giorno si penalizza (preferenziale, peso) o si vieta (rigido) il salto di piani oltre una soglia (parametro `soglia`, default 0). Ambiti consentiti: D1 globale, classe o docente (per i docenti la disciplina è facoltativa: senza, il blocco conta su tutte le lezioni del docente), D3/D6 globale o classe; C5 globale o classe; T2/T3 globale o docente. Gli altri vincoli del catalogo non sono realizzati.
 
 ### 8.3 Rappresentazione (esempio JSON)
 

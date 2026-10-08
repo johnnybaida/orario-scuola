@@ -8,6 +8,7 @@ use App\Models\Docente;
 use App\Models\Sede;
 use App\Models\Classe;
 use App\Models\Slot;
+use App\Services\AssistenzaPause;
 use App\Services\SincronizzaRighe;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,14 +47,22 @@ class DocenteController extends Controller
         return redirect()->route('docenti.edit', $docente)->with('successo', 'Docente creato.');
     }
 
-    public function edit(Docente $docente): View
+    public function edit(Docente $docente, AssistenzaPause $assistenza): View
     {
+        $docente->load('assistenzePausa');
+        $indisponibili = $docente->indisponibilita()->pluck('slot.id');
         return view('docenti.edit', [
             'docente' => $docente->load('classiConcorso', 'sedi', 'indisponibilita', 'sospensioni.supplenti'),
             'sospensioni' => $docente->sospensioni->map(fn ($s) => [
                 'id' => $s->id, 'dal' => $s->dal->format('Y-m-d'), 'al' => $s->al?->format('Y-m-d'),
                 'motivo' => $s->motivo, 'esclude_da_orario' => $s->esclude_da_orario, 'note' => $s->note,
                 'supplenti' => $s->supplenti->pluck('id')->all(),
+            ])->all(),
+            'pause' => $assistenza->pause(),
+            'assistenze' => $docente->assistenzePausa->map(fn ($a) => [
+                'id' => $a->id, 'giorno' => $a->giorno, 'ordine' => $a->ordine,
+                'avviso' => ! $assistenza->pause()->has($a->ordine) ? 'Questa pausa non c\'è più nella scansione oraria.'
+                    : (Slot::query()->where('giorno', $a->giorno)->whereNotIn('id', $indisponibili)->doesntExist() ? 'Il docente è indisponibile tutto il giorno.' : null),
             ])->all(),
             'docentiSupplenti' => Docente::query()->whereKeyNot($docente->id)->orderBy('cognome')->orderBy('nome')->get(),
             'sedi' => Sede::query()->orderBy('nome')->get(),
@@ -69,13 +78,19 @@ class DocenteController extends Controller
 
     public function update(DocenteRequest $request, Docente $docente): RedirectResponse
     {
+        $assistenze = $request->input('assistenze', []);
+        if ($request->boolean('assistenze_inviate')) {
+            Gate::authorize('gestisci-anagrafica');
+            SincronizzaRighe::controllaUnivoche($assistenze, ['giorno', 'ordine'], 'assistenze', 'Assistenza duplicata: stesso giorno e stessa pausa.');
+        }
+
         $cattedre = $request->input('cattedre', []);
         if ($request->boolean('cattedre_inviate')) {
             Gate::authorize('gestisci-anagrafica');
             SincronizzaRighe::controllaUnivoche($cattedre, ['classe_id', 'disciplina_id'], 'cattedre', 'Cattedra duplicata: stessa classe e disciplina.');
         }
 
-        DB::transaction(function () use ($request, $docente, $cattedre) {
+        DB::transaction(function () use ($request, $docente, $cattedre, $assistenze) {
             $this->salva($docente, $request);
 
             if ($request->boolean('sezioni_extra')) {
@@ -85,6 +100,9 @@ class DocenteController extends Controller
                 $righe = array_map(fn ($r) => ['al' => $r['al'] ?: null, 'note' => $r['note'] ?: null] + $r, $request->input('sospensioni', []));
                 SincronizzaRighe::applica($docente->sospensioni(), $righe, ['dal', 'al', 'motivo', 'esclude_da_orario', 'note'],
                     fn ($sospensione, $riga) => $sospensione->supplenti()->sync($riga['supplenti'] ?? []));
+            }
+            if ($request->boolean('assistenze_inviate')) {
+                SincronizzaRighe::applica($docente->assistenzePausa(), $assistenze, ['giorno', 'ordine']);
             }
             if ($request->boolean('cattedre_inviate')) {
                 SincronizzaRighe::applica($docente->cattedre(), $cattedre, ['classe_id', 'disciplina_id', 'ore', 'compresenza']);

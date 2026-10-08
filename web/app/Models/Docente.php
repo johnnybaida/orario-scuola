@@ -52,6 +52,11 @@ class Docente extends Model
         return $this->sospensioni->first(fn (Sospensione $s) => $s->attivaIl($data));
     }
 
+    public function assistenzePausa(): HasMany
+    {
+        return $this->hasMany(AssistenzaPausa::class)->orderBy('giorno')->orderBy('ordine');
+    }
+
     public function cattedre(): HasMany
     {
         return $this->hasMany(Cattedra::class);

@@ -50,7 +50,7 @@ class ListeCsv
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'classe_sede', 'disciplina', 'ore', 'compresenza']],
         'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti'],
+            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa'],
             'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. Se c\'è un errore non cambia nulla.'],
         'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali'],
@@ -71,7 +71,7 @@ class ListeCsv
                 ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->sede->nome, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano]),
             // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
             'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
-                ->map(fn ($s) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti]),
+                ->map(fn ($s) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]),
             // Una riga per disciplina del quadro (un quadro senza righe compare con le ultime due colonne vuote).
             'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
                 ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
@@ -121,6 +121,9 @@ class ListeCsv
         }
         if (in_array($lista, ['aule', 'classi'], true)) {
             $mancanti = array_diff($mancanti, ['piano']); // facoltativa: i file più vecchi non l'hanno
+        }
+        if ($lista === 'scansione') {
+            $mancanti = array_diff($mancanti, ['nome_pausa']); // facoltativa: i file più vecchi non l'hanno
         }
         if ($lista === 'quadri-orari') {
             $mancanti = array_diff($mancanti, ['ore_totali']);
@@ -191,7 +194,7 @@ class ListeCsv
             }
             $ore[$ora] = [
                 'inizio' => preg_replace('/^(\d):/', '0$1:', (string) $r['inizio']), 'fine' => preg_replace('/^(\d):/', '0$1:', (string) $r['fine']),
-                'ricreazione' => $r['ricreazione_minuti'],
+                'ricreazione' => $r['ricreazione_minuti'], 'nome' => $r['nome_pausa'] ?? null,
             ];
         }
         if ($esito['errori']) {

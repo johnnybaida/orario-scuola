@@ -90,6 +90,7 @@ La scansione oraria definisce **a che ora inizia e finisce ogni ora di lezione**
 - **Ora**: 1ª–9ª (le ore 7ª–9ª sono quelle del pomeriggio).
 - **Inizio** e **Fine**: gli orari dell'ora. Le ore non possono sovrapporsi e ognuna deve finire dopo il suo inizio. La **durata** si calcola da sola.
 - **Ricreazione dopo (minuti)**: per le ore seguite da una ricreazione scrivi **quanti minuti dura**; lascia vuoto dove non ce n'è. Puoi averne quante ne servono, ciascuna di durata diversa (per esempio 10 minuti dopo la 3ª ora e 15 dopo la 5ª). La ricreazione **parte dalla fine di quell'ora** e accanto compare l'orario calcolato (es. 10:30–10:40). L'ora successiva deve iniziare **non prima** della fine della ricreazione: se tra le due ore resta altro tempo libero, quello non è una ricreazione e nei PDF non compare. Svuotando il campo la ricreazione si toglie. **Mentre scrivi i minuti, l'inizio dell'ora successiva si sposta da solo** (e con lui le ore che la seguono nella stessa mattinata): lo stesso succede se cambi la **Fine** di un'ora. Le ore del pomeriggio, separate da una pausa lasciata a mano, non si toccano; puoi sempre ritoccare gli orari dopo lo spostamento.
+- **Nome della pausa**: facoltativo, accanto ai minuti. Scrivi per esempio **Mensa** per la pausa lunga prima dei rientri pomeridiani; se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF al posto di «Ricreazione». Hanno la mensa le classi che hanno ore dopo quella pausa (i rientri pomeridiani).
 
 <!-- permesso: gestisci-anagrafica -->
 Modifica gli orari e salva una volta sola con il pulsante in basso a destra. Un errore ti dice quale ora non torna (per esempio un'ora che inizia prima della fine della ricreazione che la precede).
@@ -97,7 +98,7 @@ Modifica gli orari e salva una volta sola con il pulsante in basso a destra. Un 
 
 Con **Esporta CSV** (in alto) scarichi la scansione in un file e con **Importa CSV** la carichi da un file, per esempio su un'altra installazione; vedi *Esporta e importa CSV* in *Per iniziare*.
 
-Gli orari delle ore e le ricreazioni compaiono nei **PDF**: nelle griglie di classe e di docente come orario accanto a ogni ora e come riga «Ricreazione 10:30-10:40 (10 minuti)» al posto giusto; nel tabellone generale in una riga di legenda in fondo.
+Gli orari delle ore e le ricreazioni compaiono nei **PDF**: nelle griglie di classe e di docente come orario accanto a ogni ora e come riga «Ricreazione 10:30-10:40 (10 minuti)» (o con il nome che hai dato alla pausa, per esempio «Mensa») al posto giusto; nel tabellone generale in una riga di legenda in fondo.
 
 ## Discipline
 <!-- sezione: consulta -->
@@ -162,6 +163,8 @@ Nella pagina del docente puoi anche:
 - gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa ambra se non coincide.
 
 **Come funziona la sospensione.** Spuntando **Escludi dall'orario** (è già spuntato di norma), finché la sospensione è in corso il docente **non può avere cattedre**: i controlli prima di generare lo segnalano con un link alla sua scheda e **la generazione non parte** finché non riassegni le sue cattedre a un **supplente** (un altro docente, per esempio con contratto *Supplenza breve*) dalla pagina **Cattedre** o dalla scheda del docente, oppure non chiudi la sospensione. Togli la spunta per un'assenza **breve** che non deve cambiare l'orario base: in quel caso viene solo registrata. Sospensioni già finite o non ancora iniziate non bloccano nulla. La proposta automatica dei sostituti per i giorni di assenza arriverà con la gestione di assenze e sostituzioni.
+
+**Assistenza alle pause (mensa).** Sotto le sospensioni, la sezione **Assistenza alle pause** indica quando il docente **sorveglia gli alunni** durante una pausa, per esempio la mensa: per ogni riga scegli il **giorno** e la **pausa** (tra quelle definite in *Scansione oraria*, con il loro nome e orario). Vale per tutti gli orari: non dipende da una generazione e non cambia con le versioni. Compare sotto l'orario del docente, nei PDF del docente («Assistenza alle pause») e nel **carico dei docenti** della dashboard (minuti di assistenza, ore di servizio a parte: non toccano le ore dovute di cattedra). Un avviso segnala se il docente è indisponibile tutto quel giorno. La modificano amministratore e referente orario.
 
 **Supplenti.** Nella riga della sospensione puoi indicare **uno o più supplenti** spuntandoli nell'elenco dei docenti (scorri l'elenco se è lungo). Dopo aver salvato, **Gestisci sostituzione** apre la pagina dove le cattedre del titolare passano ai supplenti con un clic: per ogni cattedra scegli il supplente (con un solo supplente passano tutte insieme). Le lezioni dell'orario restano le stesse e le eredita il supplente. I controlli prima di generare ti rimandano a quella pagina finché le cattedre non sono state passate. Quando il titolare rientra, **Riporta al titolare** rimette a lui le cattedre; se la sospensione è finita e le cattedre sono ancora ai supplenti, i controlli prima di generare te lo ricordano. Togliendo la sospensione dalla scheda le cattedre tornano al titolare da sole. La sostituzione la gestiscono l'amministratore e il referente orario.
 
@@ -234,9 +237,11 @@ I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema s
 - **Attivo**: se tolto, il vincolo resta salvato ma non viene considerato.
 - **Nota**: promemoria libero.
 
+Nell'elenco dei vincoli la colonna **Disciplina** mostra la disciplina a cui si riferisce (D1, D3, D6), «Tutte» se il vincolo vale per ogni disciplina (D1 con Ambito Docente) e «—» per i tipi che non ne hanno.
+
 Tipi disponibili:
 
-- **Blocco consecutivo minimo (D1)**: una disciplina in blocchi di almeno N ore consecutive. Campi: disciplina, *min ore consecutive* (2–6), *n. blocchi minimi* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
+- **Blocco consecutivo minimo (D1)**: una disciplina (o, con Ambito *Docente*, le lezioni dei docenti scelti) in blocchi di almeno N ore consecutive. Campi: disciplina (facoltativa **solo con Ambito Docente**: lasciando «Qualsiasi disciplina» contano tutte le lezioni del docente, in qualunque classe e materia), *min ore consecutive* (2–6), *n. blocchi minimi* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
 - **Max ore/giorno per disciplina (D3)**: limite di ore al giorno della stessa disciplina. Campi: disciplina, *max ore/giorno*.
 - **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: disciplina, *tipo fascia* (vietata/preferita), gli *slot* interessati, indicati con giorno e ora (LUN-1ª, MAR-3ª, ...).
 - **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
@@ -277,6 +282,20 @@ In ogni classe il generatore cerca di avere almeno un giorno con due ore di Arte
 | Severità | Rigido |
 
 Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione risulta infattibile.
+
+*Alcuni docenti con almeno un blocco di due ore di fila, di qualunque materia.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Blocco consecutivo minimo (D1) |
+| Ambito | Docente |
+| Docenti | i docenti interessati (anche più d'uno) |
+| Disciplina | Qualsiasi disciplina |
+| Min ore consecutive | 2 |
+| N. blocchi minimi | 1 |
+| Severità | Rigido |
+
+Per ciascun docente scelto, in almeno un giorno della settimana ci sono due sue lezioni consecutive, anche in classi o materie diverse. Se indichi una disciplina contano solo le sue lezioni di quella disciplina.
 
 **Max ore/giorno per disciplina (D3)**
 

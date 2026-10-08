@@ -129,8 +129,8 @@ class ProblemBuilder
         return Vincolo::attivi()->get()->map(function (Vincolo $v) {
             // i form salvano i numeri come stringhe: il solver li vuole int
             $parametri = array_map(fn ($p) => is_string($p) && preg_match('/^-?\d+$/', $p) ? (int) $p : $p, $v->parametri ?? []);
-            if (isset($parametri['disciplina_id'])) {
-                $parametri['disciplina'] = Disciplina::query()->find($parametri['disciplina_id'])?->codice;
+            if (array_key_exists('disciplina_id', $parametri)) {
+                $parametri['disciplina'] = $parametri['disciplina_id'] ? Disciplina::query()->find($parametri['disciplina_id'])?->codice : null;
                 unset($parametri['disciplina_id']);
             }
 

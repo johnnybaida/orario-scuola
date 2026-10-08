@@ -8,6 +8,7 @@ use App\Models\Docente;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
+use App\Services\AssistenzaPause;
 use App\Services\Editor\SpostamentiAula;
 use App\Support\ColoriDiscipline;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -76,7 +77,8 @@ class OrarioPdfExporter
         $docenti ??= Docente::query()->whereIn('id', $lezioni->keys()->merge($compresenze->keys())->unique())
             ->orderBy('cognome')->orderBy('nome')->get();
 
-        $fogli = $docenti->map(function (Docente $docente) use ($lezioni, $compresenze) {
+        $assistenza = app(AssistenzaPause::class);
+        $fogli = $docenti->map(function (Docente $docente) use ($lezioni, $compresenze, $assistenza) {
             $sue = ($lezioni[$docente->id] ?? collect())->keyBy('slot_id');
             $sostegni = ($compresenze[$docente->id] ?? collect());
 
@@ -86,6 +88,7 @@ class OrarioPdfExporter
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
+                'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
             ];
         })->all();
 
@@ -158,7 +161,7 @@ class OrarioPdfExporter
             return $ora ? [
                 'ordine' => $ordine, 'inizio' => substr($ora->inizio, 0, 5), 'fine' => substr($ora->fine, 0, 5),
                 'ricreazione' => $ora->fineRicreazione() && $prossima
-                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti] : null,
+                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa())] : null,
             ] : null;
         })->filter()->values()->all();
 

@@ -68,9 +68,12 @@ class DashboardController extends Controller
     /** Docenti con ore assegnate (cattedre + sostegno) diverse dalle ore dovute, i più sbilanciati per primi. */
     private function caricoDocenti()
     {
-        return Docente::query()->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')->get()
+        $assistenza = app(\App\Services\AssistenzaPause::class);
+
+        return Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')->get()
             ->map(fn (Docente $d) => [
                 'docente' => $d,
+                'assistenza' => $assistenza->minuti($d),
                 'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore,
                 'dovute' => $d->ore_dovute,
             ])

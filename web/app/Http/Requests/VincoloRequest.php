@@ -39,4 +39,21 @@ class VincoloRequest extends FormRequest
 
         return $regole;
     }
+
+    /** Controlli che dipendono dall'ambito (es. D1: la disciplina è facoltativa solo per i docenti). */
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $validator->after(function ($v) {
+            $tipo = $this->input('tipo');
+            if ($v->errors()->isNotEmpty() || ! array_key_exists($tipo, Catalogo::TIPI)) {
+                return;
+            }
+            $istanza = Catalogo::istanza($tipo);
+            if (method_exists($istanza, 'erroriAmbito')) {
+                foreach ($istanza->erroriAmbito((string) $this->input('ambito_livello'), (array) $this->input('parametri', [])) as $campo => $messaggio) {
+                    $v->errors()->add($campo, $messaggio);
+                }
+            }
+        });
+    }
 }

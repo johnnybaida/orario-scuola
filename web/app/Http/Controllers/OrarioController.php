@@ -106,6 +106,7 @@ class OrarioController extends Controller
             'problemi' => $controllo->perDocente($problemi, $docente->id),
             'problemiPerLezione' => $controllo->mappaPerLezione($problemi),
             'classiOrario' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->keyBy('id'),
+            'assistenze' => app(\App\Services\AssistenzaPause::class)->elenco($docente->load('assistenzePausa')),
         ] + $this->datiModifica($orario, $servizio));
     }
 

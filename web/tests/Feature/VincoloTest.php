@@ -36,6 +36,30 @@ class VincoloTest extends TestCase
         $this->assertDatabaseHas('vincoli', ['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'severita' => 'rigido']);
     }
 
+    public function test_d1_per_i_docenti_non_richiede_la_disciplina_ma_per_gli_altri_ambiti_si(): void
+    {
+        $d1 = $this->referente();
+        $docenti = Docente::factory()->count(2)->create();
+        $base = ['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'severita' => 'rigido', 'parametri' => ['min_consecutive' => 2]];
+
+        $this->actingAs($d1)->post('/vincoli', $base + ['ambito_livello' => 'docente', 'ambito_ids' => $docenti->pluck('id')->all()])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('vincoli', ['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'ambito_livello' => 'docente']);
+
+        $this->post('/vincoli', $base + ['ambito_livello' => 'globale'])->assertSessionHasErrors('parametri.disciplina_id');
+        $this->post('/vincoli', $base + ['ambito_livello' => 'classe', 'ambito_ids' => [Classe::factory()->create()->id]])->assertSessionHasErrors('parametri.disciplina_id');
+    }
+
+    public function test_l_elenco_mostra_la_disciplina_del_vincolo(): void
+    {
+        $disciplina = Disciplina::factory()->create(['nome' => 'Arte e immagine']);
+        Vincolo::factory()->create(['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'globale', 'parametri' => ['disciplina_id' => $disciplina->id, 'max' => 1]]);
+        Vincolo::factory()->create(['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'ambito_livello' => 'docente', 'ambito_ids' => [], 'parametri' => ['disciplina_id' => null, 'min_consecutive' => 2]]);
+        Vincolo::factory()->create(['tipo' => 'T3_MAX_ORE_BUCHE', 'ambito_livello' => 'globale', 'parametri' => ['max_per_giorno' => 1]]);
+
+        $this->actingAs($this->referente())->get('/vincoli')->assertOk()
+            ->assertSee('Disciplina</th>', false)->assertSee('Arte e immagine')->assertSee('Tutte');
+    }
+
     public function test_d1_rifiuta_min_consecutive_sotto_la_soglia(): void
     {
         $disciplina = Disciplina::factory()->create();

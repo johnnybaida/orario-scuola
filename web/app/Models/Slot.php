@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti'])]
+#[Fillable(['giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome'])]
 class Slot extends Model
 {
     use HasFactory;
@@ -34,6 +34,12 @@ class Slot extends Model
     public static function minutiTra(string $da, string $a): int
     {
         return (int) \Carbon\Carbon::createFromTimeString($da)->diffInMinutes(\Carbon\Carbon::createFromTimeString($a), false);
+    }
+
+    /** Nome della pausa che segue quest'ora: quello scelto in Scansione oraria (es. «Mensa») o «Ricreazione». */
+    public function nomePausa(): string
+    {
+        return $this->ricreazione_nome ?: 'Ricreazione';
     }
 
     /** Fine della ricreazione che segue quest'ora ("H:i"), null se non ce n'è. */

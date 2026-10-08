@@ -37,6 +37,7 @@
                     @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
                     <th class="px-4 py-2">Tipo</th>
                     <th class="px-4 py-2">Ambito</th>
+                    <th class="px-4 py-2">Disciplina</th>
                     <th class="px-4 py-2">Severità</th>
                     <th class="px-4 py-2">Peso</th>
                     <th class="px-4 py-2">Attivo</th>
@@ -49,6 +50,13 @@
                         @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('vincoli.destroy', $vincolo) }}" aria-label="Seleziona"></td>@endcan
                         <td class="px-4 py-2">{{ $etichette[$vincolo->tipo] ?? $vincolo->tipo }}</td>
                         <td class="px-4 py-2">{{ $vincolo->ambito_livello }}</td>
+                        <td class="px-4 py-2">
+                            @if (! array_key_exists('disciplina_id', $vincolo->parametri ?? []))
+                                <span class="text-gray-400">—</span>
+                            @else
+                                {{ $discipline[$vincolo->parametri['disciplina_id'] ?? null] ?? 'Tutte' }}
+                            @endif
+                        </td>
                         <td class="px-4 py-2">{{ $vincolo->severita }}</td>
                         <td class="px-4 py-2">{{ $vincolo->peso }}</td>
                         <td class="px-4 py-2">{{ $vincolo->attivo ? 'Sì' : 'No' }}</td>

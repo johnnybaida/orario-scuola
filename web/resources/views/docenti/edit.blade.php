@@ -19,6 +19,7 @@
         <input type="hidden" name="sezioni_extra" value="1">
         @if ($puoCattedre)
             <input type="hidden" name="cattedre_inviate" value="1">
+            <input type="hidden" name="assistenze_inviate" value="1">
         @endif
         @if ($puoGestire)
             <input type="hidden" name="sospensioni_inviate" value="1">
@@ -72,6 +73,16 @@
                     <p class="mb-3 text-sm text-gray-500">Periodi in cui il docente non presta servizio (sospensione, malattia lunga, congedo). Lascia vuota la data di fine se non è nota. Indica i supplenti, poi dalla sospensione salvata passa loro le cattedre con un clic (e le riporti al titolare quando rientra).</p>
                     <x-righe-ripetibili :righe="old('sospensioni', $sospensioni)" partial="docenti._riga-sospensione" :dati="['docentiSupplenti' => $docentiSupplenti]" etichetta="Aggiungi sospensione" />
                 </div>
+
+                <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 class="font-medium mb-1">Assistenza alle pause (mensa)
+                        @unless ($puoCattedre)
+                            <x-info testo="Solo amministratore e referente orario possono modificare l'assistenza." />
+                        @endunless
+                    </h2>
+                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e conta come ore di servizio, non di lezione.</p>
+                    <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Nessuna pausa definita: indica la durata di una ricreazione in Scansione oraria.' : null" etichetta="Aggiungi assistenza" />
+                </fieldset>
 
                 <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-3">Cattedre

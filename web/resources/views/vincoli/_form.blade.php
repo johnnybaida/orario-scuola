@@ -54,8 +54,11 @@
 
 {{-- D1_BLOCCO_MIN_CONSECUTIVO / D3_MAX_ORE_GIORNO: disciplina comune --}}
 <div data-parametri-per="D1_BLOCCO_MIN_CONSECUTIVO">
-    <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <label class="block text-sm font-medium text-gray-700">Disciplina
+        <x-info testo="Con Ambito = Docente puoi lasciare «Qualsiasi disciplina»: il blocco conta sulle lezioni del docente, in qualunque classe e materia. Con gli altri ambiti la disciplina è obbligatoria." />
+    </label>
+    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">— Qualsiasi disciplina (solo Ambito Docente) —</option>
         @foreach ($discipline as $disciplina)
             <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
         @endforeach

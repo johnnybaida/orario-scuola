@@ -19,7 +19,7 @@ class ScansioneOraria
     public function descrizione(): array
     {
         return $this->ore()->map(fn (Slot $s) => [
-            'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti,
+            'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti, 'ricreazione_nome' => $s->ricreazione_nome,
         ])->all();
     }
 
@@ -38,6 +38,7 @@ class ScansioneOraria
                     'fine' => $ora['fine'].':00',
                     'intervallo_dopo' => ! empty($ora['ricreazione']),
                     'ricreazione_minuti' => ! empty($ora['ricreazione']) ? (int) $ora['ricreazione'] : null,
+                    'ricreazione_nome' => ! empty($ora['ricreazione']) && ! empty($ora['nome']) ? $ora['nome'] : null,
                 ]);
             }
         });

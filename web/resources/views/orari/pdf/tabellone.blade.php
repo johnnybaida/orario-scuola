@@ -72,7 +72,7 @@
         @foreach ($legendaOre as $ora)
             {{ $ora['ordine'] }}ª {{ $ora['inizio'] }}-{{ $ora['fine'] }}
             @if ($ora['ricreazione'])
-                &middot; <strong>ricreazione</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}')
+                &middot; <strong>{{ $ora['ricreazione']['nome'] }}</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}')
             @endif
             @unless ($loop->last) &middot; @endunless
         @endforeach

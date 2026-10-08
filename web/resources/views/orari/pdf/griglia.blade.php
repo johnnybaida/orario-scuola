@@ -63,7 +63,7 @@
                         @if ($primoSlot?->ricreazione_minuti && $ordine < $maxOrdine)
                             <tr class="ricreazione">
                                 <td colspan="{{ $slotPerGiorno->count() + 1 }}">
-                                    Ricreazione {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
+                                    {{ $primoSlot->nomePausa() }} {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
                                     ({{ $primoSlot->ricreazione_minuti }} minuti)
                                 </td>
                             </tr>
@@ -71,6 +71,9 @@
                     @endfor
                 </tbody>
             </table>
+            @if (! empty($foglio['assistenze']))
+                <p style="font-size: 11px; margin-top: 6px;"><strong>Assistenza alle pause:</strong> {{ implode(' · ', $foglio['assistenze']) }}</p>
+            @endif
         </section>
     @endforeach
 </body>

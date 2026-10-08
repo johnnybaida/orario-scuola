@@ -30,6 +30,7 @@
                         <th class="px-4 py-2">Fine</th>
                         <th class="px-4 py-2">Durata</th>
                         <th class="px-4 py-2">Ricreazione dopo (minuti)</th>
+                        <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo: scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -57,6 +58,14 @@
                                             <span class="text-gray-600">{{ substr($ora->fine, 0, 5) }}–{{ $ora->fineRicreazione() }}</span>
                                         @endif
                                     </span>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if ($prossima)
+                                    <input type="text" maxlength="40" class="w-40" placeholder="Ricreazione" name="ore[{{ $ordine }}][nome]" aria-label="Nome della pausa dopo la {{ $ordine }}ª ora"
+                                           value="{{ old("ore.$ordine.nome", $ora->ricreazione_nome) }}">
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif

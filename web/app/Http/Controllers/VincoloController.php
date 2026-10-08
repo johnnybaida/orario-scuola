@@ -25,6 +25,7 @@ class VincoloController extends Controller
         return view('vincoli.index', [
             'vincoli' => $vincoli,
             'etichette' => Catalogo::etichette(),
+            'discipline' => Disciplina::query()->pluck('nome', 'id'),
             'filtroTipo' => $request->string('tipo')->toString(),
         ]);
     }

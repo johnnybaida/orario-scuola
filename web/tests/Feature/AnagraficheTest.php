@@ -429,6 +429,24 @@ class AnagraficheTest extends TestCase
         $this->assertDatabaseHas('audit_log', ['entita' => 'ScansioneOraria', 'azione' => 'modifica']);
     }
 
+    public function test_la_pausa_puo_avere_un_nome_ignorato_se_non_c_e_la_ricreazione(): void
+    {
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+        Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'inizio' => '09:30:00', 'fine' => '10:20:00']);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => '40', 'nome' => 'Mensa'], 2 => ['inizio' => '09:30', 'fine' => '10:20', 'nome' => 'Fantasma']]])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('slot', ['ordine' => 1, 'ricreazione_nome' => 'Mensa']);
+        $this->assertDatabaseHas('slot', ['ordine' => 2, 'ricreazione_nome' => null]);
+        $utente->get('/scansione-oraria')->assertSee('value="Mensa"', false);
+
+        // senza minuti il nome si perde; senza nome torna «Ricreazione»
+        $utente->put('/scansione-oraria', ['ore' => [1 => ['inizio' => '08:00', 'fine' => '08:50', 'nome' => 'Mensa'], 2 => ['inizio' => '09:30', 'fine' => '10:20']]]);
+        $this->assertDatabaseHas('slot', ['ordine' => 1, 'ricreazione_nome' => null]);
+        $this->assertSame('Ricreazione', Slot::query()->where('ordine', 1)->first()->nomePausa());
+    }
+
     public function test_la_scansione_oraria_rifiuta_orari_incoerenti(): void
     {
         Slot::factory()->create(['giorno' => 1, 'ordine' => 1, 'inizio' => '08:00:00', 'fine' => '08:50:00']);

@@ -20,6 +20,7 @@ class ScansioneOrariaRequest extends FormRequest
             'ore.*.inizio' => ['required', 'date_format:H:i'],
             'ore.*.fine' => ['required', 'date_format:H:i'],
             'ore.*.ricreazione' => ['nullable', 'integer', 'min:0', 'max:240'],
+            'ore.*.nome' => ['nullable', 'string', 'max:40'],
         ];
     }
 
