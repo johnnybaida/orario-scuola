@@ -137,11 +137,22 @@ class ProblemBuilder
             ])->all();
     }
 
+    /** Converte in int le stringhe numeriche, anche negli array annidati. */
+    private function interi(mixed $valore): mixed
+    {
+        if (is_array($valore)) {
+            return array_map(fn ($v) => $this->interi($v), $valore);
+        }
+
+        return is_string($valore) && preg_match('/^-?\d+$/', $valore) ? (int) $valore : $valore;
+    }
+
     private function vincoli(): array
     {
         return Vincolo::attivi()->get()->map(function (Vincolo $v) {
-            // i form salvano i numeri come stringhe: il solver li vuole int
-            $parametri = array_map(fn ($p) => is_string($p) && preg_match('/^-?\d+$/', $p) ? (int) $p : $p, $v->parametri ?? []);
+            // I form salvano i numeri come stringhe (anche negli elenchi: ids dell'ambito, slot_ids): il solver li confronta con id interi,
+            // quindi un id rimasto stringa farebbe ignorare il vincolo senza alcun errore.
+            $parametri = $this->interi($v->parametri ?? []);
             if (array_key_exists('disciplina_id', $parametri)) {
                 $parametri['disciplina'] = $parametri['disciplina_id'] ? Disciplina::query()->find($parametri['disciplina_id'])?->codice : null;
                 unset($parametri['disciplina_id']);
@@ -150,7 +161,7 @@ class ProblemBuilder
             return [
                 'id' => $v->id,
                 'tipo' => $v->tipo,
-                'ambito' => ['livello' => $v->ambito_livello, 'ids' => $v->ambito_ids ?? []],
+                'ambito' => ['livello' => $v->ambito_livello, 'ids' => $this->interi($v->ambito_ids ?? [])],
                 'parametri' => $parametri,
                 'severita' => $v->severita,
                 'peso' => $v->peso,

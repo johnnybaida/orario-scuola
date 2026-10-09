@@ -265,6 +265,7 @@ Non anticipare funzionalità di fasi successive; se servono predisposizioni nel 
 - Modifica solo ciò che serve al task; niente refactoring non richiesti.
 - Prima di scelte architetturali non coperte da qui o dall'analisi: **fermati e chiedi**.
 - Ogni nuovo tipo di vincolo si implementa su entrambi i lati (definizione in `app/Constraints/` + modulo in `solver/constraints/`), con un test PHP di validazione e un test pytest con un caso fattibile e uno infattibile.
+- Ogni funzione che tocca la generazione (nuovi dati nel contratto, nuovi vincoli, nuove regole sulle cattedre) va aggiunta a `GenerazioneCompletaTest`, che genera con il solver reale una scuola piccola con mensa, CLIL, aule condivise, laboratorio, sostegno e vincoli (salvati con id e numeri come stringhe, come fa il form) e controlla il risultato in modo indipendente; verificalo anche **per mutazione** (togli la regola dal `ProblemBuilder` e il test deve diventare rosso). `ProblemBuilder` converte in int ogni numero dei vincoli, anche negli elenchi (`ambito.ids`, `slot_ids`): un id rimasto stringa fa ignorare il vincolo in silenzio.
 - Scrivi i test per pre-validazione, solver e proposta sostituzioni; usa i casi limite del §16 dell'analisi come fixture.
 - Migrazioni sempre reversibili; seeder con una scuola di esempio realistica (circa 15 classi, 40 docenti, quadro a 30 ore).
 - Ogni commit che cambia l'applicazione porta con sé l'aggiornamento di `VERSION` (vedi «Versione e rilasci»).
