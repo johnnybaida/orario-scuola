@@ -134,4 +134,21 @@ class AssistenzaPauseTest extends TestCase
         $refettorio->delete();
         $this->assertNull(Slot::query()->where('ordine', 1)->first()->ricreazione_aula_id);
     }
+
+    public function test_la_mensa_non_conta_due_volte_se_il_docente_ha_l_assistenza_e_la_cattedra_senza_ora(): void
+    {
+        $this->scuola();   // mensa di 40' = 45' conteggiati = 0,75 ore
+        $docente = Docente::factory()->create(['ore_dovute' => 18]);
+        $mensa = \App\Models\Disciplina::factory()->create(['codice' => 'MEN', 'senza_slot' => true]);
+        \App\Models\Cattedra::factory()->create(['docente_id' => $docente->id, 'disciplina_id' => $mensa->id, 'ore' => 1]);
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+
+        // senza assistenze vale la cattedra: 1 ora
+        $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('1 / 18');
+
+        // con l'assistenza vale solo quella (0,75), non 1 + 0,75
+        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1]]);
+        $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('0,75 / 18')->assertDontSee('1,75 / 18');
+        $this->actingAs($referente)->get(route('dashboard'))->assertOk();
+    }
 }

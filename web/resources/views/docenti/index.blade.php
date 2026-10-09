@@ -55,7 +55,7 @@
                         <td class="px-4 py-2">{{ $docente->email }}</td>
                         <td class="px-4 py-2">{{ $docente->tipo_posto }}</td>
                         <td class="px-4 py-2">{{ $docente->regime }}</td>
-                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore + (int) $docente->cattedre_clil_sum_ore_clil + $assistenza->ore($docente))
+                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore + (int) $docente->cattedre_clil_sum_ore_clil + $assistenza->ore($docente) - $assistenza->oreCattedreDaEscludere($docente))
                         <td class="px-4 py-2 {{ abs($assegnate - $docente->ore_dovute) > 0.001 ? 'text-amber-700 font-medium' : '' }}">{{ \App\Services\AssistenzaPause::formatta($assegnate) }} / {{ $docente->ore_dovute }}</td>
                         <td class="px-4 py-2">{{ $docente->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">

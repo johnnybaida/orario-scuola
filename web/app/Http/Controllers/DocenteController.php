@@ -27,6 +27,7 @@ class DocenteController extends Controller
             })
             ->with('sospensioni', 'assistenzePausa')
             ->withCount('cattedre')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')
+            ->withSum(['cattedre as ore_senza_ora' => fn ($q) => $q->whereHas('disciplina', fn ($d) => $d->where('senza_slot', true))], 'ore')
             ->orderBy('cognome')
             ->paginate(30)
             ->withQueryString();

@@ -57,6 +57,15 @@ class AssistenzaPause
         return round($docente->assistenzePausa->sum(fn ($a) => $pause[$a->ordine]['conteggio'] ?? 0) / 60, 2);
     }
 
+    /**
+     * Ore delle cattedre «senza ora» (es. mensa) da non sommare al docente: se ha assistenze alle pause, la mensa conta da quelle
+     * (una volta sola per pausa) e non anche dalle cattedre. Richiede `ore_senza_ora` (withSum sulle cattedre di discipline senza_slot).
+     */
+    public function oreCattedreDaEscludere(Docente $docente): int
+    {
+        return $this->ore($docente) > 0 ? (int) ($docente->ore_senza_ora ?? 0) : 0;
+    }
+
     /** «21,5» invece di «21.50»: per i totali a video. */
     public static function formatta(float|int $ore): string
     {

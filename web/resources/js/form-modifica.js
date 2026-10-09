@@ -25,8 +25,14 @@ function aggiornaUnivoci() {
 }
 
 // Somma gli input data-somma="g" e, come ore (60 minuti = 1), le opzioni scelte nelle select data-somma-minuti="g" (data-minuti).
+// data-senza-ora-con-assistenza: la riga di una disciplina «senza ora» (mensa) non si somma se il docente ha assistenze alle pause, che la contano già.
+const senzaOraCoperta = (form, input) => input.hasAttribute('data-senza-ora-con-assistenza')
+    && form.querySelector('select[data-somma-minuti]') !== null
+    && input.closest('[data-riga]')?.querySelector('select[name$="[disciplina_id]"]')?.selectedOptions[0]?.hasAttribute('data-senza-slot');
+
 const somma = (form, gruppo) => Math.round((
     [...form.querySelectorAll(`input[data-somma="${gruppo}"]`)]
+        .filter((input) => !senzaOraCoperta(form, input))
         // data-senza-compresenza: la riga di una disciplina «senza ora» (mensa) con la spunta «Compresenza» non entra nel totale
         .filter((input) => !(input.hasAttribute('data-senza-compresenza') && input.closest('[data-riga]')?.querySelector('input[name$="[compresenza]"]')?.checked
             && input.closest('[data-riga]')?.querySelector('select[name$="[disciplina_id]"]')?.selectedOptions[0]?.hasAttribute('data-senza-slot')))

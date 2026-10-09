@@ -11,13 +11,13 @@
         <label class="block text-xs text-gray-500">Disciplina</label>
         <select name="cattedre[{{ $i }}][disciplina_id]" required class="w-full">
             @foreach ($discipline as $disciplina)
-                <option value="{{ $disciplina->id }}" @selected(($riga['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
+                <option value="{{ $disciplina->id }}" @if ($disciplina->senza_slot) data-senza-slot @endif @selected(($riga['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
             @endforeach
         </select>
     </div>
     <div>
         <label class="block text-xs text-gray-500">Ore</label>
-        <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" value="{{ $riga['ore'] ?? '' }}" class="w-20">
+        <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" data-senza-ora-con-assistenza value="{{ $riga['ore'] ?? '' }}" class="w-20">
     </div>
     <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
         <input type="checkbox" name="cattedre[{{ $i }}][compresenza]" value="1" @checked($riga['compresenza'] ?? false)> Compresenza
