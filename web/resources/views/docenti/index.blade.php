@@ -18,10 +18,7 @@
         </form>
         <x-slot:azioni>
         @can('gestisci-docenti-classi')
-            <x-csv-azioni lista="docenti" />
-            <x-csv-azioni lista="indisponibilita" titolo="indisponibilità" />
-            <x-csv-azioni lista="sospensioni" titolo="sospensioni" />
-            <x-csv-azioni lista="assistenze-pausa" titolo="assistenza pause" />
+            <x-csv-azioni :liste="['docenti' => null, 'indisponibilita' => null, 'sospensioni' => null, 'assistenze-pausa' => null]" />
             <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
         @endcan
         </x-slot:azioni>
