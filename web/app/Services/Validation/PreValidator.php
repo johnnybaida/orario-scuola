@@ -48,7 +48,11 @@ class PreValidator
 
         foreach (Classe::query()->with('quadroOrario', 'slotAttivi')->get() as $classe) {
             $oreQuadro = $classe->quadroOrario->ore_totali;
-            $oreCattedre = Cattedra::query()->where('classe_id', $classe->id)->sum('ore');
+            // Le discipline «senza ora» (mensa) contano nel quadro ma non sono lezioni: la seconda cattedra in compresenza non si somma.
+            $cattedre = Cattedra::query()->where('classe_id', $classe->id)->with('disciplina')->get()
+                ->reject(fn (Cattedra $c) => $c->compresenza && $c->disciplina->senza_slot);
+            $oreCattedre = $cattedre->sum('ore');
+            $oreSenzaOra = $cattedre->filter(fn (Cattedra $c) => $c->disciplina->senza_slot)->sum('ore');
             $nSlotAttivi = $classe->slotAttivi()->count();
 
             if ($oreCattedre != $oreQuadro) {
@@ -56,9 +60,9 @@ class PreValidator
                     ."ma le cattedre assegnate coprono {$oreCattedre}h.", route('classi.edit', $classe));
             }
 
-            if ($nSlotAttivi !== $oreQuadro) {
+            if ($nSlotAttivi !== $oreQuadro - $oreSenzaOra) {
                 $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: {$nSlotAttivi} slot attivi ma il quadro "
-                    ."orario richiede {$oreQuadro}h (devono coincidere).", route('classi.edit', $classe));
+                    .'orario richiede '.($oreQuadro - $oreSenzaOra).'h di lezione'.($oreSenzaOra ? " ({$oreQuadro}h meno {$oreSenzaOra}h senza ora, come la mensa)" : '').' (devono coincidere).', route('classi.edit', $classe));
             }
         }
 
@@ -104,9 +108,9 @@ class PreValidator
         $problemi = [];
         $totaleSlot = Slot::query()->count();
 
-        foreach (Docente::query()->withCount('indisponibilita')->withSum('cattedre', 'ore')->get() as $docente) {
+        foreach (Docente::query()->withCount('indisponibilita')->with('cattedre.disciplina')->get() as $docente) {
             $slotDisponibili = $totaleSlot - $docente->indisponibilita_count;
-            $oreAssegnate = $docente->cattedre_sum_ore ?? 0;
+            $oreAssegnate = $docente->cattedre->reject(fn ($c) => $c->disciplina->senza_slot)->sum('ore');   // la mensa non occupa slot
 
             if ($oreAssegnate > $slotDisponibili) {
                 $problemi[] = $this->p("Docente {$docente->nomeCompleto()}: {$oreAssegnate}h assegnate ma solo "

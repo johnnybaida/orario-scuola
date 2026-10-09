@@ -26,7 +26,11 @@ function aggiornaUnivoci() {
 
 // Somma gli input data-somma="g" e, come ore (60 minuti = 1), le opzioni scelte nelle select data-somma-minuti="g" (data-minuti).
 const somma = (form, gruppo) => Math.round((
-    [...form.querySelectorAll(`input[data-somma="${gruppo}"]`)].reduce((totale, input) => totale + (Number(input.value) || 0), 0)
+    [...form.querySelectorAll(`input[data-somma="${gruppo}"]`)]
+        // data-senza-compresenza: la riga di una disciplina «senza ora» (mensa) con la spunta «Compresenza» non entra nel totale
+        .filter((input) => !(input.hasAttribute('data-senza-compresenza') && input.closest('[data-riga]')?.querySelector('input[name$="[compresenza]"]')?.checked
+            && input.closest('[data-riga]')?.querySelector('select[name$="[disciplina_id]"]')?.selectedOptions[0]?.hasAttribute('data-senza-slot')))
+        .reduce((totale, input) => totale + (Number(input.value) || 0), 0)
     + [...form.querySelectorAll(`select[data-somma-minuti="${gruppo}"]`)].reduce((totale, s) => totale + (Number(s.selectedOptions[0]?.dataset.minuti) || 0) / 60, 0)
 ) * 100) / 100;
 

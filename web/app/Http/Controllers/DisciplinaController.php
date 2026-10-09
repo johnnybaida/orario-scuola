@@ -61,6 +61,7 @@ class DisciplinaController extends Controller
         $dati = $request->validated();
         $extra = array_values(array_diff(array_unique($dati['tipi_aula_extra'] ?? []), [$dati['tipo_aula_richiesto'] ?? null]));
         $dati['tipi_aula_extra'] = $extra ?: null;
+        $dati['senza_slot'] = $request->boolean('senza_slot');
 
         return $dati;
     }

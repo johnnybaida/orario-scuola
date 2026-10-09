@@ -82,7 +82,7 @@ class ProblemBuilder
         $lezioni = [];
         $prossimoId = 1;
 
-        $cattedre = Cattedra::query()->with('disciplina')->get();
+        $cattedre = Cattedra::query()->with('disciplina')->get()->reject(fn (Cattedra $c) => $c->disciplina->senza_slot);   // la mensa non è una lezione
 
         foreach ($cattedre as $cattedra) {
             for ($i = 0; $i < $cattedra->ore; $i++) {
