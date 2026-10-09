@@ -117,6 +117,7 @@ Il catalogo delle materie insegnate.
 - **Nome**: es. Italiano, Matematica.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
 - **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
+- **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
 - **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
 
 ## Quadri orari
@@ -570,7 +571,7 @@ La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto al
 <!-- permesso: gestisci-anagrafica -->
 **Modificare dal tabellone per aula** (orario in bozza): **trascina** una lezione.
 
-- su **un'altra aula nella stessa ora**: la lezione cambia aula (solo tra aule del tipo richiesto dalla materia: una lezione di italiano DADA si sposta tra le aule di italiano);
+- su **un'altra aula nella stessa ora**: la lezione cambia aula (solo tra aule dei tipi ammessi dalla materia: una lezione di italiano DADA si sposta tra le aule di italiano e quella condivisa);
 - su **un'altra ora**: la lezione si sposta (come nella griglia della classe, scambiandosi con la lezione che c'era) e prende l'aula della cella, se è libera, altrimenti un'altra aula libera dello stesso tipo.
 
 Mentre trascini, le celle si colorano: **verde** si può, **ambra** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
