@@ -30,9 +30,15 @@ class PromptOrarioTest extends TestCase
         Vincolo::factory()->create(['tipo' => 'D6_FASCIA_ORARIA', 'ambito_livello' => 'globale', 'ambito_ids' => null, 'severita' => 'preferenziale', 'peso' => 40,
             'parametri' => ['disciplina_id' => $disciplina->id, 'tipo' => 'vietata', 'slot_ids' => [$slot->id]]]);
 
+        // come li salva il form: numeri come stringhe
+        Vincolo::factory()->create(['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'ambito_livello' => 'globale', 'ambito_ids' => null, 'severita' => 'rigido', 'peso' => null,
+            'parametri' => ['disciplina_id' => (string) $disciplina->id, 'min_consecutive' => '2', 'n_blocchi_min' => '2']]);
+
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']));
         $this->get('/prompt-ai')->assertOk()->assertSee('Copia il testo')->assertSee('Palestra A')->assertSee('Rossi Anna')
-            ->assertSee('Motoria in 1ª A (2h')->assertSee('Indisponibile: LUN 1ª')->assertSee('preferenziale (peso 40/100)')->assertSee('disciplina: Motoria');
+            ->assertSee('Motoria in 1ª A (2h')->assertSee('Indisponibile: LUN 1ª')->assertSee('[preferenziale (peso 40/100)]')->assertSee('Motoria NON può essere collocata in queste ore: LUN 1ª')
+            ->assertSee('## Glossario')->assertSee('**Senza ora**')->assertSee('**Compresenza**')
+            ->assertSee('in almeno 2 giorno/i della settimana Motoria deve avere un blocco di almeno 2 ore consecutive', false)->assertSee('[OBBLIGATORIO]');
 
         $file = $this->get('/prompt-ai?scarica=1')->assertOk();
         $this->assertStringContainsString('attachment; filename="prompt-orario.txt"', $file->headers->get('Content-Disposition'));

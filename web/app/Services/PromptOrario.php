@@ -27,6 +27,7 @@ class PromptOrario
         $sezioni = [
             $this->introduzione(),
             $this->regole(),
+            $this->glossario(),
             $this->scansione(),
             $this->aule(),
             $this->discipline(),
@@ -85,6 +86,23 @@ class PromptOrario
             ."- Un'aula ospita al massimo «capienza» classi nella stessa ora; le discipline che richiedono un tipo di aula vanno in un'aula di quel tipo.\n"
             ."- Le discipline «senza ora» (per esempio la mensa) contano nel quadro orario ma non sono lezioni da collocare.\n"
             ."- Le lezioni bloccate non si spostano. I vincoli preferenziali sono desideri: rispettane il più possibile (peso più alto = più importante).";
+    }
+
+    private function glossario(): string
+    {
+        return "## Glossario\n"
+            ."- **Ora / slot**: una lezione della scansione settimanale (giorno + numero d'ora, es. «LUN 3ª»). **Ore attive** di una classe: gli slot che la classe usa davvero; vanno riempiti tutti, esattamente una volta.\n"
+            ."- **Rientro pomeridiano**: giorno in cui una classe a tempo prolungato ha lezione anche nelle ore del pomeriggio (dalla 7ª).\n"
+            ."- **Quadro orario**: le ore settimanali di ogni disciplina per una classe. **Cattedra**: un docente che insegna una disciplina in una classe per un certo numero di ore settimanali.\n"
+            ."- **Compresenza**: due docenti insieme nella stessa lezione (stesso slot, stessa classe): nessuno dei due è «in due posti».\n"
+            ."- **CLIL**: docente (spesso madrelingua) presente insieme al titolare solo per alcune ore di una cattedra; in quelle ore non può essere altrove e rispetta le sue indisponibilità.\n"
+            ."- **Senza ora**: disciplina (es. mensa) che conta nel quadro orario e nel monte ore ma non è una lezione da collocare in un'ora.\n"
+            ."- **Sostegno**: docente assegnato a una classe che affianca i colleghi; «per_alunno» = l'ora copre un solo alunno, «per_classe» = copre tutti; «docente unico» = lo stesso docente per tutte le ore di quel fabbisogno. Gli alunni sono identificati solo da un codice anonimo.\n"
+            ."- **DADA**: didattica per ambienti: le classi non hanno aula fissa, sono gli alunni a spostarsi nell'aula della disciplina; il tipo di aula dice per quali discipline va bene (un'aula può essere condivisa da più discipline).\n"
+            ."- **Capienza**: quante classi possono usare l'aula nella stessa ora. **Piano**: piano dell'edificio di aule e classi (serve ai vincoli sugli spostamenti).\n"
+            ."- **Ore dovute / monte ore**: ore settimanali che il docente deve fare (18 = cattedra intera): cattedre, sostegno, ore CLIL e assistenza alle pause (60 minuti = 1 ora).\n"
+            ."- **Assistenza alle pause**: sorveglianza di una pausa (es. mensa) in un certo giorno; **laboratorio pomeridiano**: attività fissa fuori dal monte ore che occupa docenti e aula in certe ore.\n"
+            .'- **Buca**: ora libera di un docente tra due sue lezioni dello stesso giorno. **Blocco**: ore della stessa disciplina consecutive nello stesso giorno. **Severità** di un vincolo: «rigido» = obbligatorio, «preferenziale» = desiderio con un peso da 1 a 100.';
     }
 
     private function scansione(): string
@@ -189,16 +207,46 @@ class PromptOrario
 
     private function vincoli(Collection $slot): string
     {
-        $righe = Vincolo::attivi()->get()->map(function (Vincolo $v) {
-            $tipo = Catalogo::istanza($v->tipo);
-            $ambito = $v->ambito_livello === 'globale' ? 'globale' : $v->ambito_livello.' '.$this->nomi($v->ambito_livello, $v->ambito_ids ?? []);
-            $sev = $v->severita === 'rigido' ? 'RIGIDO' : "preferenziale (peso {$v->peso}/100)";
+        $vincoli = Vincolo::attivi()->get();
+        $righe = $vincoli->map(function (Vincolo $v) {
+            $ambito = $v->ambito_livello === 'globale' ? 'tutte le classi/docenti' : $v->ambito_livello.' '.$this->nomi($v->ambito_livello, $v->ambito_ids ?? []);
+            $sev = $v->severita === 'rigido' ? 'OBBLIGATORIO' : "preferenziale (peso {$v->peso}/100)";
 
-            return "- {$tipo->etichetta()} – ambito {$ambito} – {$sev}: ".$this->parametri($v->parametri ?? [])
+            return "- [{$sev}] ".Catalogo::istanza($v->tipo)->etichetta()." – valido per: {$ambito} – ".$this->regolaVincolo($v->tipo, $this->interi($v->parametri ?? []), $v->severita === 'rigido')
                 .($v->nota ? " [nota: {$v->nota}]" : '');
         })->all();
 
         return $this->intro('Vincoli configurati', $righe);
+    }
+
+    private function interi(array $parametri): array
+    {
+        return array_map(fn ($p) => is_array($p) ? $this->interi($p) : (is_string($p) && preg_match('/^-?\d+$/', $p) ? (int) $p : $p), $parametri);
+    }
+
+    /** Il vincolo spiegato a parole (i nomi dei parametri del programma non dicono niente a chi legge). */
+    private function regolaVincolo(string $tipo, array $p, bool $rigido): string
+    {
+        $disciplina = ! empty($p['disciplina_id']) ? (Disciplina::query()->find($p['disciplina_id'])?->nome ?? '?') : null;
+        $ore = fn (array $ids) => $this->oreCompatte(Slot::query()->whereIn('id', $ids)->get());
+        $giorni = fn (array $g) => collect($g)->map(fn ($n) => Slot::GIORNI[$n] ?? $n)->implode(', ');
+
+        return match ($tipo) {
+            'D1_BLOCCO_MIN_CONSECUTIVO' => 'in almeno '.($p['n_blocchi_min'] ?? 1).' giorno/i della settimana '.($disciplina ? "{$disciplina} deve avere" : 'le lezioni del docente devono avere')
+                ." un blocco di almeno {$p['min_consecutive']} ore consecutive (conta i giorni con un blocco, non i blocchi)",
+            'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
+            'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'
+                ? "{$disciplina} NON può essere collocata in queste ore: ".$ore($p['slot_ids'] ?? [])
+                : "{$disciplina} può essere collocata SOLO in queste ore: ".$ore($p['slot_ids'] ?? [])." (ogni lezione fuori da esse è una violazione)",
+            'T2_GIORNO_LIBERO' => "ogni docente deve avere almeno {$p['n_giorni']} giorno/i della settimana senza lezioni"
+                .(! empty($p['preferenze']) ? ' (giorni preferiti per il libero: '.$giorni($p['preferenze']).')' : ''),
+            'T3_MAX_ORE_BUCHE' => 'ore buca dei docenti: '.collect([
+                isset($p['max_per_giorno']) && $p['max_per_giorno'] !== '' ? "al massimo {$p['max_per_giorno']} al giorno" : null,
+                isset($p['max_per_settimana']) && $p['max_per_settimana'] !== '' ? "al massimo {$p['max_per_settimana']} a settimana" : null,
+            ])->filter()->implode(' e '),
+            'C5_SPOSTAMENTI_PIANO' => 'tra due ore consecutive di una classe il piano dell\'aula (o della classe) non dovrebbe cambiare di più di '.($p['soglia'] ?? 0).' piani (0 = nessun cambio di piano); riguarda gli spostamenti degli alunni',
+            default => $this->parametri($p),
+        };
     }
 
     private function nomi(string $livello, array $ids): string
