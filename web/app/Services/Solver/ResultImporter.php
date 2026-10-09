@@ -13,7 +13,7 @@ use App\Models\Periodo;
  */
 class ResultImporter
 {
-    public function importa(Periodo $periodo, int $seed, array $risultato, array $mappaLezioni, ?int $creatoDa = null, ?string $nome = null): Orario
+    public function importa(Periodo $periodo, int $seed, array $risultato, array $mappaLezioni, ?int $creatoDa = null, ?string $nome = null, array $lezioniClil = []): Orario
     {
         $versione = (Orario::query()->where('periodo_id', $periodo->id)->max('versione') ?? 0) + 1;
 
@@ -39,6 +39,7 @@ class ResultImporter
                 'durata_slot' => 1,
                 'aula_id' => $assegnazione['aula'],
                 'bloccata' => false,
+                'con_clil' => isset($lezioniClil[$assegnazione['lezione']]),
             ]);
         }
 

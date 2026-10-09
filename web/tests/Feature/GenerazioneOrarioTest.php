@@ -72,6 +72,24 @@ class GenerazioneOrarioTest extends TestCase
         );
     }
 
+    public function test_la_docente_clil_e_presente_nelle_ore_indicate_e_il_marcatore_arriva_all_orario(): void
+    {
+        $classe = $this->scuolaMinima();
+        $clil = Docente::factory()->create();
+        $italiano = $classe->cattedre()->whereHas('disciplina', fn ($q) => $q->where('codice', 'ITA'))->first();
+        $italiano->update(['docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+
+        $problema = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10);
+        $this->assertContains([$italiano->docente_id, $clil->id], array_column($problema['lezioni'], 'docenti'));
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->post('/generazioni', ['time_limit_s' => 30, 'seed' => 42]);
+
+        $orario = Generazione::query()->latest('id')->first()->orario;
+        $this->assertSame(1, $orario->lezioni()->where('con_clil', true)->count());
+        $this->assertSame($italiano->id, $orario->lezioni()->where('con_clil', true)->first()->cattedra_id);
+        $this->assertSame(1, \App\Models\Lezione::query()->where('orario_id', $orario->id)->delDocente($clil->id)->count());
+    }
+
     public function test_l_orario_prende_il_nome_della_generazione_e_i_seed_gia_usati_sono_in_una_select(): void
     {
         $this->scuolaMinima();

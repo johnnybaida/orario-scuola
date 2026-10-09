@@ -657,4 +657,21 @@ class EditorOrarioTest extends TestCase
         $this->assertDatabaseCount('avvisi_orario', 0);
         $this->assertDatabaseCount('modifiche_orario', 0);
     }
+
+    public function test_rifiuta_lo_spostamento_se_la_docente_clil_e_gia_in_un_altra_classe(): void
+    {
+        [$classeA, $slot1, $slot2] = $this->classeConDueSlot();
+        $classeB = Classe::factory()->create();
+        $classeB->slotAttivi()->sync([$slot1->id, $slot2->id]);
+        $clil = Docente::factory()->create();
+        $orario = Orario::factory()->create();
+        $cattedraA = Cattedra::factory()->create(['classe_id' => $classeA->id, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $cattedraB = Cattedra::factory()->create(['classe_id' => $classeB->id, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $lezioneA = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraA->id, 'slot_id' => $slot1->id, 'con_clil' => true]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedraB->id, 'slot_id' => $slot2->id, 'con_clil' => true]);
+
+        $this->actingAs($this->referente())->patchJson("/orari/{$orario->id}/lezioni/{$lezioneA->id}/sposta", ['slot_id' => $slot2->id])
+            ->assertStatus(422)->assertJson(['ok' => false]);
+        $this->assertSame($slot1->id, $lezioneA->fresh()->slot_id);
+    }
 }

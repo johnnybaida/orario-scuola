@@ -94,6 +94,9 @@
                                                     {{ $lezione->bloccata ? 'Sblocca' : 'Blocca' }}
                                                 </button>
                                             @endif
+                                            @if ($lezione->con_clil && $lezione->cattedra->docenteClil)
+                                                <div class="mt-0.5 text-[10px] text-green-700">● CLIL: {{ $lezione->cattedra->docenteClil->nomeCompleto() }}</div>
+                                            @endif
                                             @if ($compresenze->get($slot->id))
                                                 <div class="mt-1 pt-1 border-t border-blue-200 text-[10px] text-green-700">
                                                     @foreach ($compresenze->get($slot->id)->unique('docente_id') as $compresenza)

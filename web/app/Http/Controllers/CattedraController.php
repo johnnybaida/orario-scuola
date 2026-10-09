@@ -41,7 +41,7 @@ class CattedraController extends Controller
 
     public function store(CattedraRequest $request): RedirectResponse
     {
-        Cattedra::query()->create($request->validated());
+        Cattedra::query()->create(Cattedra::normalizzaClil($request->validated()));
 
         return redirect()->route('cattedre.index')->with('successo', 'Cattedra creata.');
     }
@@ -53,7 +53,7 @@ class CattedraController extends Controller
 
     public function update(CattedraRequest $request, Cattedra $cattedra): RedirectResponse
     {
-        $cattedra->update($request->validated());
+        $cattedra->update(Cattedra::normalizzaClil($request->validated()));
 
         return redirect()->route('cattedre.index')->with('successo', 'Cattedra aggiornata.');
     }

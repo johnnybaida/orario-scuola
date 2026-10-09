@@ -41,7 +41,7 @@ class Laboratori
     {
         $problemi = [];
         $laboratori = Laboratorio::query()->attivi()->with('docenti.indisponibilita', 'slot', 'aula')->get();
-        $perDocenteSlot = $lezioni->groupBy(fn (Lezione $l) => $l->cattedra->docente_id.'-'.$l->slot_id);
+        $perDocenteSlot = $lezioni->flatMap(fn (Lezione $l) => array_map(fn ($id) => [$id.'-'.$l->slot_id, $l], $l->docentiIds()))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));   // titolari e docenti CLIL
         $perAulaSlot = $lezioni->filter(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l))->groupBy(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)->id.'-'.$l->slot_id);
         $labPerAulaSlot = [];
 
@@ -111,7 +111,7 @@ class Laboratori
                 if ($d->indisponibilita->contains('id', $slot->id)) {
                     $motivi[] = "{$d->nomeCompleto()} è indisponibile";
                 }
-                foreach ($lezioni->filter(fn (Lezione $l) => $l->slot_id === $slot->id && $l->cattedra->docente_id === $d->id) as $l) {
+                foreach ($lezioni->filter(fn (Lezione $l) => $l->slot_id === $slot->id && in_array($d->id, $l->docentiIds(), true)) as $l) {
                     $motivi[] = "{$d->nomeCompleto()} ha lezione in {$l->cattedra->classe->nomeCompleto()}";
                 }
                 foreach ($altri->filter(fn ($a) => $a->docenti->contains('id', $d->id) && $a->slot->contains('id', $slot->id)) as $a) {

@@ -51,7 +51,7 @@ class ClasseController extends Controller
                 ->map(fn ($f) => $f->only(['id', 'codice_anonimo', 'ore_settimanali', 'docente_unico']))->all(),
             'assegnazioni' => $classe->assegnazioniSostegno()->get()->map(fn ($a) => $a->only(['id', 'docente_id', 'ore']))->all(),
             'cattedre' => $classe->cattedre()->with('disciplina')->get()->sortBy('disciplina.nome')
-                ->map(fn ($c) => $c->only(['id', 'docente_id', 'disciplina_id', 'ore', 'compresenza']))->all(),
+                ->map(fn ($c) => $c->only(['id', 'docente_id', 'disciplina_id', 'ore', 'compresenza', 'docente_clil_id', 'ore_clil']))->all(),
             'docenti' => Docente::query()->orderBy('cognome')->orderBy('nome')->get(),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
             'docentiSostegno' => Docente::query()->where('tipo_posto', 'sostegno')->orderBy('cognome')->get(),
@@ -79,7 +79,7 @@ class ClasseController extends Controller
                 $this->sincronizzaRientri($classe, $request->input('rientri', []));
             }
             if ($request->boolean('cattedre_inviate')) {
-                SincronizzaRighe::applica($classe->cattedre(), $cattedre, ['docente_id', 'disciplina_id', 'ore', 'compresenza']);
+                SincronizzaRighe::applica($classe->cattedre(), array_map([\App\Models\Cattedra::class, 'normalizzaClil'], $cattedre), ['docente_id', 'disciplina_id', 'ore', 'compresenza', 'docente_clil_id', 'ore_clil']);
             }
         });
 

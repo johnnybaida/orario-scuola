@@ -39,6 +39,8 @@ class ClasseRequest extends FormRequest
             'cattedre.*.disciplina_id' => ['required', app(\App\Services\SedeCorrente::class)->esiste('discipline')],
             'cattedre.*.ore' => ['required', 'integer', 'min:1', 'max:20'],
             'cattedre.*.compresenza' => ['nullable', 'boolean'],
+            'cattedre.*.docente_clil_id' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('docenti')],
+            'cattedre.*.ore_clil' => ['nullable', 'integer', 'min:0', 'max:20'],
             'fabbisogni' => ['nullable', 'array'],
             'fabbisogni.*.id' => ['nullable', 'integer'],
             'fabbisogni.*.codice_anonimo' => ['required', 'string', 'max:50', 'distinct'],

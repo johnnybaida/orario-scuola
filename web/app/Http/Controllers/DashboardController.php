@@ -70,12 +70,12 @@ class DashboardController extends Controller
     {
         $assistenza = app(\App\Services\AssistenzaPause::class);
 
-        return Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')->get()
+        return Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')->get()
             ->map(fn (Docente $d) => [
                 'docente' => $d,
                 'assistenza' => $assistenza->minuti($d),
                 'laboratori' => app(\App\Services\Laboratori::class)->minuti($d),
-                'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore + $assistenza->ore($d),
+                'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore + (int) $d->cattedre_clil_sum_ore_clil + $assistenza->ore($d),
                 'dovute' => $d->ore_dovute,
             ])
             ->map(fn (array $r) => $r + ['diff' => round($r['assegnate'] - $r['dovute'], 2)])

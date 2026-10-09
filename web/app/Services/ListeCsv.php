@@ -42,33 +42,39 @@ class ListeCsv
         'aule' => ['titolo' => 'Aule', 'modello' => Aula::class, 'request' => AulaRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['nome', 'tipo', 'capienza', 'piano']],
         'discipline' => ['titolo' => 'Discipline', 'modello' => Disciplina::class, 'request' => DisciplinaRequest::class, 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre']],
+            'colonne' => ['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre', 'senza_slot', 'altre_aule']],
         'docenti' => ['titolo' => 'Docenti', 'modello' => Docente::class, 'request' => DocenteRequest::class, 'permesso' => 'gestisci-docenti-classi',
-            'colonne' => ['nome', 'cognome', 'email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe']],
+            'colonne' => ['nome', 'cognome', 'email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe', 'classi_concorso']],
         'classi' => ['titolo' => 'Classi', 'modello' => Classe::class, 'request' => ClasseRequest::class, 'permesso' => 'gestisci-docenti-classi',
-            'colonne' => ['anno_corso', 'sezione', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni', 'piano']],
+            'colonne' => ['anno_corso', 'sezione', 'aula_base', 'quadro_orario', 'tempo_scuola', 'n_alunni', 'piano', 'conteggio_sostegno', 'slot_attivi']],
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'disciplina', 'ore', 'compresenza']],
+            'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'disciplina', 'ore', 'compresenza', 'docente_clil_cognome', 'docente_clil_nome', 'ore_clil']],
         'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome', 'conteggio_pausa', 'pausa_prima_conteggio', 'aula_pausa', 'pausa_prima_aula'],
             'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. La pausa prima della prima ora (colonne pausa_prima_minuti e pausa_prima_nome) si scrive sulla riga della prima ora. Le colonne conteggio_pausa e pausa_prima_conteggio (facoltative, multipli di 15) sono i minuti con cui la pausa conta per il docente che la sorveglia; aula_pausa e pausa_prima_aula (facoltative) il nome di un\'aula di tipo «pausa». Se c\'è un errore non cambia nulla.'],
         'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali'],
             'nota' => 'Una riga per disciplina del quadro (la disciplina si scrive con il codice, quindi importa prima le discipline). Ogni quadro è importato per intero o per niente; quelli già presenti con lo stesso nome vengono saltati. Le ore totali si ricalcolano dalle righe: la colonna ore_totali è ignorata.'],
+        ...ListeCsvAggiuntive::LISTE,
     ];
 
     /** Righe da esportare, nell'ordine di `colonne`. */
     public function righe(string $lista): iterable
     {
+        if (isset(ListeCsvAggiuntive::LISTE[$lista])) {
+            return app(ListeCsvAggiuntive::class)->righe($lista);
+        }
+
         return match ($lista) {
             'sedi' => Sede::query()->orderBy('nome')->get()->map(fn ($s) => [$s->nome, $s->indirizzo]),
             'aule' => Aula::query()->orderBy('nome')->get()->map(fn ($a) => [$a->nome, $a->tipo, $a->capienza, $a->piano]),
             'discipline' => Disciplina::query()->with('padre')->orderBy('codice')->get()
-                ->map(fn ($d) => [$d->codice, $d->nome, $d->classe_concorso, $d->tipo_aula_richiesto, $d->padre?->codice]),
-            'docenti' => Docente::query()->orderBy('cognome')->orderBy('nome')->get()
-                ->map(fn ($d) => [$d->nome, $d->cognome, $d->email, $d->tipo_contratto, $d->tipo_posto, $d->regime, $d->ore_dovute, (int) $d->coe]),
-            'classi' => Classe::query()->with('aulaBase', 'quadroOrario')->orderBy('anno_corso')->orderBy('sezione')->get()
-                ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano]),
+                ->map(fn ($d) => [$d->codice, $d->nome, $d->classe_concorso, $d->tipo_aula_richiesto, $d->padre?->codice, (int) $d->senza_slot, implode('|', $d->tipi_aula_extra ?? [])]),
+            'docenti' => Docente::query()->with('classiConcorso')->orderBy('cognome')->orderBy('nome')->get()
+                ->map(fn ($d) => [$d->nome, $d->cognome, $d->email, $d->tipo_contratto, $d->tipo_posto, $d->regime, $d->ore_dovute, (int) $d->coe, $d->classiConcorso->pluck('classe_concorso')->implode('|')]),
+            'classi' => Classe::query()->with('aulaBase', 'quadroOrario', 'slotAttivi')->orderBy('anno_corso')->orderBy('sezione')->get()
+                ->map(fn ($c) => [$c->anno_corso, $c->sezione, $c->aulaBase?->nome, $c->quadroOrario->nome, $c->tempo_scuola, $c->n_alunni, $c->piano, $c->conteggio_sostegno,
+                    $c->slotAttivi->sortBy(fn ($s) => $s->giorno * 100 + $s->ordine)->map(fn ($s) => (Slot::GIORNI_BREVI[$s->giorno] ?? $s->giorno).'.'.$s->ordine)->implode('|')]),
             // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
             'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
                 ->map(fn ($s, $ordine) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]
@@ -77,10 +83,10 @@ class ListeCsv
             'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
                 ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
                     : $q->righe->sortBy('disciplina.codice')->map(fn ($r) => [$q->nome, $q->ore_totali, $r->disciplina->codice, $r->ore_settimanali])),
-            'cattedre' => Cattedra::query()->with('docente', 'classe', 'disciplina')->get()
+            'cattedre' => Cattedra::query()->with('docente', 'classe', 'disciplina', 'docenteClil')->get()
                 ->sortBy(fn ($c) => $c->classe->nomeCompleto().$c->docente->nomeCompleto())
                 ->map(fn ($c) => [$c->docente->cognome, $c->docente->nome, $c->classe->anno_corso, $c->classe->sezione,
-                    $c->disciplina->codice, $c->ore, (int) $c->compresenza]),
+                    $c->disciplina->codice, $c->ore, (int) $c->compresenza, $c->docenteClil?->cognome, $c->docenteClil?->nome, $c->ore_clil]),
         };
     }
 
@@ -96,6 +102,7 @@ class ListeCsv
         match ($lista) {
             'scansione' => $this->importaScansione($righe, $esito),
             'quadri-orari' => $this->importaQuadri($righe, $esito),
+            'indisponibilita', 'sospensioni', 'assistenze-pausa', 'laboratori', 'impostazioni' => app(ListeCsvAggiuntive::class)->importa($lista, $righe, $esito),
             default => $this->importaRighe($lista, $righe, $esito),
         };
 
@@ -118,10 +125,16 @@ class ListeCsv
 
         $mancanti = array_diff(self::LISTE[$lista]['colonne'], $intestazione);
         if ($lista === 'docenti') {
-            $mancanti = array_diff($mancanti, ['email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe']);
+            $mancanti = array_diff($mancanti, ['email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe', 'classi_concorso']);
+        }
+        if ($lista === 'discipline') {
+            $mancanti = array_diff($mancanti, ['senza_slot', 'altre_aule']); // facoltativa (1 = non occupa un'ora di lezione, es. mensa): i file più vecchi non l'hanno
         }
         if (in_array($lista, ['aule', 'classi'], true)) {
-            $mancanti = array_diff($mancanti, ['piano']); // facoltativa: i file più vecchi non l'hanno
+            $mancanti = array_diff($mancanti, ['piano', 'conteggio_sostegno', 'slot_attivi']); // facoltativa: i file più vecchi non l'hanno
+        }
+        if ($lista === 'cattedre') {
+            $mancanti = array_diff($mancanti, ['docente_clil_cognome', 'docente_clil_nome', 'ore_clil']); // facoltative
         }
         if ($lista === 'scansione') {
             $mancanti = array_diff($mancanti, ['nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome', 'conteggio_pausa', 'pausa_prima_conteggio', 'aula_pausa', 'pausa_prima_aula']); // facoltative: i file più vecchi non le hanno
@@ -175,7 +188,20 @@ class ListeCsv
 
                 $modello = $def['modello']::query()->create($dati);
                 if ($modello instanceof Classe) {
-                    $modello->slotAttivi()->sync(Slot::query()->where('ordine', '<=', Slot::ULTIMA_ORA_MATTINA)->pluck('id'));
+                    // Senza slot_attivi la classe parte dalle ore del mattino; altrimenti gli slot del file («LUN.1|LUN.2|…»).
+                    try {
+                        $modello->slotAttivi()->sync(filled($riga['slot_attivi'] ?? null)
+                            ? app(ListeCsvAggiuntive::class)->slotDaTesto($riga['slot_attivi'])
+                            : Slot::query()->where('ordine', '<=', Slot::ULTIMA_ORA_MATTINA)->pluck('id'));
+                    } catch (InvalidArgumentException $e) {
+                        $modello->slotAttivi()->sync(Slot::query()->where('ordine', '<=', Slot::ULTIMA_ORA_MATTINA)->pluck('id'));
+                        $esito['errori'][] = "Riga {$n}: classe importata con le ore del mattino, ".$e->getMessage();
+                    }
+                }
+                if ($modello instanceof Docente) {
+                    foreach ($dati['classi_concorso'] ?? [] as $cc) {
+                        $modello->classiConcorso()->create(['classe_concorso' => $cc]);
+                    }
                 }
                 $esito['importate']++;
             }
@@ -319,12 +345,14 @@ if ($esito['errori']) {
                 $padre = $r['padre'] ? $this->trova(Disciplina::query()->where('codice', $r['padre']), "disciplina padre «{$r['padre']}»") : null;
 
                 return [['codice' => $r['codice']], ['codice' => $r['codice'], 'nome' => $r['nome'], 'classe_concorso' => $r['classe_concorso'],
-                    'tipo_aula_richiesto' => $r['tipo_aula_richiesto'], 'padre_id' => $padre]];
+                    'tipo_aula_richiesto' => $r['tipo_aula_richiesto'], 'padre_id' => $padre, 'senza_slot' => (int) ($r['senza_slot'] ?? 0),
+                    'tipi_aula_extra' => array_values(array_filter(array_map('trim', explode('|', (string) ($r['altre_aule'] ?? '')))))]];
             case 'docenti':
                 return [['nome' => $r['nome'], 'cognome' => $r['cognome']], [
                     'nome' => $r['nome'], 'cognome' => $r['cognome'], 'email' => $r['email'] ?? null,
                     'tipo_contratto' => $r['tipo_contratto'] ?? 'tempo_indeterminato', 'tipo_posto' => $r['tipo_posto'] ?? 'comune',
-                    'regime' => $r['regime'] ?? 'tempo_pieno', 'ore_dovute' => $r['ore_dovute'] ?? 18, 'coe' => $r['coe'] ?? 0]];
+                    'regime' => $r['regime'] ?? 'tempo_pieno', 'ore_dovute' => $r['ore_dovute'] ?? 18, 'coe' => $r['coe'] ?? 0,
+                    'classi_concorso' => array_values(array_filter(array_map('trim', explode('|', (string) ($r['classi_concorso'] ?? ''))))) ]];
             case 'classi':
                 // Come in passato, il quadro orario vuoto ripiega sul primo censito (della sede corrente).
                 $quadro = $r['quadro_orario'] ? $this->trova(QuadroOrario::query()->where('nome', $r['quadro_orario']), "quadro orario «{$r['quadro_orario']}»") : QuadroOrario::query()->value('id');
@@ -332,14 +360,17 @@ if ($esito['errori']) {
 
                 return [['anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione']], [
                     'anno_corso' => $r['anno_corso'], 'sezione' => $r['sezione'], 'aula_base_id' => $aula,
-                    'quadro_orario_id' => $quadro, 'tempo_scuola' => $r['tempo_scuola'] ?? 'normale', 'n_alunni' => $r['n_alunni'] ?? 0, 'piano' => $r['piano'] ?? null]];
+                    'quadro_orario_id' => $quadro, 'tempo_scuola' => $r['tempo_scuola'] ?? 'normale', 'n_alunni' => $r['n_alunni'] ?? 0, 'piano' => $r['piano'] ?? null,
+                    'conteggio_sostegno' => $r['conteggio_sostegno'] ?? null]];
             case 'cattedre':
+                $clil = ($r['docente_clil_cognome'] ?? null) ? $this->trova(Docente::query()->where('cognome', $r['docente_clil_cognome'])->where('nome', $r['docente_clil_nome'] ?? ''), "docente CLIL {$r['docente_clil_cognome']} {$r['docente_clil_nome']}") : null;
                 $docente = $this->trova(Docente::query()->where('cognome', $r['docente_cognome'])->where('nome', $r['docente_nome']), "docente {$r['docente_cognome']} {$r['docente_nome']}");
                 $classe = $this->trova(Classe::query()->where('anno_corso', $r['classe_anno'])->where('sezione', $r['classe_sezione']), "classe {$r['classe_anno']}{$r['classe_sezione']}");
                 $disciplina = $this->trova(Disciplina::query()->where('codice', $r['disciplina']), "disciplina «{$r['disciplina']}»");
 
                 return [['docente_id' => $docente, 'classe_id' => $classe, 'disciplina_id' => $disciplina],
-                    ['docente_id' => $docente, 'classe_id' => $classe, 'disciplina_id' => $disciplina, 'ore' => $r['ore'], 'compresenza' => $r['compresenza'] ?? 0]];
+                    ['docente_id' => $docente, 'classe_id' => $classe, 'disciplina_id' => $disciplina, 'ore' => $r['ore'], 'compresenza' => $r['compresenza'] ?? 0,
+                        'docente_clil_id' => $clil, 'ore_clil' => $clil ? ($r['ore_clil'] ?? 0) : 0]];
         }
     }
 

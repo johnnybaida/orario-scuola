@@ -188,10 +188,10 @@ class EditorLezione
         }
 
         $esclusioni = $esistente ? [$lezione->id, $esistente->id] : [$lezione->id];
-        $verifica = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni);
+        $verifica = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni, $lezione->con_clil);
         if ($esistente) {
             $esistente->load('cattedra');
-            $altra = $this->verificaPosizionamento($orarioId, $esistente->cattedra, $lezione->slot_id, $esclusioni);
+            $altra = $this->verificaPosizionamento($orarioId, $esistente->cattedra, $lezione->slot_id, $esclusioni, $esistente->con_clil);
             $verifica = ['rigidi' => [...$verifica['rigidi'], ...$altra['rigidi']], 'conflitti' => [...$verifica['conflitti'], ...$altra['conflitti']]];
         }
 
@@ -272,6 +272,7 @@ class EditorLezione
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
+            'con_clil' => false,   // la compresenza CLIL appartiene alla cattedra di prima
             'aula_id' => $this->risolviAula($nuovaCattedra, $orarioId, $lezione->slot_id, [$lezione->id], $lezione->aula_id),
         ]);
 
@@ -485,14 +486,14 @@ class EditorLezione
      *
      * @return array{rigidi: string[], conflitti: string[]} rigidi = slot fuori scansione; conflitti = docente/aula
      */
-    private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse): array
+    private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse, bool $conClil = false): array
     {
-        $cattedra->loadMissing('classe.slotAttivi', 'docente.indisponibilita', 'disciplina');
+        $cattedra->loadMissing('classe.slotAttivi', 'docente.indisponibilita', 'docenteClil.indisponibilita', 'disciplina');
 
         $rigidi = [];
         $conflitti = [];
         $classe = $cattedra->classe;
-        $docente = $cattedra->docente;
+        $docenti = array_filter([$cattedra->docente, $conClil ? $cattedra->docenteClil : null]);   // titolare e, se la lezione è in compresenza CLIL, il docente CLIL
         $disciplina = $cattedra->disciplina;
         $dove = Slot::query()->find($slotId)?->descrizione() ?? 'slot sconosciuto';
         $prefisso = "{$classe->nomeCompleto()}, {$dove}: ";
@@ -501,19 +502,21 @@ class EditorLezione
             $rigidi[] = $prefisso."{$disciplina->nome} non si può mettere qui, perché l'ora non fa parte della scansione oraria della classe.";
         }
 
-        if ($docente->indisponibilita->pluck('id')->contains($slotId)) {
-            $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) non è disponibile in quell'ora.";
-        }
+        foreach ($docenti as $docente) {
+            if ($docente->indisponibilita->pluck('id')->contains($slotId)) {
+                $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) non è disponibile in quell'ora.";
+            }
 
-        $altra = Lezione::query()
-            ->where('orario_id', $orarioId)
-            ->where('slot_id', $slotId)
-            ->whereNotIn('id', $lezioniEscluse)
-            ->whereHas('cattedra', fn ($q) => $q->where('docente_id', $docente->id))
-            ->with('cattedra.classe', 'cattedra.disciplina')
-            ->first();
-        if ($altra) {
-            $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) è già impegnato in {$altra->cattedra->classe->nomeCompleto()} con {$altra->cattedra->disciplina->nome}.";
+            $altra = Lezione::query()
+                ->where('orario_id', $orarioId)
+                ->where('slot_id', $slotId)
+                ->whereNotIn('id', $lezioniEscluse)
+                ->delDocente($docente->id)
+                ->with('cattedra.classe', 'cattedra.disciplina')
+                ->first();
+            if ($altra) {
+                $conflitti[] = $prefisso."il docente {$docente->nomeCompleto()} ({$disciplina->nome}) è già impegnato in {$altra->cattedra->classe->nomeCompleto()} con {$altra->cattedra->disciplina->nome}.";
+            }
         }
 
         if ($disciplina->tipo_aula_richiesto) {

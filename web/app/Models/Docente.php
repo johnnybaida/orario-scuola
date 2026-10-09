@@ -63,6 +63,12 @@ class Docente extends Model
         return $this->hasMany(Cattedra::class);
     }
 
+    /** Cattedre in cui il docente è in compresenza CLIL. */
+    public function cattedreClil(): HasMany
+    {
+        return $this->hasMany(Cattedra::class, 'docente_clil_id');
+    }
+
     public function assegnazioniSostegno(): HasMany
     {
         return $this->hasMany(AssegnazioneSostegno::class);

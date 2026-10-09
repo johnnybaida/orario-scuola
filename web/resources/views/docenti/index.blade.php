@@ -19,6 +19,9 @@
         <x-slot:azioni>
         @can('gestisci-docenti-classi')
             <x-csv-azioni lista="docenti" />
+            <x-csv-azioni lista="indisponibilita" titolo="indisponibilità" />
+            <x-csv-azioni lista="sospensioni" titolo="sospensioni" />
+            <x-csv-azioni lista="assistenze-pausa" titolo="assistenza pause" />
             <a href="{{ route('docenti.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuovo docente</a>
         @endcan
         </x-slot:azioni>
@@ -52,7 +55,7 @@
                         <td class="px-4 py-2">{{ $docente->email }}</td>
                         <td class="px-4 py-2">{{ $docente->tipo_posto }}</td>
                         <td class="px-4 py-2">{{ $docente->regime }}</td>
-                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore + $assistenza->ore($docente))
+                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore + (int) $docente->cattedre_clil_sum_ore_clil + $assistenza->ore($docente))
                         <td class="px-4 py-2 {{ abs($assegnate - $docente->ore_dovute) > 0.001 ? 'text-amber-700 font-medium' : '' }}">{{ \App\Services\AssistenzaPause::formatta($assegnate) }} / {{ $docente->ore_dovute }}</td>
                         <td class="px-4 py-2">{{ $docente->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">

@@ -26,7 +26,7 @@ class DocenteController extends Controller
                 });
             })
             ->with('sospensioni', 'assistenzePausa')
-            ->withCount('cattedre')->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')
+            ->withCount('cattedre')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')
             ->orderBy('cognome')
             ->paginate(30)
             ->withQueryString();

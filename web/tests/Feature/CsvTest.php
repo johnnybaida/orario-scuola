@@ -37,6 +37,23 @@ class CsvTest extends TestCase
         $this->assertDatabaseHas('aule', ['nome' => 'Lab2', 'sede_id' => app(\App\Services\SedeCorrente::class)->id()]);
     }
 
+    public function test_le_discipline_senza_ora_si_esportano_e_si_importano_e_i_file_vecchi_restano_validi(): void
+    {
+        \App\Models\Disciplina::factory()->create(['codice' => 'MEN', 'nome' => 'Mensa', 'senza_slot' => true]);
+        $admin = $this->admin();
+
+        $csv = $this->actingAs($admin)->get('/csv/discipline')->streamedContent();
+        $this->assertStringContainsString('senza_slot', $csv);
+        $this->assertMatchesRegularExpression('/MEN;Mensa;[^;]*;;;1/', $csv);
+
+        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre;senza_slot\nPRA;Pranzo;;;;1\nITA;Italiano;;;;0\n")->assertOk();
+        $this->assertTrue(\App\Models\Disciplina::query()->where('codice', 'PRA')->first()->senza_slot);
+        $this->assertFalse(\App\Models\Disciplina::query()->where('codice', 'ITA')->first()->senza_slot);
+
+        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre\nGEO;Geografia;;;\n")->assertOk();   // file senza la colonna
+        $this->assertFalse(\App\Models\Disciplina::query()->where('codice', 'GEO')->first()->senza_slot);
+    }
+
     public function test_import_riservato_a_chi_puo_modificare(): void
     {
         $ds = User::factory()->create(['ruolo' => 'ds']);

@@ -39,3 +39,22 @@
         </label>
     </div>
 </div>
+
+<div class="grid sm:grid-cols-2 gap-4">
+    <div>
+        <label for="docente_clil_id" class="block text-sm font-medium text-gray-700">Docente CLIL in compresenza
+            <x-info testo="Facoltativo: un docente (es. madrelingua) presente insieme al titolare solo per alcune ore di questa cattedra. Le sue ore contano nel suo monte ore." />
+        </label>
+        <select name="docente_clil_id" id="docente_clil_id" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+            <option value="">Nessuno</option>
+            @foreach ($docenti as $docente)
+                <option value="{{ $docente->id }}" @selected(old('docente_clil_id', $cattedra?->docente_clil_id) == $docente->id)>{{ $docente->nomeCompleto() }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label for="ore_clil" class="block text-sm font-medium text-gray-700">Ore CLIL</label>
+        <input type="number" name="ore_clil" id="ore_clil" min="0" max="20" value="{{ old('ore_clil', $cattedra?->ore_clil ?? 0) }}"
+               class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    </div>
+</div>

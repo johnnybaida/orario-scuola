@@ -21,7 +21,7 @@ class ControlloOrario
     public function problemi(Orario $orario): array
     {
         $lezioni = Lezione::query()->where('orario_id', $orario->id)
-            ->with('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.disciplina', 'slot', 'aula')->get();
+            ->with('cattedra.classe.slotAttivi', 'cattedra.docente.indisponibilita', 'cattedra.docenteClil.indisponibilita', 'cattedra.disciplina', 'slot', 'aula')->get();
         $problemi = [
             ...$this->docentiInDuePosti($lezioni),
             ...$this->docentiIndisponibili($lezioni),
@@ -81,16 +81,24 @@ class ControlloOrario
         ];
     }
 
+    /** Una riga per lezione e per docente presente (il titolare e, in compresenza CLIL, il docente CLIL). */
+    private function presenze(Collection $lezioni): Collection
+    {
+        return $lezioni->flatMap(fn (Lezione $l) => array_map(
+            fn (int $id) => ['docente' => $id === $l->cattedra->docente_id ? $l->cattedra->docente : $l->cattedra->docenteClil, 'lezione' => $l], $l->docentiIds()));
+    }
+
     private function docentiInDuePosti(Collection $lezioni): array
     {
         $problemi = [];
-        $gruppi = $lezioni->groupBy(fn (Lezione $l) => $l->cattedra->docente_id.'-'.$l->slot_id)->filter(fn ($g) => $g->count() > 1);
+        $gruppi = $this->presenze($lezioni)->groupBy(fn (array $p) => $p['docente']->id.'-'.$p['lezione']->slot_id)->filter(fn ($g) => $g->count() > 1);
 
-        foreach ($gruppi as $gruppo) {
+        foreach ($gruppi as $presenze) {
+            $gruppo = $presenze->pluck('lezione');
             if ($gruppo->every(fn (Lezione $l) => $l->cattedra->compresenza)) {
                 continue; // compresenza dichiarata
             }
-            $docente = $gruppo->first()->cattedra->docente;
+            $docente = $presenze->first()['docente'];
             $dove = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' ('.$l->cattedra->disciplina->nome.')')->implode(' e in ');
             $problemi[] = $this->p('errore', "{$docente->nomeCompleto()}, {$gruppo->first()->slot->descrizione()}: è in due posti, in {$dove}.",
                 $gruppo->pluck('id'), $gruppo->map(fn (Lezione $l) => $l->cattedra->classe_id), [$docente->id]);
@@ -101,10 +109,10 @@ class ControlloOrario
 
     private function docentiIndisponibili(Collection $lezioni): array
     {
-        return $lezioni->filter(fn (Lezione $l) => $l->cattedra->docente->indisponibilita->contains('id', $l->slot_id))
-            ->map(fn (Lezione $l) => $this->p('errore',
-                "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->docente->nomeCompleto()} ({$l->cattedra->disciplina->nome}) non è disponibile in quell'ora.",
-                [$l->id], [$l->cattedra->classe_id], [$l->cattedra->docente_id]))->values()->all();
+        return $this->presenze($lezioni)->filter(fn (array $p) => $p['docente']->indisponibilita->contains('id', $p['lezione']->slot_id))
+            ->map(fn (array $p) => $this->p('errore',
+                "{$p['lezione']->cattedra->classe->nomeCompleto()}, {$p['lezione']->slot->descrizione()}: {$p['docente']->nomeCompleto()} ({$p['lezione']->cattedra->disciplina->nome}) non è disponibile in quell'ora.",
+                [$p['lezione']->id], [$p['lezione']->cattedra->classe_id], [$p['docente']->id]))->values()->all();
     }
 
     private function classiConDueLezioni(Collection $lezioni): array
@@ -130,7 +138,7 @@ class ControlloOrario
         return $lezioni->filter(fn (Lezione $l) => ! $l->cattedra->classe->slotAttivi->contains('id', $l->slot_id))
             ->map(fn (Lezione $l) => $this->p('errore',
                 "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->disciplina->nome} è in un'ora che non fa parte della scansione oraria della classe.",
-                [$l->id], [$l->cattedra->classe_id], [$l->cattedra->docente_id]))->values()->all();
+                [$l->id], [$l->cattedra->classe_id], $l->docentiIds()))->values()->all();
     }
 
     /** Una lezione che richiede un tipo di aula ma non ne ha una assegnata (o ne ha una di tipo diverso). */

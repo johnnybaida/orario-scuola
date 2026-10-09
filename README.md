@@ -5,7 +5,7 @@ Applicativo web per generare e gestire l'orario settimanale di una scuola second
 Cosa fa:
 
 - **Più sedi**, ciascuna con i suoi docenti, discipline, quadri orari, scansione oraria, vincoli, laboratori e orari; si sceglie la sede in cui lavorare dal menu in alto, e una sede nuova può copiare la configurazione di un'altra.
-- **Anagrafiche** (sedi, aule con piano, discipline, quadri orari, docenti, classi, cattedre, laboratori pomeridiani) con esporta/importa CSV e backup completo dei dati in ZIP (pagina *Dati*).
+- **Anagrafiche** (sedi, aule con piano, discipline, quadri orari, docenti, classi, cattedre, laboratori pomeridiani) con esporta/importa CSV di ogni lista (anche indisponibilità, sospensioni, assistenza alle pause, laboratori e impostazioni) e backup completo dei dati in ZIP (pagina *Dati*).
 - **Docenti**: sospensioni con passaggio delle cattedre ai supplenti, assistenza alle pause (mensa), indisponibilità; **sostegno** e didattica **DADA**.
 - **Vincoli configurabili** (blocchi consecutivi, ore al giorno, fasce orarie, giorno libero, buche, spostamenti tra piani) e **generazione automatica** asincrona con seed riproducibile (OR-Tools CP-SAT), una per sede.
 - **Orario**: editor a griglia con drag&drop, controllo dei conflitti, stati (bozza, revisione, approvato, pubblicato), versioni e duplicazione, export PDF (classi, docenti, aule, tabellone generale).

@@ -34,7 +34,7 @@
             @csrf
             <input type="file" name="file" accept=".csv,text/csv" required class="block w-full text-sm">
             <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Importa</button>
-            <a href="{{ route($lista.'.index') }}" class="text-sm underline text-gray-600">Torna all'elenco</a>
+            <a href="{{ route($def['ritorno'] ?? $lista.'.index') }}" class="text-sm underline text-gray-600">Torna all'elenco</a>
         </form>
     </div>
 @endsection

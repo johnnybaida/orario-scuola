@@ -55,6 +55,38 @@ class DatiTest extends TestCase
         $this->assertTrue(AuditLog::query()->where('entita', 'Dati')->where('azione', 'importazione')->exists());
     }
 
+    public function test_l_esportazione_globale_contiene_ogni_tabella_tranne_quelle_escluse_e_ripristina_le_colonne_nuove(): void
+    {
+        $this->actingAs($this->admin());
+        // Escluse per scelta: registro, account, sessioni, code, cache, migrazioni.
+        $escluse = ['audit_log', 'users', 'sessions', 'password_reset_tokens', 'migrations', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs'];
+        $tutte = collect(\Illuminate\Support\Facades\Schema::getTableListing())->map(fn ($t) => preg_replace('/^.*\./', '', $t))->diff($escluse)->sort()->values()->all();
+        $tabelle = (new DatiScuola)->tabelle();
+        $this->assertSame([], array_values(array_diff($tutte, $tabelle)), 'tabelle dei dati non esportate');
+
+        // colonne nuove: docente CLIL, lezione CLIL, disciplina senza ora, aule ammesse, aula della pausa
+        $clil = Docente::factory()->create();
+        $cattedra = Cattedra::factory()->create(['docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $cattedra->disciplina->update(['senza_slot' => true, 'tipi_aula_extra' => ['dada_ita']]);
+        $aula = \App\Models\Aula::factory()->create(['tipo' => 'pausa']);
+        $slot = \App\Models\Slot::factory()->create(['ricreazione_minuti' => 40, 'ricreazione_conteggio' => 60, 'ricreazione_aula_id' => $aula->id]);
+        $lezione = \App\Models\Lezione::factory()->create(['cattedra_id' => $cattedra->id, 'slot_id' => $slot->id, 'con_clil' => true]);
+
+        $zip = $this->esporta($tabelle);
+        $cattedra->docente->delete();
+        $clil->delete();
+        $aula->delete();
+        $this->carica($zip)->assertOk();
+        $this->post('/dati/importa', ['tabelle' => $tabelle, 'conferma' => 1])->assertRedirect(route('dati.index'));
+
+        $this->assertSame($clil->id, $cattedra->fresh()->docente_clil_id);
+        $this->assertSame(1, $cattedra->fresh()->ore_clil);
+        $this->assertTrue($lezione->fresh()->con_clil);
+        $this->assertTrue($cattedra->disciplina->fresh()->senza_slot);
+        $this->assertSame(['dada_ita'], $cattedra->disciplina->fresh()->tipi_aula_extra);
+        $this->assertSame([$aula->id, 60], [$slot->fresh()->ricreazione_aula_id, $slot->fresh()->ricreazione_conteggio]);
+    }
+
     public function test_non_importa_se_i_riferimenti_non_tornano_e_non_cambia_nulla(): void
     {
         $this->actingAs($this->admin());

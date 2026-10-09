@@ -239,4 +239,21 @@ class ControlloOrarioTest extends TestCase
         $this->assertStringContainsString('è in due posti', $tabellone);
         $this->assertStringContainsString('Apri 2ª B', str_replace('&ordf;', 'ª', $tabellone));
     }
+
+    public function test_la_docente_clil_conta_come_presente_nelle_lezioni_in_compresenza(): void
+    {
+        $clil = Docente::factory()->create(['cognome' => 'Smith', 'nome' => 'Emma']);
+        // Smith è in compresenza con Rossi in 1ªA (slot1) e con Bianchi in 2ªB (slot1): è in due posti
+        $this->italianoA->update(['docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $this->storiaB->update(['docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $this->lez['A1']->update(['con_clil' => true]);
+        $this->lez['B1']->update(['con_clil' => true]);
+
+        $testi = $this->testi();
+        $this->assertTrue(collect($testi)->contains(fn ($t) => str_contains($t, 'Emma') && str_contains($t, 'è in due posti')));
+
+        // senza il segno sulla lezione il docente CLIL non occupa lo slot
+        $this->lez['B1']->update(['con_clil' => false]);
+        $this->assertFalse(collect($this->testi())->contains(fn ($t) => str_contains($t, 'Emma')));
+    }
 }

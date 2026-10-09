@@ -91,7 +91,7 @@ class OrarioController extends Controller
     {
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
-            ->whereHas('cattedra', fn ($q) => $q->where('docente_id', $docente->id))
+            ->delDocente($docente->id)
             ->with('cattedra.classe', 'cattedra.disciplina', 'aula')
             ->get()
             ->keyBy('slot_id');
@@ -354,7 +354,7 @@ class OrarioController extends Controller
             foreach ($orario->lezioni()->get()->chunk(200) as $gruppo) {
                 Lezione::query()->insert($gruppo->map(fn (Lezione $l) => [
                     'orario_id' => $copia->id, 'cattedra_id' => $l->cattedra_id, 'slot_id' => $l->slot_id,
-                    'durata_slot' => $l->durata_slot, 'aula_id' => $l->aula_id, 'bloccata' => $l->bloccata,
+                    'durata_slot' => $l->durata_slot, 'aula_id' => $l->aula_id, 'bloccata' => $l->bloccata, 'con_clil' => $l->con_clil,
                     'created_at' => $adesso, 'updated_at' => $adesso,
                 ])->all());
             }

@@ -3,7 +3,10 @@
 @section('titolo', 'Impostazioni')
 
 @section('contenuto')
-    <h1 class="text-xl font-semibold mb-6">Impostazioni</h1>
+    <div class="mb-6 flex items-center gap-4">
+        <h1 class="text-xl font-semibold">Impostazioni</h1>
+        <x-csv-azioni lista="impostazioni" />
+    </div>
 
     <x-guida>
         Le impostazioni valgono per la sede in cui stai lavorando ({{ $impostazioni->sede?->nome }}). Per ora c'è una sola

@@ -25,6 +25,8 @@ class CattedraRequest extends FormRequest
             ],
             'ore' => ['required', 'integer', 'min:1', 'max:20'],
             'compresenza' => ['nullable', 'boolean'],
+            'docente_clil_id' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('docenti')],
+            'ore_clil' => ['nullable', 'integer', 'min:0', 'max:20'],
         ];
     }
 }

@@ -19,6 +19,19 @@
         <label class="block text-xs text-gray-500">Ore</label>
         <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" data-senza-compresenza value="{{ $riga['ore'] ?? '' }}" class="w-20">
     </div>
+    <div class="min-w-40">
+        <label class="block text-xs text-gray-500">Docente CLIL in compresenza <x-info testo="Facoltativo: un docente (es. madrelingua) presente insieme al titolare solo per alcune ore di questa cattedra. Le sue ore contano nel suo monte ore." /></label>
+        <select name="cattedre[{{ $i }}][docente_clil_id]" class="w-full">
+            <option value="">Nessuno</option>
+            @foreach ($docenti as $docente)
+                <option value="{{ $docente->id }}" @selected(($riga['docente_clil_id'] ?? null) == $docente->id)>{{ $docente->nomeCompleto() }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs text-gray-500">Ore CLIL</label>
+        <input type="number" name="cattedre[{{ $i }}][ore_clil]" min="0" max="20" value="{{ $riga['ore_clil'] ?? 0 }}" class="w-20">
+    </div>
     <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
         <input type="checkbox" name="cattedre[{{ $i }}][compresenza]" value="1" @checked($riga['compresenza'] ?? false)> Compresenza
     </label>

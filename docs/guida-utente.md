@@ -40,14 +40,19 @@ In alto a destra, sotto l'icona con le tue **iniziali**, c'è il **menu del prof
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
 
-**Esporta e importa CSV.** Sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi e cattedre hanno in alto il collegamento **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificare la lista, **Importa CSV**: servono per caricare molti dati insieme o per portarli da un'installazione all'altra.
+**Esporta e importa CSV.** Ogni lista dell'anagrafica ha il collegamento **Esporta CSV** (lo scarichi e lo apri in Excel) e, per chi può modificarla, **Importa CSV**: servono per caricare molti dati insieme o per portarli da un'installazione all'altra. Le liste sono: sedi, aule, scansione oraria, discipline, quadri orari, docenti (con le classi di concorso), classi (con slot attivi e conteggio del sostegno), cattedre (con il docente CLIL), e, nelle pagine **Docenti**, **Laboratori** e **Impostazioni**, indisponibilità, sospensioni, assistenza alle pause, laboratori e impostazioni.
 
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
-- **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
+- **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre, poi indisponibilità, sospensioni, assistenza alle pause, laboratori e impostazioni.
+- **Colonne facoltative:** i file esportati da versioni precedenti restano validi; le colonne nuove (`senza_slot` e `altre_aule` nelle discipline, `classi_concorso` nei docenti, `conteggio_sostegno` e `slot_attivi` nelle classi, `docente_clil_cognome`, `docente_clil_nome` e `ore_clil` nelle cattedre) si possono omettere. Gli elenchi dentro una cella si separano con `|` (per esempio `dada_ita|dada_ing`).
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
-- **Non si importano:** vincoli, sostegno e le altre impostazioni.
+- **Classi:** `slot_attivi` elenca le ore con giorno e numero (`LUN.1|LUN.2|…`); se la colonna è vuota la classe parte con le ore del mattino.
+- **Indisponibilità, sospensioni, assistenza alle pause:** una riga per ora, sospensione o pausa sorvegliata, con il docente scritto come cognome e nome già censiti; giorni `LUN…SAB` o `1…6`; date `2026-10-01` o `01/10/2026`; i supplenti sono «Cognome Nome» separati da `|`.
+- **Laboratori:** docenti (`Cognome Nome|…`), classi (`1A|2B`) e ore del pomeriggio (`LUN.7|MAR.7`) in un'unica riga.
+- **Impostazioni:** una riga sola con il conteggio del sostegno; è l'unica lista che **aggiorna** il valore invece di saltarlo.
+- **Non si importano:** vincoli e sostegno (fabbisogni e assegnazioni). Per portare **tutto** da un'installazione all'altra, compresi vincoli, sostegno, orari e generazioni, usa il backup completo in **Dati** (ZIP), che contiene ogni tabella tranne le utenze e il registro attività.
 
 ## Sedi e aule
 <!-- sezione: consulta -->
@@ -122,8 +127,65 @@ Il catalogo delle materie insegnate.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
 - **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
 - **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
-- **Non occupa un'ora di lezione (es. mensa)**: per le voci che contano nel quadro orario e nel monte ore dei docenti ma non sono lezioni da piazzare, come la **mensa**. Come si usa: crea la disciplina «Mensa» con questa spunta, aggiungila al **quadro orario** del tempo prolungato (per esempio 1 ora) e assegna le **cattedre** «Mensa» ai docenti che sorvegliano. Per la classe: il quadro conta anche la mensa (29 ore di discipline + 1 ora di mensa = 30), mentre gli **slot attivi** sono le ore di lezione (29). Con **due docenti** sulla stessa classe, la seconda cattedra va segnata come **Compresenza**: così non si somma nel quadro, ma entrambi i docenti hanno l'ora nel proprio monte ore. Le cattedre di mensa non entrano nella generazione e non compaiono nelle griglie. Se un docente sorveglia più classi insieme, per non contare più volte la stessa ora usa invece l'**assistenza alle pause**.
+- **Non occupa un'ora di lezione (es. mensa)**: per le voci che contano nel quadro orario e nel monte ore dei docenti ma non sono lezioni da piazzare, come la **mensa**. Come si usa: crea la disciplina «Mensa» con questa spunta, aggiungila al **quadro orario** del tempo prolungato (per esempio 1 ora) e assegna le **cattedre** «Mensa» ai docenti che sorvegliano. Per la classe: il quadro conta anche la mensa (29 ore di discipline + 1 ora di mensa = 30), mentre gli **slot attivi** sono le ore di lezione (29). Con **due docenti** sulla stessa classe, la seconda cattedra va segnata come **Compresenza**: così non si somma nel quadro, ma entrambi i docenti hanno l'ora nel proprio monte ore. Le cattedre di mensa non entrano nella generazione e non compaiono nelle griglie. Se un docente sorveglia più classi insieme, per non contare più volte la stessa ora usa invece l'**assistenza alle pause**. Esempi passo per passo nella sezione **Esempio: la mensa** qui sotto. Nel CSV delle discipline la spunta è la colonna facoltativa `senza_slot` (1 = senza ora).
 - **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
+
+<!-- permesso: gestisci-anagrafica -->
+### Esempio: la mensa
+
+Per far contare la mensa nel quadro orario e nel monte ore dei docenti, senza che diventi una lezione da piazzare. Si parte sempre da due passi comuni.
+
+**1. La pausa, in Scansione oraria** (facoltativo, serve per i PDF e per il monte ore di chi la sorveglia):
+
+| Campo | Valore |
+| --- | --- |
+| Nome della pausa | Mensa |
+| Aula della pausa | Refettorio (aula di tipo «Aula per la pausa») |
+| Conta per il docente | Automatico (una mensa da 50 minuti vale 1 ora) |
+
+**2. La disciplina, in Discipline:**
+
+| Campo | Valore |
+| --- | --- |
+| Codice | MEN |
+| Nome | Mensa |
+| Non occupa un'ora di lezione | Spuntato |
+
+Poi, nel **quadro orario del tempo prolungato**, aggiungi la riga Mensa con le ore (per esempio 1). Il totale diventa 30 ore: 29 di discipline più 1 di mensa. Le classi del tempo prolungato hanno **29 slot attivi**, non 30.
+
+*Caso A: un docente per classe.* In **Cattedre** (o nella scheda della classe):
+
+| Campo | Valore |
+| --- | --- |
+| Classe | 1ª A |
+| Docente | Rossi |
+| Disciplina | Mensa |
+| Ore | 1 |
+| Compresenza | No |
+
+Il docente ha 1 ora in più nel monte ore; la classe torna a 30 su 30 nel quadro.
+
+*Caso B: due docenti per classe.* Due cattedre per la stessa classe:
+
+| Campo | 1ª cattedra | 2ª cattedra |
+| --- | --- | --- |
+| Classe | 1ª A | 1ª A |
+| Docente | Rossi | Bianchi |
+| Disciplina | Mensa | Mensa |
+| Ore | 1 | 1 |
+| Compresenza | No | **Sì** |
+
+La seconda va segnata come compresenza: non si somma nel quadro (la classe resta a 30 su 30) ma anche Bianchi ha 1 ora nel proprio monte ore. Con tre classi e due docenti ciascuna sono sei cattedre uguali nella forma.
+
+*Caso C: gli stessi docenti sorvegliano più classi insieme.* Le cattedre contano un'ora per classe e gonfierebbero il monte ore: per i docenti usa invece l'**assistenza alle pause** nella scheda del docente (una volta sola per giorno e pausa):
+
+| Campo | Valore |
+| --- | --- |
+| Giorno | Martedì |
+| Pausa | Mensa 13:00–13:50 |
+
+Alle classi serve comunque una cattedra «Mensa» da 1 ora per tornare a 30 su 30 nel quadro: assegnala a uno dei docenti (e non inserire per lui anche l'assistenza, altrimenti conta due volte).
+<!-- /permesso -->
 
 ## Quadri orari
 <!-- sezione: consulta -->
@@ -234,8 +296,23 @@ Una cattedra assegna un docente a una disciplina per una classe. La pagina **Cat
 - **Ore settimanali** (1–20): quante ore di quella disciplina il docente fa in quella classe.
 - **Stato** (nell'elenco): un'etichetta colorata confronta le ore delle cattedre della classe in quella disciplina con quelle del quadro orario: **OK** (verde), **Mancano N h** (giallo), **N h in più** o **Non nel quadro** (rosso). Le cattedre in compresenza non contano nel confronto e hanno l'etichetta grigia *Compresenza*. Passando il mouse sull'etichetta vedi il dettaglio.
 - **Compresenza**: segnala che la cattedra è svolta insieme a un altro docente nella stessa ora. Per ora è un'indicazione: **non conta nell'etichetta Stato**, ma il generatore e i controlli prima di generare contano comunque le sue ore (quindi, se le inserisci, il totale della classe può superare il quadro orario). Le compresenze di sostegno si gestiscono invece dalla scheda della classe.
+- **Docente CLIL in compresenza** e **Ore CLIL**: per un docente (per esempio la madrelingua CLIL) presente insieme al titolare solo per **alcune ore** di quella cattedra. Il generatore la mette come seconda docente su quelle lezioni: non può essere in due classi nello stesso momento e rispetta le sue indisponibilità. Le ore CLIL contano nel **suo** monte ore (scheda ed elenco docenti, carico della dashboard); compare nelle griglie (riga «CLIL»), nell'orario e nel PDF del docente CLIL e come seconda docente nella griglia della classe. Le lezioni CLIL si decidono alla **generazione**: se cambi le ore CLIL di un orario già generato, rigeneralo.
 
 La stessa combinazione docente + classe + disciplina può comparire una sola volta. La somma delle cattedre di una classe deve coincidere col suo quadro orario; quella di un docente non dovrebbe superare le sue ore dovute.
+
+<!-- permesso: gestisci-anagrafica -->
+**Esempio: la docente madrelingua CLIL.** Fa al massimo 2 ore alla settimana in una classe: 1 ora di Geografia con la docente di Geografia e 1 ora di Scienze con quella di Scienze. Nella scheda della **classe** (o in **Cattedre**), sulle due cattedre:
+
+| Campo | Cattedra di Geografia | Cattedra di Scienze |
+| --- | --- | --- |
+| Disciplina | Geografia | Scienze |
+| Docente | Verdi (titolare) | Neri (titolare) |
+| Ore | 2 | 2 |
+| Docente CLIL in compresenza | Smith | Smith |
+| Ore CLIL | 1 | 1 |
+
+Il quadro orario resta com'è (Geografia 2h, Scienze 2h): la docente CLIL non aggiunge ore alla classe. A Smith vengono contate 2 ore per classe; ripeti per le altre classi e il suo totale diventa, per esempio, 24 ore. Il generatore sceglie in quali ore della cattedra metterla.
+<!-- /permesso -->
 
 ## Laboratori
 <!-- sezione: consulta -->

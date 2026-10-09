@@ -108,9 +108,9 @@ class PreValidator
         $problemi = [];
         $totaleSlot = Slot::query()->count();
 
-        foreach (Docente::query()->withCount('indisponibilita')->with('cattedre.disciplina')->get() as $docente) {
+        foreach (Docente::query()->withCount('indisponibilita')->withSum('cattedreClil', 'ore_clil')->with('cattedre.disciplina')->get() as $docente) {
             $slotDisponibili = $totaleSlot - $docente->indisponibilita_count;
-            $oreAssegnate = $docente->cattedre->reject(fn ($c) => $c->disciplina->senza_slot)->sum('ore');   // la mensa non occupa slot
+            $oreAssegnate = $docente->cattedre->reject(fn ($c) => $c->disciplina->senza_slot)->sum('ore') + (int) $docente->cattedre_clil_sum_ore_clil;   // la mensa non occupa slot; le ore CLIL sì
 
             if ($oreAssegnate > $slotDisponibili) {
                 $problemi[] = $this->p("Docente {$docente->nomeCompleto()}: {$oreAssegnate}h assegnate ma solo "

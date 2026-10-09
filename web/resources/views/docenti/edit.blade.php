@@ -91,7 +91,10 @@
                         @endunless
                     </h2>
                     <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Servono almeno una classe e una disciplina: censiscile prima nelle rispettive sezioni.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
-                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + assistenza alle pause):
+                    @if ($oreClil = $docente->cattedreClil()->sum('ore_clil'))
+                        <p class="mt-2 text-sm text-gray-600">Ore in compresenza CLIL su cattedre di altri docenti: {{ $oreClil }}. Si sommano al totale. <input type="hidden" data-somma="cattedre" value="{{ $oreClil }}"></p>
+                    @endif
+                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + CLIL + assistenza alle pause):
                         <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
                     </p>
                 </fieldset>

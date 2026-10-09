@@ -19,6 +19,14 @@ class ProblemBuilder
     /** @var array<int, int> lezione_id (input solver) => cattedra_id, popolata da costruisci(). */
     private array $mappaLezioni = [];
 
+    /** @var array<int, true> id lezione del solver => la lezione è in compresenza CLIL */
+    private array $lezioniClil = [];
+
+    public function lezioniClil(): array
+    {
+        return $this->lezioniClil;
+    }
+
     public function mappaLezioni(): array
     {
         return $this->mappaLezioni;
@@ -87,10 +95,13 @@ class ProblemBuilder
         foreach ($cattedre as $cattedra) {
             for ($i = 0; $i < $cattedra->ore; $i++) {
                 $id = $prossimoId++;
+                // Le prime `ore_clil` lezioni della cattedra hanno anche il docente CLIL (le lezioni di una cattedra sono intercambiabili: il solver sceglie quando).
+                $conClil = $cattedra->docente_clil_id && $i < $cattedra->ore_clil;
+                $conClil && $this->lezioniClil[$id] = true;
                 $lezioni[] = [
                     'id' => $id,
                     'classi' => [$cattedra->classe_id],
-                    'docenti' => [$cattedra->docente_id],
+                    'docenti' => $conClil ? [$cattedra->docente_id, $cattedra->docente_clil_id] : [$cattedra->docente_id],
                     'disciplina' => $cattedra->disciplina->codice,
                     'durata' => 1,
                     'tipo_aula' => $cattedra->disciplina->tipo_aula_richiesto,
