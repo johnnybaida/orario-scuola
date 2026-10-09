@@ -77,6 +77,23 @@
     </div>
 </div>
 
+<div data-parametri-per="D12_BLOCCO_MAX_CONSECUTIVO">
+    <label class="block text-sm font-medium text-gray-700">Disciplina
+        <x-info testo="Con Ambito = Docente puoi lasciare «Qualsiasi disciplina»: il limite conta sulle lezioni del docente, in qualunque classe e materia (è il «massimo di ore consecutive» di un docente). Con gli altri ambiti la disciplina è obbligatoria." />
+    </label>
+    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">— Qualsiasi disciplina (solo Ambito Docente) —</option>
+        @foreach ($discipline as $disciplina)
+            <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
+        @endforeach
+    </select>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Max ore consecutive
+        <x-info testo="Quante ore di fila, nello stesso giorno, al massimo (le pause non interrompono la fila). 1 = mai due ore di seguito." />
+    </label>
+    <input type="number" name="parametri[max_consecutive]" required min="1" max="8" value="{{ $parametri['max_consecutive'] ?? 2 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
     <label class="block text-sm font-medium text-gray-700">Disciplina</label>
     <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">

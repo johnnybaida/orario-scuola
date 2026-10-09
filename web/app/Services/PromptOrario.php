@@ -261,6 +261,7 @@ class PromptOrario
         return match ($tipo) {
             'D1_BLOCCO_MIN_CONSECUTIVO' => 'in almeno '.($p['n_blocchi_min'] ?? 1).' giorno/i della settimana '.($disciplina ? "{$disciplina} deve avere" : 'le lezioni del docente devono avere')
                 ." un blocco di almeno {$p['min_consecutive']} ore consecutive (conta i giorni con un blocco, non i blocchi)",
+            'D12_BLOCCO_MAX_CONSECUTIVO' => ($disciplina ? "{$disciplina}: " : 'le lezioni del docente: ')."al massimo {$p['max_consecutive']} ore consecutive nello stesso giorno (le pause non interrompono la fila)",
             'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
             'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'
                 ? "{$disciplina} NON può essere collocata in queste ore: ".$ore($p['slot_ids'] ?? [])

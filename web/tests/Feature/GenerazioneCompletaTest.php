@@ -122,6 +122,8 @@ class GenerazioneCompletaTest extends TestCase
         $vincolo(['tipo' => 'D3_MAX_ORE_GIORNO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_id' => (string) $this->disc['ITA']->id, 'max' => '2']]);
         $vincolo(['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'severita' => 'rigido', 'peso' => null, 'ambito_livello' => 'classe', 'ambito_ids' => [(string) $this->classeA->id],
             'parametri' => ['disciplina_id' => (string) $this->disc['ITA']->id, 'min_consecutive' => '2', 'n_blocchi_min' => '1']]);
+        // Matematica mai due ore di fila (D12), come la salva il form
+        $vincolo(['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_id' => (string) $this->disc['MAT']->id, 'max_consecutive' => '1']]);
         $vincolo(['tipo' => 'T3_MAX_ORE_BUCHE', 'severita' => 'preferenziale', 'peso' => 50, 'parametri' => ['max_per_giorno' => 1]]);
     }
 
@@ -187,6 +189,14 @@ class GenerazioneCompletaTest extends TestCase
 
         // Vincoli rigidi: Matematica mai il lunedì alla 1ª; Italiano al massimo 2 ore al giorno per classe, e in A in un blocco di 2 consecutive.
         $this->assertFalse($lezioni->contains(fn ($l) => $l->cattedra->disciplina->codice === 'MAT' && $l->slot_id === $this->slot(1, 1)->id));
+        // D12: le due ore di Matematica di ogni classe non sono mai di fila nello stesso giorno
+        foreach ([$this->classeA, $this->classeB] as $classe) {
+            $mat = $lezioni->filter(fn ($l) => $l->cattedra->classe_id === $classe->id && $l->cattedra->disciplina->codice === 'MAT');
+            foreach ($mat->groupBy(fn ($l) => $l->slot->giorno) as $giorno) {
+                $ordini = $giorno->pluck('slot.ordine')->sort()->values();
+                $this->assertTrue($ordini->count() < 2 || $ordini->last() - $ordini->first() > 1, 'Matematica di fila in '.$classe->nomeCompleto());
+            }
+        }
         foreach ([$this->classeA, $this->classeB] as $classe) {
             $ita = $lezioni->filter(fn ($l) => $l->cattedra->classe_id === $classe->id && $l->cattedra->disciplina->codice === 'ITA');
             foreach ($ita->groupBy(fn ($l) => $l->slot->giorno) as $giorno) {

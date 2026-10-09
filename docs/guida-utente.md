@@ -416,6 +416,7 @@ Nell'elenco dei vincoli la colonna **Disciplina** mostra la disciplina a cui si 
 Tipi disponibili:
 
 - **Blocco consecutivo minimo (D1)**: una disciplina (o, con Ambito *Docente*, le lezioni dei docenti scelti) in blocchi di almeno N ore consecutive. Campi: disciplina (facoltativa **solo con Ambito Docente**: lasciando «Qualsiasi disciplina» contano tutte le lezioni del docente, in qualunque classe e materia), *min ore consecutive* (2–6), *n. blocchi minimi* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
+- **Blocco consecutivo massimo (D12)**: il contrario di D1, un **tetto alle ore di fila** nello stesso giorno (le pause non interrompono la fila). Per una disciplina in ogni classe (Ambito *Globale* o *Classe*), oppure, con Ambito *Docente*, per le lezioni dei docenti scelti: lasciando «Qualsiasi disciplina» è il **massimo di ore consecutive** di un docente. Campi: disciplina (facoltativa solo con Ambito Docente) e *max ore consecutive* (1 = mai due ore di seguito). Rigido: il limite non si supera mai; preferenziale: ogni fila che lo supera paga una penalità (più lunga è la fila, più paga).
 - **Max ore/giorno per disciplina (D3)**: limite di ore al giorno della stessa disciplina. Campi: disciplina, *max ore/giorno*.
 - **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: disciplina, *tipo fascia* (vietata/preferita), gli *slot* interessati, indicati con giorno e ora (LUN-1ª, MAR-3ª, ...).
 - **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
@@ -470,6 +471,34 @@ Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossib
 | Severità | Rigido |
 
 Per ciascun docente scelto, in almeno un giorno della settimana ci sono due sue lezioni consecutive, anche in classi o materie diverse. Se indichi una disciplina contano solo le sue lezioni di quella disciplina.
+
+**Blocco consecutivo massimo (D12)**
+
+*Matematica mai due ore di fila, in nessuna classe.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Blocco consecutivo massimo (D12) |
+| Ambito | Globale |
+| Disciplina | Matematica |
+| Max ore consecutive | 1 |
+| Severità | Rigido |
+
+Le ore di Matematica di una classe cadono in giorni diversi o separate da almeno un'altra ora.
+
+*Nessun docente più di 4 ore di seguito.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Blocco consecutivo massimo (D12) |
+| Ambito | Docente |
+| Docenti | tutti quelli che servono (selezionali) |
+| Disciplina | Qualsiasi disciplina |
+| Max ore consecutive | 4 |
+| Severità | Preferenziale |
+| Peso | 40 |
+
+Il generatore cerca di non dare a quei docenti più di quattro ore di fila; se non ci riesce paga una penalità per ogni fila più lunga.
 
 **Max ore/giorno per disciplina (D3)**
 

@@ -165,4 +165,28 @@ class VincoloTest extends TestCase
         $response->assertRedirect(route('vincoli.index'));
         $this->assertDatabaseMissing('vincoli', ['id' => $vincolo->id]);
     }
+
+    public function test_d12_si_crea_con_disciplina_o_per_un_docente_senza_e_rifiuta_valori_fuori_soglia(): void
+    {
+        $classe = Classe::factory()->create();
+        $disciplina = Disciplina::factory()->create();
+        $docente = \App\Models\Docente::factory()->create();
+        $utente = $this->actingAs($this->referente());
+
+        $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id],
+            'parametri' => ['disciplina_id' => $disciplina->id, 'max_consecutive' => 2], 'severita' => 'rigido'])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO']);
+
+        // per i docenti la disciplina è facoltativa (massimo di ore consecutive del docente); per gli altri ambiti è obbligatoria
+        $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id],
+            'parametri' => ['max_consecutive' => 4], 'severita' => 'preferenziale', 'peso' => 30])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'globale',
+            'parametri' => ['max_consecutive' => 2], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.disciplina_id');
+        $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id],
+            'parametri' => ['disciplina_id' => $disciplina->id, 'max_consecutive' => 0], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.max_consecutive');
+
+        $this->assertSame('Tutte le lezioni: al massimo 4 ore consecutive nello stesso giorno.',
+            (new \App\Constraints\Tipi\D12BloccoMaxConsecutivo)->descrizione(['max_consecutive' => 4]));
+        $this->assertSame('Tutte le lezioni: mai due ore consecutive nello stesso giorno.', (new \App\Constraints\Tipi\D12BloccoMaxConsecutivo)->descrizione(['max_consecutive' => 1]));
+    }
 }

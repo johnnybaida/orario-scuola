@@ -6,6 +6,7 @@ use App\Constraints\Tipi\C5SpostamentiPiano;
 use App\Constraints\Tipi\D1BloccoMinConsecutivo;
 use App\Constraints\Tipi\D3MaxOreGiorno;
 use App\Constraints\Tipi\D6FasciaOraria;
+use App\Constraints\Tipi\D12BloccoMaxConsecutivo;
 use App\Constraints\Tipi\T2GiornoLibero;
 use App\Constraints\Tipi\T3MaxOreBuche;
 
@@ -16,6 +17,7 @@ class Catalogo
         'D1_BLOCCO_MIN_CONSECUTIVO' => D1BloccoMinConsecutivo::class,
         'D3_MAX_ORE_GIORNO' => D3MaxOreGiorno::class,
         'D6_FASCIA_ORARIA' => D6FasciaOraria::class,
+        'D12_BLOCCO_MAX_CONSECUTIVO' => D12BloccoMaxConsecutivo::class,
         'T2_GIORNO_LIBERO' => T2GiornoLibero::class,
         'T3_MAX_ORE_BUCHE' => T3MaxOreBuche::class,
         'C5_SPOSTAMENTI_PIANO' => C5SpostamentiPiano::class,
