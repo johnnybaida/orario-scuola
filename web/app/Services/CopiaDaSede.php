@@ -81,7 +81,7 @@ class CopiaDaSede
     private function copiaScansione(Sede $origine): array
     {
         $slot = Slot::query()->withoutGlobalScopes()->where('sede_id', $origine->id)->orderBy('giorno')->orderBy('ordine')->get();
-        $slot->each(fn (Slot $s) => $this->nuova($s));
+        $slot->each(fn (Slot $s) => $this->nuova($s, ['ricreazione_aula_id' => null, 'pausa_prima_aula_id' => null]));   // le aule sono dell'altra sede
 
         $impostazioni = Impostazioni::query()->withoutGlobalScopes()->where('sede_id', $origine->id)->first();
         if ($impostazioni) {

@@ -17,6 +17,8 @@ enum TipoAula: string
     case AulaMusica = 'aula_musica';
     case AulaSostegno = 'aula_sostegno';
     case AulaAlternativa = 'aula_alternativa';
+    /** Dove si svolgono le pause (mensa, ricreazione): si collega alla pausa in Scansione oraria e compare nei PDF. */
+    case Pausa = 'pausa';
     /** DADA: l'aula delle lingue straniere diverse dall'inglese (francese, spagnolo, tedesco...). */
     case DadaSecondaLingua = 'dada_sec_ling';
 
@@ -35,6 +37,7 @@ enum TipoAula: string
             self::AulaMusica => 'Aula di musica',
             self::AulaSostegno => 'Aula di sostegno',
             self::AulaAlternativa => 'Aula per l\'attività alternativa',
+            self::Pausa => 'Aula per la pausa (mensa, ricreazione)',
             self::DadaSecondaLingua => 'DADA · Seconda lingua',
         };
     }

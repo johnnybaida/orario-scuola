@@ -21,9 +21,13 @@ class ScansioneOrariaRequest extends FormRequest
             'ore.*.fine' => ['required', 'date_format:H:i'],
             'ore.*.ricreazione' => ['nullable', 'integer', 'min:0', 'max:240'],
             'ore.*.nome' => ['nullable', 'string', 'max:40'],
+            'ore.*.conteggio' => ['nullable', 'integer', 'min:15', 'max:240', 'multiple_of:15'],
+            'ore.*.aula' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('aule')->where('tipo', \App\Enums\TipoAula::Pausa->value)],
             'pausa_prima' => ['nullable', 'array'],
             'pausa_prima.minuti' => ['nullable', 'integer', 'min:0', 'max:240'],
             'pausa_prima.nome' => ['nullable', 'string', 'max:40'],
+            'pausa_prima.conteggio' => ['nullable', 'integer', 'min:15', 'max:240', 'multiple_of:15'],
+            'pausa_prima.aula' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('aule')->where('tipo', \App\Enums\TipoAula::Pausa->value)],
         ];
     }
 

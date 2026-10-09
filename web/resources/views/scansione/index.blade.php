@@ -43,6 +43,8 @@
                         <th class="px-4 py-2">Fine</th>
                         <th class="px-4 py-2">Durata</th>
                         <th class="px-4 py-2">Ricreazione dopo (minuti)</th>
+                        <th class="px-4 py-2">Conta per il docente <x-info testo="Facoltativo: quanto vale la pausa nel monte ore del docente che la sorveglia, a scatti di 15 minuti (60 minuti = 1 ora). Con «Automatico» vale la durata arrotondata per eccesso al quarto d'ora: 50 minuti contano come 1 ora." /></th>
+                        <th class="px-4 py-2">Aula della pausa <x-info testo="Facoltativo: l'aula in cui si svolge la pausa (per esempio il refettorio). Compare nei PDF accanto alla pausa. Si sceglie tra le aule di tipo «Aula per la pausa»: creale in Aule." /></th>
                         <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo (vale anche per la pausa prima della prima ora, che finisce quando comincia la prima ora): scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
                     </tr>
                 </thead>
@@ -60,6 +62,22 @@
                                        value="{{ old('pausa_prima.minuti', $primaOra->pausa_prima_minuti) }}">
                                 <span class="text-gray-500">min</span>
                             </span>
+                        </td>
+                        <td class="px-4 py-2">
+                            <select name="pausa_prima[conteggio]" class="w-32" aria-label="Minuti conteggiati per il docente">
+                                        <option value="">Automatico</option>
+                                        @foreach (range(15, 240, 15) as $m)
+                                            <option value="{{ $m }}" @selected((int) old('pausa_prima.conteggio', $primaOra->pausa_prima_conteggio) === $m)>{{ $m }} min</option>
+                                        @endforeach
+                                    </select>
+                        </td>
+                        <td class="px-4 py-2">
+                            <select name="pausa_prima[aula]" class="w-40" aria-label="Aula della pausa" @disabled($auleInPausa->isEmpty())>
+                                <option value="">Nessuna</option>
+                                @foreach ($auleInPausa as $a)
+                                    <option value="{{ $a->id }}" @selected((int) old("pausa_prima.aula", $primaOra->pausa_prima_aula_id) === $a->id)>{{ $a->nome }}</option>
+                                @endforeach
+                            </select>
                         </td>
                         <td class="px-4 py-2">
                             <input type="text" maxlength="40" class="w-40" placeholder="Pausa" name="pausa_prima[nome]" aria-label="Nome della pausa prima della {{ $ore->keys()->first() }}ª ora"
@@ -90,6 +108,30 @@
                                             <span class="text-gray-600">{{ substr($ora->fine, 0, 5) }}–{{ $ora->fineRicreazione() }}</span>
                                         @endif
                                     </span>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if ($prossima)
+                                    <select name="ore[{{ $ordine }}][conteggio]" class="w-32" aria-label="Minuti conteggiati per il docente">
+                                        <option value="">Automatico</option>
+                                        @foreach (range(15, 240, 15) as $m)
+                                            <option value="{{ $m }}" @selected((int) old("ore.$ordine.conteggio", $ora->ricreazione_conteggio) === $m)>{{ $m }} min</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if ($prossima)
+                                    <select name="ore[{{ $ordine }}][aula]" class="w-40" aria-label="Aula della pausa" @disabled($auleInPausa->isEmpty())>
+                                        <option value="">Nessuna</option>
+                                        @foreach ($auleInPausa as $a)
+                                            <option value="{{ $a->id }}" @selected((int) old("ore.$ordine.aula", $ora->ricreazione_aula_id) === $a->id)>{{ $a->nome }}</option>
+                                        @endforeach
+                                    </select>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif

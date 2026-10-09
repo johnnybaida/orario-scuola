@@ -50,8 +50,8 @@ class ListeCsv
         'cattedre' => ['titolo' => 'Cattedre', 'modello' => Cattedra::class, 'request' => CattedraRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['docente_cognome', 'docente_nome', 'classe_anno', 'classe_sezione', 'disciplina', 'ore', 'compresenza']],
         'scansione' => ['titolo' => 'Scansione oraria', 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome'],
-            'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. La pausa prima della prima ora (colonne pausa_prima_minuti e pausa_prima_nome) si scrive sulla riga della prima ora. Se c\'è un errore non cambia nulla.'],
+            'colonne' => ['ora', 'inizio', 'fine', 'ricreazione_minuti', 'nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome', 'conteggio_pausa', 'pausa_prima_conteggio', 'aula_pausa', 'pausa_prima_aula'],
+            'nota' => 'Il file sostituisce orari e ricreazioni di tutte le ore, uguali per tutti i giorni: deve quindi contenere tutte le ore della scansione. La pausa prima della prima ora (colonne pausa_prima_minuti e pausa_prima_nome) si scrive sulla riga della prima ora. Le colonne conteggio_pausa e pausa_prima_conteggio (facoltative, multipli di 15) sono i minuti con cui la pausa conta per il docente che la sorveglia; aula_pausa e pausa_prima_aula (facoltative) il nome di un\'aula di tipo «pausa». Se c\'è un errore non cambia nulla.'],
         'quadri-orari' => ['titolo' => 'Quadri orari', 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['quadro', 'ore_totali', 'disciplina', 'ore_settimanali'],
             'nota' => 'Una riga per disciplina del quadro (la disciplina si scrive con il codice, quindi importa prima le discipline). Ogni quadro è importato per intero o per niente; quelli già presenti con lo stesso nome vengono saltati. Le ore totali si ricalcolano dalle righe: la colonna ore_totali è ignorata.'],
@@ -72,7 +72,7 @@ class ListeCsv
             // La scansione è uguale in tutti i giorni: si esporta una riga per ora, dai valori del primo giorno.
             'scansione' => Slot::query()->orderBy('ordine')->orderBy('giorno')->get()->groupBy('ordine')
                 ->map(fn ($s, $ordine) => [$s->first()->ordine, substr($s->first()->inizio, 0, 5), substr($s->first()->fine, 0, 5), $s->first()->ricreazione_minuti, $s->first()->ricreazione_nome]
-                    + [5 => $s->first()->pausa_prima_minuti, 6 => $s->first()->pausa_prima_nome]),   // la pausa prima della prima ora sta sulla riga della prima ora
+                    + [5 => $s->first()->pausa_prima_minuti, 6 => $s->first()->pausa_prima_nome, 7 => $s->first()->ricreazione_conteggio, 8 => $s->first()->pausa_prima_conteggio, 9 => $s->first()->ricreazioneAula?->nome, 10 => $s->first()->pausaPrimaAula?->nome]),   // la pausa prima della prima ora sta sulla riga della prima ora
             // Una riga per disciplina del quadro (un quadro senza righe compare con le ultime due colonne vuote).
             'quadri-orari' => QuadroOrario::query()->with('righe.disciplina')->orderBy('nome')->get()
                 ->flatMap(fn ($q) => $q->righe->isEmpty() ? [[$q->nome, $q->ore_totali, null, null]]
@@ -124,7 +124,7 @@ class ListeCsv
             $mancanti = array_diff($mancanti, ['piano']); // facoltativa: i file più vecchi non l'hanno
         }
         if ($lista === 'scansione') {
-            $mancanti = array_diff($mancanti, ['nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome']); // facoltative: i file più vecchi non le hanno
+            $mancanti = array_diff($mancanti, ['nome_pausa', 'pausa_prima_minuti', 'pausa_prima_nome', 'conteggio_pausa', 'pausa_prima_conteggio', 'aula_pausa', 'pausa_prima_aula']); // facoltative: i file più vecchi non le hanno
         }
         if ($lista === 'quadri-orari') {
             $mancanti = array_diff($mancanti, ['ore_totali']);
@@ -187,6 +187,17 @@ class ListeCsv
     {
         $ore = [];
         $righeOra = [];
+        $paus = \App\Models\Aula::query()->where('tipo', \App\Enums\TipoAula::Pausa->value)->pluck('id', 'nome');
+        $aulaPausa = function (int $n, ?string $nome) use ($paus, &$esito) {
+            if (! filled($nome)) {
+                return null;
+            }
+            if (! isset($paus[$nome])) {
+                $esito['errori'][] = "Riga {$n}: «{$nome}» non è un'aula di tipo «pausa» censita.";
+            }
+
+            return $paus[$nome] ?? null;
+        };
         foreach ($righe as $n => $r) {
             $ora = (int) $r['ora'];
             if (! ctype_digit((string) $r['ora']) || isset($ore[$ora])) {
@@ -197,7 +208,7 @@ class ListeCsv
             $righeOra[$ora] = $r;
             $ore[$ora] = [
                 'inizio' => preg_replace('/^(\d):/', '0$1:', (string) $r['inizio']), 'fine' => preg_replace('/^(\d):/', '0$1:', (string) $r['fine']),
-                'ricreazione' => $r['ricreazione_minuti'], 'nome' => $r['nome_pausa'] ?? null,
+                'ricreazione' => $r['ricreazione_minuti'], 'nome' => $r['nome_pausa'] ?? null, 'conteggio' => $r['conteggio_pausa'] ?? null, 'aula' => $aulaPausa($n, $r['aula_pausa'] ?? null),
             ];
         }
         if ($esito['errori']) {
@@ -214,7 +225,10 @@ class ListeCsv
 
         // La pausa prima della prima ora sta sulla riga della prima ora.
         $prima = $righeOra[array_key_first($ore)];
-        $pausaPrima = ['minuti' => $prima['pausa_prima_minuti'] ?? null, 'nome' => $prima['pausa_prima_nome'] ?? null];
+        $pausaPrima = ['minuti' => $prima['pausa_prima_minuti'] ?? null, 'nome' => $prima['pausa_prima_nome'] ?? null, 'conteggio' => $prima['pausa_prima_conteggio'] ?? null, 'aula' => $aulaPausa(array_key_first($ore), $prima['pausa_prima_aula'] ?? null)];
+if ($esito['errori']) {
+            return;
+        }
 
         $richiesta = new ScansioneOrariaRequest;
         $richiesta->merge(['ore' => $ore, 'pausa_prima' => $pausaPrima]);

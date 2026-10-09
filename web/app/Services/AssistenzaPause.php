@@ -18,6 +18,7 @@ class AssistenzaPause
                 $da = substr($s->fine, 0, 5);
 
                 return ['ordine' => $s->ordine, 'nome' => $s->nomePausa(), 'da' => $da, 'a' => $s->fineRicreazione(), 'minuti' => (int) $s->ricreazione_minuti,
+                    'conteggio' => self::conteggio($s->ricreazione_conteggio, $s->ricreazione_minuti), 'aula' => $s->ricreazioneAula?->nome,
                     'etichetta' => "{$s->nomePausa()} {$da}–{$s->fineRicreazione()} (dopo la {$s->ordine}ª ora)"];
             });
 
@@ -26,6 +27,7 @@ class AssistenzaPause
         if ($primo?->pausa_prima_minuti) {
             $a = substr($primo->inizio, 0, 5);
             $dopo->prepend(['ordine' => 0, 'nome' => $primo->nomePausaPrima(), 'da' => $primo->inizioPausaPrima(), 'a' => $a, 'minuti' => (int) $primo->pausa_prima_minuti,
+                'conteggio' => self::conteggio($primo->pausa_prima_conteggio, $primo->pausa_prima_minuti), 'aula' => $primo->pausaPrimaAula?->nome,
                 'etichetta' => "{$primo->nomePausaPrima()} {$primo->inizioPausaPrima()}–{$a} (prima della {$primo->ordine}ª ora)"], 0);
         }
 
@@ -38,13 +40,21 @@ class AssistenzaPause
         $pause = $this->pause();
 
         return $docente->assistenzePausa->filter(fn ($a) => $pause->has($a->ordine))
-            ->map(fn ($a) => ucfirst(mb_strtolower(Slot::GIORNI_BREVI[$a->giorno] ?? (string) $a->giorno)).' · '.$pause[$a->ordine]['nome'].' '.$pause[$a->ordine]['da'].'–'.$pause[$a->ordine]['a'])->values()->all();
+            ->map(fn ($a) => ucfirst(mb_strtolower(Slot::GIORNI_BREVI[$a->giorno] ?? (string) $a->giorno)).' · '.$pause[$a->ordine]['nome'].' '.$pause[$a->ordine]['da'].'–'.$pause[$a->ordine]['a'].($pause[$a->ordine]['aula'] ? ' ('.$pause[$a->ordine]['aula'].')' : ''))->values()->all();
     }
 
-    /** Ore di assistenza (60 minuti = 1 ora) che si sommano a quelle di cattedra e sostegno nel monte ore del docente. */
+    /** Minuti con cui la pausa conta nel monte ore: quelli scelti in Scansione oraria, altrimenti la durata arrotondata per eccesso al quarto d'ora. */
+    public static function conteggio(?int $scelto, ?int $durata): int
+    {
+        return $scelto ?: (int) (ceil(((int) $durata) / 15) * 15);
+    }
+
+    /** Ore di assistenza (60 minuti conteggiati = 1 ora) che si sommano a quelle di cattedra e sostegno nel monte ore del docente. */
     public function ore(Docente $docente): float
     {
-        return round($this->minuti($docente) / 60, 2);
+        $pause = $this->pause();
+
+        return round($docente->assistenzePausa->sum(fn ($a) => $pause[$a->ordine]['conteggio'] ?? 0) / 60, 2);
     }
 
     /** «21,5» invece di «21.50»: per i totali a video. */

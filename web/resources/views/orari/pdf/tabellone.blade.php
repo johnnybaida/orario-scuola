@@ -70,10 +70,10 @@
     <p class="legenda">
         <strong>Orari:</strong>
         @foreach ($legendaOre as $ora)
-            @if ($ora['prima'])<strong>{{ $ora['prima']['nome'] }}</strong> {{ $ora['prima']['da'] }}-{{ $ora['inizio'] }} ({{ $ora['prima']['minuti'] }}') &middot; @endif
+            @if ($ora['prima'])<strong>{{ $ora['prima']['nome'] }}</strong> {{ $ora['prima']['da'] }}-{{ $ora['inizio'] }} ({{ $ora['prima']['minuti'] }}'){{ $ora['prima']['aula'] ? ' · '.$ora['prima']['aula'] : '' }} &middot; @endif
             {{ $ora['ordine'] }}ª {{ $ora['inizio'] }}-{{ $ora['fine'] }}
             @if ($ora['ricreazione'])
-                &middot; <strong>{{ $ora['ricreazione']['nome'] }}</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}')
+                &middot; <strong>{{ $ora['ricreazione']['nome'] }}</strong> {{ $ora['fine'] }}-{{ $ora['ricreazione']['fine'] }} ({{ $ora['ricreazione']['minuti'] }}'){{ $ora['ricreazione']['aula'] ? ' · '.$ora['ricreazione']['aula'] : '' }}
             @endif
             @unless ($loop->last) &middot; @endunless
         @endforeach

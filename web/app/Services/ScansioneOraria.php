@@ -21,6 +21,8 @@ class ScansioneOraria
         return $this->ore()->map(fn (Slot $s) => [
             'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti, 'ricreazione_nome' => $s->ricreazione_nome,
             'pausa_prima_minuti' => $s->pausa_prima_minuti, 'pausa_prima_nome' => $s->pausa_prima_nome,
+            'ricreazione_conteggio' => $s->ricreazione_conteggio, 'pausa_prima_conteggio' => $s->pausa_prima_conteggio,
+            'ricreazione_aula_id' => $s->ricreazione_aula_id, 'pausa_prima_aula_id' => $s->pausa_prima_aula_id,
         ])->all();
     }
 
@@ -49,7 +51,7 @@ class ScansioneOraria
     }
 
     /**
-     * Imposta le ore (ordine => [inizio, fine, ricreazione, nome]) e la pausa prima della prima ora ([minuti, nome]) su tutti i giorni e lo registra nell'audit log.
+     * Imposta le ore (ordine => [inizio, fine, ricreazione, nome, conteggio]) e la pausa prima della prima ora ([minuti, nome, conteggio]) su tutti i giorni e lo registra nell'audit log.
      * I dati sono già validati (ScansioneOrariaRequest).
      */
     public function applica(array $ore, array $pausaPrima = []): void
@@ -64,12 +66,16 @@ class ScansioneOraria
                     'intervallo_dopo' => ! empty($ora['ricreazione']),
                     'ricreazione_minuti' => ! empty($ora['ricreazione']) ? (int) $ora['ricreazione'] : null,
                     'ricreazione_nome' => ! empty($ora['ricreazione']) && ! empty($ora['nome']) ? $ora['nome'] : null,
+                    'ricreazione_conteggio' => ! empty($ora['ricreazione']) && ! empty($ora['conteggio']) ? (int) $ora['conteggio'] : null,
+                    'ricreazione_aula_id' => ! empty($ora['ricreazione']) && ! empty($ora['aula']) ? (int) $ora['aula'] : null,
                 ]);
             }
-            Slot::query()->update(['pausa_prima_minuti' => null, 'pausa_prima_nome' => null]);
+            Slot::query()->update(['pausa_prima_minuti' => null, 'pausa_prima_nome' => null, 'pausa_prima_conteggio' => null, 'pausa_prima_aula_id' => null]);
             if (! empty($pausaPrima['minuti']) && $ore) {
                 Slot::query()->where('ordine', min(array_keys($ore)))->update([
                     'pausa_prima_minuti' => (int) $pausaPrima['minuti'], 'pausa_prima_nome' => ! empty($pausaPrima['nome']) ? $pausaPrima['nome'] : null,
+                    'pausa_prima_conteggio' => ! empty($pausaPrima['conteggio']) ? (int) $pausaPrima['conteggio'] : null,
+                    'pausa_prima_aula_id' => ! empty($pausaPrima['aula']) ? (int) $pausaPrima['aula'] : null,
                 ]);
             }
         });

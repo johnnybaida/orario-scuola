@@ -46,7 +46,7 @@
                         <tr class="ricreazione">
                             <td colspan="{{ $slotPerGiorno->count() + 1 }}">
                                 {{ $pausaPrima->nomePausaPrima() }} {{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }}
-                                ({{ $pausaPrima->pausa_prima_minuti }} minuti)
+                                ({{ $pausaPrima->pausa_prima_minuti }} minuti){{ $pausaPrima->pausaPrimaAula ? ' · '.$pausaPrima->pausaPrimaAula->nome : '' }}
                             </td>
                         </tr>
                     @endif
@@ -76,7 +76,7 @@
                             <tr class="ricreazione">
                                 <td colspan="{{ $slotPerGiorno->count() + 1 }}">
                                     {{ $primoSlot->nomePausa() }} {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
-                                    ({{ $primoSlot->ricreazione_minuti }} minuti)
+                                    ({{ $primoSlot->ricreazione_minuti }} minuti){{ $primoSlot->ricreazioneAula ? ' · '.$primoSlot->ricreazioneAula->nome : '' }}
                                 </td>
                             </tr>
                         @endif

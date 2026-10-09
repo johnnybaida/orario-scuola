@@ -11,7 +11,7 @@
         <label class="block text-xs text-gray-500">Pausa</label>
         <select name="assistenze[{{ $i }}][ordine]" required data-somma-minuti="cattedre">
             @foreach ($pause as $ordine => $pausa)
-                <option value="{{ $ordine }}" data-minuti="{{ $pausa['minuti'] }}" @selected(($riga['ordine'] ?? null) == $ordine)>{{ $pausa['etichetta'] }}</option>
+                <option value="{{ $ordine }}" data-minuti="{{ $pausa['conteggio'] }}" @selected(($riga['ordine'] ?? null) == $ordine)>{{ $pausa['etichetta'] }}</option>
             @endforeach
         </select>
     </div>

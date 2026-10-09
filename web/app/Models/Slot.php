@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome', 'pausa_prima_minuti', 'pausa_prima_nome'])]
+#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome', 'pausa_prima_minuti', 'pausa_prima_nome', 'ricreazione_conteggio', 'pausa_prima_conteggio', 'ricreazione_aula_id', 'pausa_prima_aula_id'])]
 class Slot extends Model
 {
     use \App\Models\Concerns\PerSede;
@@ -36,6 +36,16 @@ class Slot extends Model
     public static function minutiTra(string $da, string $a): int
     {
         return (int) \Carbon\Carbon::createFromTimeString($da)->diffInMinutes(\Carbon\Carbon::createFromTimeString($a), false);
+    }
+
+    public function ricreazioneAula(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Aula::class, 'ricreazione_aula_id');
+    }
+
+    public function pausaPrimaAula(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Aula::class, 'pausa_prima_aula_id');
     }
 
     /** Nome della pausa che segue quest'ora: quello scelto in Scansione oraria (es. «Mensa») o «Ricreazione». */

@@ -22,7 +22,7 @@ class TipoAulaTest extends TestCase
         $this->assertSame('DADA · Ita', TipoAula::etichettaDi('dada_ita'));        // DADA non previsto: ripulito
         $this->assertSame('Aula speciale', TipoAula::etichettaDi('aula_speciale')); // tipo inventato dalla scuola
         $this->assertTrue(TipoAula::eDada('dada_x') && ! TipoAula::eDada('palestra'));
-        $this->assertSame(['classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa'], TipoAula::comuni());
+        $this->assertSame(['classe', 'laboratorio', 'palestra', 'aula_musica', 'aula_sostegno', 'aula_alternativa', 'pausa'], TipoAula::comuni());
     }
 
     public function test_le_seconde_lingue_condividono_il_tipo_dada_sec_ling_le_altre_materie_usano_il_codice(): void

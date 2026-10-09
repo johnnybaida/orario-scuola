@@ -11,7 +11,10 @@ class ScansioneOrariaController extends Controller
 {
     public function index(ScansioneOraria $scansione): View
     {
-        return view('scansione.index', ['ore' => $scansione->ore()]);
+        return view('scansione.index', [
+            'ore' => $scansione->ore(),
+            'auleInPausa' => \App\Models\Aula::query()->where('tipo', \App\Enums\TipoAula::Pausa->value)->orderBy('nome')->get(),
+        ]);
     }
 
     /** Per una sede senza scansione (appena creata): ore standard da cui partire. */

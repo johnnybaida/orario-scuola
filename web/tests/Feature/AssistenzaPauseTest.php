@@ -84,12 +84,54 @@ class AssistenzaPauseTest extends TestCase
         $this->scuola();
         $docente = Docente::factory()->create(['ore_dovute' => 18]);
         $referente = User::factory()->create(['ruolo' => 'referente_orario']);
-        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1], ['giorno' => 2, 'ordine' => 1]]);   // 2 x 40' = 80' = 1,33 ore
+        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1], ['giorno' => 2, 'ordine' => 1]]);   // 2 x 40' contano 2 x 45' (arrotondati al quarto d'ora) = 1,5 ore
 
-        $this->assertSame(1.33, app(AssistenzaPause::class)->ore($docente->fresh()));
+        $this->assertSame(1.5, app(AssistenzaPause::class)->ore($docente->fresh()));
         $this->assertSame('1,33', AssistenzaPause::formatta(1.33));
         $this->assertSame('18', AssistenzaPause::formatta(18.0));
-        $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('1,33 / 18');
-        $this->actingAs($referente)->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-minuti="40"', false);
+        $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('1,5 / 18');
+        $this->actingAs($referente)->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-minuti="45"', false);
+    }
+
+    public function test_il_conteggio_della_pausa_si_sceglie_a_scatti_di_15_minuti_in_scansione_oraria(): void
+    {
+        $this->scuola();   // mensa di 40'
+        Slot::query()->where('ordine', 1)->update(['fine' => '08:50:00']);
+        $docente = Docente::factory()->create();
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1]]);
+        $assistenza = app(AssistenzaPause::class);
+        $this->assertSame(0.75, $assistenza->ore($docente->fresh()));            // automatico: 40' -> 45'
+        $this->assertSame(45, AssistenzaPause::conteggio(null, 40));
+        $this->assertSame(60, AssistenzaPause::conteggio(null, 50));             // mensa da 50' = 1 ora
+
+        $ore = [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => 40, 'nome' => 'Mensa', 'conteggio' => 60], 2 => ['inizio' => '09:30', 'fine' => '10:20']];
+        $this->actingAs($referente)->put('/scansione-oraria', ['ore' => $ore])->assertSessionHasNoErrors();
+        $this->assertSame(1.0, $assistenza->ore($docente->fresh()));
+
+        $ore[1]['conteggio'] = 50;   // non multiplo di 15
+        $this->actingAs($referente)->put('/scansione-oraria', ['ore' => $ore])->assertSessionHasErrors('ore.1.conteggio');
+    }
+
+    public function test_la_pausa_si_collega_a_un_aula_di_tipo_pausa_che_compare_nei_pdf_e_nell_elenco_del_docente(): void
+    {
+        $this->scuola();
+        $refettorio = \App\Models\Aula::factory()->create(['nome' => 'Refettorio', 'tipo' => 'pausa']);
+        $palestra = \App\Models\Aula::factory()->create(['nome' => 'Palestra A', 'tipo' => 'palestra']);
+        $docente = Docente::factory()->create();
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1]]);
+        $ore = [1 => ['inizio' => '08:00', 'fine' => '08:50', 'ricreazione' => 40, 'nome' => 'Mensa', 'aula' => $refettorio->id], 2 => ['inizio' => '09:30', 'fine' => '10:20']];
+
+        $this->actingAs($referente)->get('/scansione-oraria')->assertOk()->assertSee('Refettorio')->assertDontSee('Palestra A');
+        $this->actingAs($referente)->put('/scansione-oraria', ['ore' => $ore])->assertSessionHasNoErrors();
+        $this->assertSame($refettorio->id, Slot::query()->where('ordine', 1)->first()->ricreazione_aula_id);
+        $this->assertSame(['Lun · Mensa 08:50–09:30 (Refettorio)'], app(AssistenzaPause::class)->elenco($docente->fresh()));
+
+        // solo aule di tipo pausa; eliminando l'aula il collegamento si perde
+        $ore[1]['aula'] = $palestra->id;
+        $this->actingAs($referente)->put('/scansione-oraria', ['ore' => $ore])->assertSessionHasErrors('ore.1.aula');
+        $refettorio->delete();
+        $this->assertNull(Slot::query()->where('ordine', 1)->first()->ricreazione_aula_id);
     }
 }

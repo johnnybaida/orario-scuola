@@ -173,9 +173,9 @@ class OrarioPdfExporter
 
             return $ora ? [
                 'ordine' => $ordine, 'inizio' => substr($ora->inizio, 0, 5), 'fine' => substr($ora->fine, 0, 5),
-                'prima' => $ora->pausa_prima_minuti ? ['da' => $ora->inizioPausaPrima(), 'minuti' => $ora->pausa_prima_minuti, 'nome' => mb_strtolower($ora->nomePausaPrima())] : null,
+                'prima' => $ora->pausa_prima_minuti ? ['da' => $ora->inizioPausaPrima(), 'minuti' => $ora->pausa_prima_minuti, 'nome' => mb_strtolower($ora->nomePausaPrima()), 'aula' => $ora->pausaPrimaAula?->nome] : null,
                 'ricreazione' => $ora->fineRicreazione() && $prossima
-                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa())] : null,
+                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa()), 'aula' => $ora->ricreazioneAula?->nome] : null,
             ] : null;
         })->filter()->values()->all();
 
