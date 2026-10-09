@@ -153,6 +153,8 @@ Per far contare la mensa nel quadro orario e nel monte ore dei docenti, senza ch
 
 Poi, nel **quadro orario del tempo prolungato**, aggiungi la riga Mensa con le ore (per esempio 1). Il totale diventa 30 ore: 29 di discipline più 1 di mensa. Le classi del tempo prolungato hanno **29 slot attivi**, non 30.
 
+**Se prima la mensa occupava un'ora della scansione** (per esempio una «7ª ora» in cui si metteva la lezione «Pranzo»), quell'ora non serve più: nella scheda di ogni classe interessata, negli **Slot attivi**, togli quell'ora. Sopra la griglia la scheda dice quante ore servono (quadro meno mensa) e quante ne hai spuntate, e il controllo prima di generare te lo ricorda con lo stesso conto. L'ora resta nella Scansione oraria, perché è condivisa da tutta la scuola, ma nessuna classe la usa.
+
 *Caso A: un docente per classe.* In **Cattedre** (o nella scheda della classe):
 
 | Campo | Valore |

@@ -76,4 +76,17 @@ class DisciplinaSenzaOraTest extends TestCase
         $referente->put("/discipline/{$mensa->id}", ['codice' => 'MEN', 'nome' => $mensa->nome, 'senza_slot' => 1])->assertSessionHasNoErrors();
         $this->assertTrue($mensa->fresh()->senza_slot);
     }
+
+    public function test_il_messaggio_e_la_scheda_della_classe_spiegano_quanti_slot_servono(): void
+    {
+        ['classe' => $classe, 'mensa' => $mensa] = $this->scuola();
+        $classe->slotAttivi()->attach(Slot::factory()->create(['giorno' => 2, 'ordine' => 1])->id);   // 3 slot attivi invece di 2
+
+        $messaggi = array_column((new PreValidator)->problemi(), 'testo');
+        $this->assertTrue(collect($messaggi)->contains(fn ($m) => str_contains($m, 'ha 3 slot attivi ma ne servono 2: il quadro è di 3h e 1h sono di mensa')
+            && str_contains($m, 'Aggiungi o togli ore negli «Slot attivi»')));
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get("/classi/{$classe->id}/edit")->assertOk()
+            ->assertSee('Servono', false)->assertSee('<strong>2</strong> ore di lezione', false)->assertSee('1h senza ora, come la mensa', false);
+    }
 }

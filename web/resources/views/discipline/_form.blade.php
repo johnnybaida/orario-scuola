@@ -25,7 +25,7 @@
 <div>
     <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
         <input type="checkbox" name="senza_slot" value="1" @checked(old('senza_slot', $disciplina?->senza_slot))> Non occupa un'ora di lezione (es. mensa)
-        <x-info testo="Spunta per una voce che conta nel quadro orario e nel monte ore dei docenti ma non è una lezione da piazzare, come la mensa. Le cattedre di questa disciplina non entrano nella generazione: gli slot attivi della classe sono le ore del quadro meno queste. Per più docenti sulla stessa classe, la seconda cattedra va segnata come compresenza." />
+        <x-info testo="Spunta per una voce che conta nel quadro orario e nel monte ore dei docenti ma non è una lezione da piazzare, come la mensa. Le cattedre di questa disciplina non entrano nella generazione: gli slot attivi della classe sono le ore del quadro meno queste (se prima la mensa occupava un'ora, toglila dagli «Slot attivi» delle classi). Per più docenti sulla stessa classe, la seconda cattedra va segnata come compresenza." />
     </label>
 </div>
 

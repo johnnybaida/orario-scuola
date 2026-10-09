@@ -61,8 +61,10 @@ class PreValidator
             }
 
             if ($nSlotAttivi !== $oreQuadro - $oreSenzaOra) {
-                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: {$nSlotAttivi} slot attivi ma il quadro "
-                    .'orario richiede '.($oreQuadro - $oreSenzaOra).'h di lezione'.($oreSenzaOra ? " ({$oreQuadro}h meno {$oreSenzaOra}h senza ora, come la mensa)" : '').' (devono coincidere).', route('classi.edit', $classe));
+                $attesi = $oreQuadro - $oreSenzaOra;
+                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: ha {$nSlotAttivi} slot attivi ma ne servono {$attesi}: il quadro è di {$oreQuadro}h"
+                    .($oreSenzaOra ? " e {$oreSenzaOra}h sono di mensa (non occupano un'ora di lezione)" : '')
+                    .'. Aggiungi o togli ore negli «Slot attivi» della classe.', route('classi.edit', $classe));
             }
         }
 

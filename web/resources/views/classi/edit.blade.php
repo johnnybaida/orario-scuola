@@ -32,7 +32,15 @@
                 {{-- Gli slot attivi occupano poco: il resto della riga va alle cattedre. --}}
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-3">Slot attivi (H5)</h2>
-                    <p class="text-sm text-gray-500 mb-4">Ore della scansione oraria di istituto usate da questa classe. Spuntando un giorno di rientro si attivano le sue ore pomeridiane.</p>
+                    <p class="text-sm text-gray-500 mb-3">Ore della scansione oraria di istituto usate da questa classe. Spuntando un giorno di rientro si attivano le sue ore pomeridiane.</p>
+                    @php($senzaOra = $classe->oreSenzaOra())
+                    @php($attesi = $classe->quadroOrario->ore_totali - $senzaOra)
+                    <p class="mb-4 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm" data-conta-slot data-attesi="{{ $attesi }}">
+                        Servono <strong>{{ $attesi }}</strong> ore di lezione
+                        ({{ $classe->quadroOrario->ore_totali }}h del quadro{{ $senzaOra ? " meno {$senzaOra}h senza ora, come la mensa" : '' }}).
+                        Ne hai spuntate <strong data-conta-slot-n>{{ $slotAttiviIds->count() }}</strong>.
+                        <x-info testo="Gli slot attivi devono coincidere con le ore di lezione del quadro. Le ore di una disciplina «senza ora» (come la mensa) contano nel quadro ma non sono lezioni: se prima occupavano un'ora della scansione, togli quell'ora da qui." />
+                    </p>
 
                     <div class="overflow-x-auto">
                         <table class="text-xs border-collapse">
