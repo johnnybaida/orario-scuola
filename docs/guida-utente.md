@@ -272,6 +272,8 @@ Con il **tempo prolungato** puoi scegliere i **giorni di rientro**, ognuno in mo
 
 La griglia degli **slot attivi** indica le ore della settimana che la classe usa davvero: le righe sono le ore (1ª–9ª), le colonne i giorni. Il generatore riempie esattamente quegli slot, né di più né di meno, quindi **il numero di slot attivi deve coincidere con le ore del quadro orario**. Puoi modificare le singole ore a mano, per casi particolari: in modifica la griglia prevale sui giorni di rientro.
 
+Sopra la griglia un riquadro dice quante ore di lezione servono e quante ne hai spuntate (si aggiorna mentre clicchi, ed è giallo se non coincidono). Servono le **ore del quadro meno quelle delle discipline «senza ora»** come la mensa: con un quadro da 36h che comprende 2h di Pranzo gli slot attivi sono 34. Se il controllo prima di generare segnala che gli slot non tornano, il messaggio ripete lo stesso conto e il pulsante **Correggi** porta qui.
+
 <!-- permesso: gestisci-anagrafica -->
 ### Cattedre
 
