@@ -654,7 +654,7 @@ Dalla scheda di un orario, **Tabellone (classi / aule)** apre tutto l'orario in 
 - **Per classe**: una riga per classe, come il tabellone tradizionale. L'ultima colonna conta i **cambi d'aula** di ogni classe.
 - **Per aula**: una riga per aula; in ogni cella vedi **quale classe** c'è, con materia e docente. È la vista più comoda con la didattica **DADA**. Se non indichi nulla, si apre «per aula» nelle scuole dove le classi non hanno un'aula base (DADA) e «per classe» negli altri casi.
 
-La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto all'ora precedente (nella vista per classe accanto compare il nome abbreviato dell'aula, in quella per aula la freccia sta accanto alla classe e il nome dell'aula di provenienza è nel suggerimento al passaggio del mouse) (la trovi anche nella griglia della classe e nei PDF per classe). Un riquadro con il **bordo rosso** ha un conflitto: passaci sopra per leggerlo. **Esporta PDF** produce il tabellone nell'organizzazione che stai guardando.
+La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto all'ora precedente (nella vista per classe accanto compare il nome abbreviato dell'aula, in quella per aula la freccia sta accanto alla classe e il nome dell'aula di provenienza è nel suggerimento al passaggio del mouse) (la trovi anche nella griglia della classe e nei PDF di classe, docente e aula, dove accanto compare il nome dell'aula; il tabellone generale in PDF non mostra la freccia). Un riquadro con il **bordo rosso** ha un conflitto: passaci sopra per leggerlo. **Esporta PDF** produce il tabellone nell'organizzazione che stai guardando.
 
 <!-- permesso: gestisci-anagrafica -->
 **Modificare dal tabellone per aula** (orario in bozza): **trascina** una lezione.
