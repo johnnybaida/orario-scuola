@@ -80,7 +80,7 @@
                             <x-info testo="Solo amministratore e referente orario possono modificare l'assistenza." />
                         @endunless
                     </h2>
-                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e conta come ore di servizio, non di lezione.</p>
+                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate.</p>
                     <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Nessuna pausa definita: indica la durata di una ricreazione in Scansione oraria.' : null" etichetta="Aggiungi assistenza" />
                 </fieldset>
 
@@ -91,7 +91,7 @@
                         @endunless
                     </h2>
                     <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Servono almeno una classe e una disciplina: censiscile prima nelle rispettive sezioni.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
-                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute:
+                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + assistenza alle pause):
                         <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
                     </p>
                 </fieldset>

@@ -75,11 +75,11 @@ class DashboardController extends Controller
                 'docente' => $d,
                 'assistenza' => $assistenza->minuti($d),
                 'laboratori' => app(\App\Services\Laboratori::class)->minuti($d),
-                'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore,
+                'assegnate' => (int) $d->cattedre_sum_ore + (int) $d->assegnazioni_sostegno_sum_ore + $assistenza->ore($d),
                 'dovute' => $d->ore_dovute,
             ])
-            ->map(fn (array $r) => $r + ['diff' => $r['assegnate'] - $r['dovute']])
-            ->filter(fn (array $r) => $r['diff'] !== 0)
+            ->map(fn (array $r) => $r + ['diff' => round($r['assegnate'] - $r['dovute'], 2)])
+            ->filter(fn (array $r) => abs($r['diff']) > 0.001)
             ->sortByDesc(fn (array $r) => abs($r['diff']))
             ->values();
     }

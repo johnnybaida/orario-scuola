@@ -78,4 +78,18 @@ class AssistenzaPauseTest extends TestCase
         $this->actingAs($utente)->get("/orari/{$orario->id}/docente/{$docente->id}")->assertOk()->assertSee('Assistenza alle pause')->assertSee('Lun · Mensa 08:50–09:30');
         $this->get('/dashboard')->assertOk()->assertSee("assistenza 40'", false);
     }
+
+    public function test_l_assistenza_conta_nelle_ore_assegnate_del_docente(): void
+    {
+        $this->scuola();
+        $docente = Docente::factory()->create(['ore_dovute' => 18]);
+        $referente = User::factory()->create(['ruolo' => 'referente_orario']);
+        $this->salva($referente, $docente, [['giorno' => 1, 'ordine' => 1], ['giorno' => 2, 'ordine' => 1]]);   // 2 x 40' = 80' = 1,33 ore
+
+        $this->assertSame(1.33, app(AssistenzaPause::class)->ore($docente->fresh()));
+        $this->assertSame('1,33', AssistenzaPause::formatta(1.33));
+        $this->assertSame('18', AssistenzaPause::formatta(18.0));
+        $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('1,33 / 18');
+        $this->actingAs($referente)->get("/docenti/{$docente->id}/edit")->assertOk()->assertSee('data-minuti="40"', false);
+    }
 }

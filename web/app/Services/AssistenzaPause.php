@@ -41,6 +41,18 @@ class AssistenzaPause
             ->map(fn ($a) => ucfirst(mb_strtolower(Slot::GIORNI_BREVI[$a->giorno] ?? (string) $a->giorno)).' · '.$pause[$a->ordine]['nome'].' '.$pause[$a->ordine]['da'].'–'.$pause[$a->ordine]['a'])->values()->all();
     }
 
+    /** Ore di assistenza (60 minuti = 1 ora) che si sommano a quelle di cattedra e sostegno nel monte ore del docente. */
+    public function ore(Docente $docente): float
+    {
+        return round($this->minuti($docente) / 60, 2);
+    }
+
+    /** «21,5» invece di «21.50»: per i totali a video. */
+    public static function formatta(float|int $ore): string
+    {
+        return rtrim(rtrim(number_format($ore, 2, ',', ''), '0'), ',');
+    }
+
     /** Minuti settimanali di assistenza. */
     public function minuti(Docente $docente): int
     {

@@ -102,7 +102,7 @@
             {{-- 6. Carico docenti --}}
             <section class="{{ $card }}" aria-labelledby="titolo-carico">
                 <h2 id="titolo-carico" class="font-medium mb-1">Carico dei docenti</h2>
-                <p class="text-xs text-gray-500 mb-3">Docenti con ore assegnate (cattedre e sostegno) diverse dalle ore dovute.</p>
+                <p class="text-xs text-gray-500 mb-3">Docenti con ore assegnate (cattedre, sostegno e assistenza alle pause) diverse dalle ore dovute.</p>
                 @if ($caricoDocenti->isEmpty())
                     <p class="text-sm text-green-700">Tutti i docenti hanno le ore dovute coperte.</p>
                 @else
@@ -113,11 +113,11 @@
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($caricoDocenti->take(8) as $riga)
                                 <tr>
-                                    <td class="py-1"><a href="{{ route('docenti.edit', $riga['docente']) }}" class="hover:underline">{{ $riga['docente']->nomeCompleto() }}</a>@if ($riga['assistenza']) <span class="text-xs text-gray-500" title="Ore di servizio a parte: assistenza alle pause">· assistenza {{ $riga['assistenza'] }}'</span>@endif
+                                    <td class="py-1"><a href="{{ route('docenti.edit', $riga['docente']) }}" class="hover:underline">{{ $riga['docente']->nomeCompleto() }}</a>@if ($riga['assistenza']) <span class="text-xs text-gray-500" title="Già contata nelle ore assegnate (60 minuti = 1 ora)">· assistenza {{ $riga['assistenza'] }}'</span>@endif
                                         @if ($riga['laboratori']) <span class="text-xs text-gray-500" title="Ore di servizio a parte: laboratori pomeridiani">· laboratori {{ $riga['laboratori'] }}'</span>@endif</td>
-                                    <td class="py-1">{{ $riga['assegnate'] }} / {{ $riga['dovute'] }}</td>
+                                    <td class="py-1">{{ \App\Services\AssistenzaPause::formatta($riga['assegnate']) }} / {{ $riga['dovute'] }}</td>
                                     <td class="py-1 {{ $riga['diff'] > 0 ? 'text-red-700' : 'text-amber-700' }}">
-                                        {{ $riga['diff'] > 0 ? '+'.$riga['diff'].' (oltre le dovute)' : abs($riga['diff']).' a disposizione' }}
+                                        {{ $riga['diff'] > 0 ? '+'.\App\Services\AssistenzaPause::formatta($riga['diff']).' (oltre le dovute)' : \App\Services\AssistenzaPause::formatta(abs($riga['diff'])).' a disposizione' }}
                                     </td>
                                 </tr>
                             @endforeach

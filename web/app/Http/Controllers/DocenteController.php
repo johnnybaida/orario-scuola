@@ -25,13 +25,13 @@ class DocenteController extends Controller
                     $q->where('nome', 'like', "%{$cerca}%")->orWhere('cognome', 'like', "%{$cerca}%");
                 });
             })
-            ->with('sospensioni')
+            ->with('sospensioni', 'assistenzePausa')
             ->withCount('cattedre')->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')
             ->orderBy('cognome')
             ->paginate(30)
             ->withQueryString();
 
-        return view('docenti.index', ['docenti' => $docenti, 'cerca' => $request->string('cerca')->toString()]);
+        return view('docenti.index', ['assistenza' => app(AssistenzaPause::class), 'docenti' => $docenti, 'cerca' => $request->string('cerca')->toString()]);
     }
 
     public function create(): View

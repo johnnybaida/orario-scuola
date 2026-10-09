@@ -24,8 +24,13 @@ function aggiornaUnivoci() {
     });
 }
 
-const somma = (form, gruppo) => [...form.querySelectorAll(`input[data-somma="${gruppo}"]`)]
-    .reduce((totale, input) => totale + (Number(input.value) || 0), 0);
+// Somma gli input data-somma="g" e, come ore (60 minuti = 1), le opzioni scelte nelle select data-somma-minuti="g" (data-minuti).
+const somma = (form, gruppo) => Math.round((
+    [...form.querySelectorAll(`input[data-somma="${gruppo}"]`)].reduce((totale, input) => totale + (Number(input.value) || 0), 0)
+    + [...form.querySelectorAll(`select[data-somma-minuti="${gruppo}"]`)].reduce((totale, s) => totale + (Number(s.selectedOptions[0]?.dataset.minuti) || 0) / 60, 0)
+) * 100) / 100;
+
+const formatta = (n) => n.toLocaleString('it-IT', { maximumFractionDigits: 2 });
 
 // [data-totale="g"] mostra la somma degli input data-somma="g"; con data-riferimento="#id" o "somma:altro-gruppo" mostra "somma / riferimento".
 function ricalcola() {
@@ -39,7 +44,7 @@ function ricalcola() {
             const campo = form.querySelector(rif);
             riferimento = Number((campo.value ?? campo.textContent).trim());
         }
-        el.textContent = riferimento === null ? totale : `${totale} / ${riferimento}`;
+        el.textContent = riferimento === null ? formatta(totale) : `${formatta(totale)} / ${formatta(riferimento)}`;
         el.classList.toggle('text-amber-700', riferimento !== null && totale !== riferimento);
     });
 }
