@@ -28,7 +28,8 @@
                 @include('classi._form')
             </div>
 
-            <div class="grid lg:grid-cols-2 gap-6 items-start">
+            <div class="grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] gap-6 items-start">
+                {{-- Gli slot attivi occupano poco: il resto della riga va alle cattedre. --}}
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h2 class="font-medium mb-3">Slot attivi (H5)</h2>
                     <p class="text-sm text-gray-500 mb-4">Ore della scansione oraria di istituto usate da questa classe. Spuntando un giorno di rientro si attivano le sue ore pomeridiane.</p>
