@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <style>
         @page { margin: 12mm; }
-        body { font-family: sans-serif; font-size: 12px; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; }
         h1 { font-size: 24px; text-align: center; margin: 0 0 16px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { border: 1px solid #999; padding: 4px; text-align: center; vertical-align: middle; }
