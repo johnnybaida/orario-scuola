@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome', 'pausa_prima_minuti', 'pausa_prima_nome', 'ricreazione_conteggio', 'pausa_prima_conteggio', 'ricreazione_aula_id', 'pausa_prima_aula_id'])]
+#[Fillable(['sede_id', 'giorno', 'ordine', 'inizio', 'fine', 'intervallo_dopo', 'ricreazione_minuti', 'ricreazione_nome', 'pausa_prima_minuti', 'pausa_prima_nome', 'ricreazione_conteggio', 'pausa_prima_conteggio', 'ricreazione_aula_id', 'pausa_prima_aula_id', 'ricreazione_mensa'])]
 class Slot extends Model
 {
     use \App\Models\Concerns\PerSede;
@@ -86,6 +86,7 @@ class Slot extends Model
     {
         return [
             'intervallo_dopo' => 'boolean',
+            'ricreazione_mensa' => 'boolean',
         ];
     }
 

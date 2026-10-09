@@ -32,8 +32,8 @@ class ListeCsvAggiuntive
             'colonne' => ['docente_cognome', 'docente_nome', 'dal', 'al', 'motivo', 'esclude_da_orario', 'note', 'supplenti'],
             'nota' => 'Date come 2026-10-01 o 01/10/2026 (al vuoto = fino a nuova comunicazione); motivo: sospensione, malattia, congedo, altro; esclude_da_orario 1/0; supplenti = «Cognome Nome» separati da «|». Una sospensione già presente (stesso docente, data di inizio e motivo) è saltata.'],
         'assistenze-pausa' => ['titolo' => 'Assistenza alle pause', 'permesso' => 'gestisci-anagrafica', 'ritorno' => 'docenti.index',
-            'colonne' => ['docente_cognome', 'docente_nome', 'giorno', 'dopo_ora'],
-            'nota' => 'Una riga per giorno e pausa sorvegliati. dopo_ora = numero dell\'ora che precede la pausa (0 = pausa prima della prima ora); la pausa deve esistere in Scansione oraria.'],
+            'colonne' => ['docente_cognome', 'docente_nome', 'giorno', 'dopo_ora', 'classi'],
+            'nota' => 'Una riga per giorno e pausa sorvegliati. dopo_ora = numero dell\'ora che precede la pausa (0 = pausa prima della prima ora); la pausa deve esistere in Scansione oraria. classi (facoltativa) = le classi sorvegliate, per esempio «1C|2C»: vuota = tutte le classi in mensa quel giorno.'],
         'laboratori' => ['titolo' => 'Laboratori', 'permesso' => 'gestisci-anagrafica', 'ritorno' => 'laboratori.index',
             'colonne' => ['nome', 'aula', 'n_partecipanti', 'attivo', 'note', 'docenti', 'classi', 'slot'],
             'nota' => 'docenti = «Cognome Nome» separati da «|»; classi = per esempio «1A|2B»; slot = ore del pomeriggio come «LUN.7|MAR.7». Un laboratorio con lo stesso nome è saltato.'],
@@ -54,8 +54,8 @@ class ListeCsvAggiuntive
             'sospensioni' => Sospensione::query()->with('docente', 'supplenti')->orderBy('dal')->get()
                 ->map(fn ($s) => [$s->docente->cognome, $s->docente->nome, $s->dal->format('Y-m-d'), $s->al?->format('Y-m-d'), $s->motivo, (int) $s->esclude_da_orario, $s->note,
                     $s->supplenti->map(fn ($d) => $d->cognome.' '.$d->nome)->implode('|')]),
-            'assistenze-pausa' => AssistenzaPausa::query()->with('docente')->orderBy('giorno')->orderBy('ordine')->get()
-                ->map(fn ($a) => [$a->docente->cognome, $a->docente->nome, $this->giorno($a->giorno), $a->ordine]),
+            'assistenze-pausa' => AssistenzaPausa::query()->with('docente', 'classi')->orderBy('giorno')->orderBy('ordine')->get()
+                ->map(fn ($a) => [$a->docente->cognome, $a->docente->nome, $this->giorno($a->giorno), $a->ordine, $a->classi->map(fn ($c) => $c->anno_corso.$c->sezione)->implode('|')]),
             'laboratori' => Laboratorio::query()->with('aula', 'docenti', 'classi', 'slot')->orderBy('nome')->get()
                 ->map(fn ($l) => [$l->nome, $l->aula?->nome, $l->n_partecipanti, (int) $l->attivo, $l->note,
                     $l->docenti->map(fn ($d) => $d->cognome.' '.$d->nome)->implode('|'),
@@ -131,7 +131,8 @@ class ListeCsvAggiuntive
         if ($docente->assistenzePausa()->where('giorno', $giorno)->where('ordine', $ordine)->exists()) {
             return true;
         }
-        $docente->assistenzePausa()->create(['giorno' => $giorno, 'ordine' => $ordine]);
+        $classi = collect(explode('|', (string) ($r['classi'] ?? '')))->map('trim')->filter()->map(fn ($c) => $this->classe($c))->all();
+        $docente->assistenzePausa()->create(['giorno' => $giorno, 'ordine' => $ordine])->classi()->sync($classi);
 
         return false;
     }

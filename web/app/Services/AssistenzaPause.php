@@ -18,7 +18,7 @@ class AssistenzaPause
                 $da = substr($s->fine, 0, 5);
 
                 return ['ordine' => $s->ordine, 'nome' => $s->nomePausa(), 'da' => $da, 'a' => $s->fineRicreazione(), 'minuti' => (int) $s->ricreazione_minuti,
-                    'conteggio' => self::conteggio($s->ricreazione_conteggio, $s->ricreazione_minuti), 'aula' => $s->ricreazioneAula?->nome,
+                    'conteggio' => self::conteggio($s->ricreazione_conteggio, $s->ricreazione_minuti), 'aula' => $s->ricreazioneAula?->nome, 'mensa' => (bool) $s->ricreazione_mensa,
                     'etichetta' => "{$s->nomePausa()} {$da}–{$s->fineRicreazione()} (dopo la {$s->ordine}ª ora)"];
             });
 
@@ -27,7 +27,7 @@ class AssistenzaPause
         if ($primo?->pausa_prima_minuti) {
             $a = substr($primo->inizio, 0, 5);
             $dopo->prepend(['ordine' => 0, 'nome' => $primo->nomePausaPrima(), 'da' => $primo->inizioPausaPrima(), 'a' => $a, 'minuti' => (int) $primo->pausa_prima_minuti,
-                'conteggio' => self::conteggio($primo->pausa_prima_conteggio, $primo->pausa_prima_minuti), 'aula' => $primo->pausaPrimaAula?->nome,
+                'conteggio' => self::conteggio($primo->pausa_prima_conteggio, $primo->pausa_prima_minuti), 'aula' => $primo->pausaPrimaAula?->nome, 'mensa' => false,
                 'etichetta' => "{$primo->nomePausaPrima()} {$primo->inizioPausaPrima()}–{$a} (prima della {$primo->ordine}ª ora)"], 0);
         }
 

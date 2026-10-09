@@ -150,6 +150,24 @@
                 @endif
             </section>
 
+            @if (! empty($avvisi))
+                <section class="{{ $card }} border-amber-200" aria-labelledby="titolo-avvisi">
+                    <h2 id="titolo-avvisi" class="font-medium mb-1">Da controllare</h2>
+                    <p class="text-xs text-gray-500 mb-3">Non impediscono di generare, ma l'orario stampato sarebbe incompleto.</p>
+                    <ul class="space-y-1.5 text-sm">
+                        @foreach (array_slice($avvisi, 0, 8) as $avviso)
+                            <li class="flex gap-2">
+                                <span class="text-amber-600" aria-hidden="true">•</span>
+                                <span>{{ $avviso['testo'] }} <a href="{{ $avviso['url'] }}" class="text-primary underline whitespace-nowrap">Correggi</a></span>
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if (count($avvisi) > 8)
+                        <p class="text-xs text-gray-500 mt-2">… e altri {{ count($avvisi) - 8 }}.</p>
+                    @endif
+                </section>
+            @endif
+
             {{-- 2. Generazione e worker --}}
             <section class="{{ $card }}" aria-labelledby="titolo-generazione">
                 <h2 id="titolo-generazione" class="font-medium mb-3">Generazione e worker</h2>

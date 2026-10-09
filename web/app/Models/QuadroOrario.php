@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'nome', 'ore_totali'])]
+#[Fillable(['sede_id', 'nome', 'ore_totali', 'ore_mensa'])]
 class QuadroOrario extends Model
 {
     use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;

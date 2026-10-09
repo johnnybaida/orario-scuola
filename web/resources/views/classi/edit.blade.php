@@ -83,8 +83,14 @@
                     </h2>
                     <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :blocca="$docenti->isEmpty() || $discipline->isEmpty() ? 'Servono almeno un docente e una disciplina: censiscili prima nelle rispettive sezioni.' : null" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
                     <span id="ore-quadro" hidden>{{ $classe->quadroOrario->ore_totali }}</span>
+                    {{-- Le ore di mensa dichiarate dal quadro si sommano alle ore delle cattedre: 34 di discipline + 2 di mensa = 36. --}}
+                    @php($oreMensaQuadro = (int) $classe->quadroOrario->ore_mensa)
+                    <input type="hidden" data-somma="mensa" value="{{ $oreMensaQuadro }}">
                     <p class="mt-3 text-sm font-medium">Totale ore / quadro orario:
-                        <span data-totale="cattedre" data-riferimento="#ore-quadro"></span>
+                        <span data-totale="cattedre+mensa" data-riferimento="#ore-quadro"></span>
+                        @if ($oreMensaQuadro)
+                            <span class="font-normal text-gray-500">(<span data-totale="cattedre"></span> di discipline + {{ $oreMensaQuadro }} di mensa)</span>
+                        @endif
                     </p>
                 </fieldset>
 

@@ -67,6 +67,7 @@ class QuadroOrarioController extends Controller
         }
 
         SincronizzaRighe::applica($quadro->righe(), $request->input('righe', []), ['disciplina_id', 'ore_settimanali']);
-        $quadro->update(['ore_totali' => $quadro->righe()->sum('ore_settimanali')]);
+        // Le ore di mensa (pausa pranzo) stanno nel quadro ma non sono discipline: il totale le comprende, gli slot attivi no.
+        $quadro->update(['ore_mensa' => (int) $request->input('ore_mensa', 0), 'ore_totali' => $quadro->righe()->sum('ore_settimanali') + (int) $request->input('ore_mensa', 0)]);
     }
 }

@@ -45,7 +45,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
 - **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre, poi indisponibilità, sospensioni, assistenza alle pause, laboratori e impostazioni.
-- **Colonne facoltative:** i file esportati da versioni precedenti restano validi; le colonne nuove (`senza_slot`, `altre_aule` e `pausa_dopo_ora` nelle discipline, `classi_concorso` nei docenti, `conteggio_sostegno` e `slot_attivi` nelle classi, `docente_clil_cognome`, `docente_clil_nome` e `ore_clil` nelle cattedre) si possono omettere. Gli elenchi dentro una cella si separano con `|` (per esempio `dada_ita|dada_ing`).
+- **Colonne facoltative:** i file esportati da versioni precedenti restano validi; le colonne nuove (`senza_slot`, `altre_aule` e `pausa_dopo_ora` nelle discipline, `mensa` nella scansione oraria, `ore_mensa` nei quadri orari, `classi` nelle assistenze alle pause, `classi_concorso` nei docenti, `conteggio_sostegno` e `slot_attivi` nelle classi, `docente_clil_cognome`, `docente_clil_nome` e `ore_clil` nelle cattedre) si possono omettere. Gli elenchi dentro una cella si separano con `|` (per esempio `dada_ita|dada_ing`).
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Classi:** `slot_attivi` elenca le ore con giorno e numero (`LUN.1|LUN.2|…`); se la colonna è vuota la classe parte con le ore del mattino.
@@ -291,6 +291,46 @@ Gli alunni con sostegno non sono censiti: ogni **fabbisogno** ha solo un codice 
 - **Conteggio ore**: "per alunno" somma le ore di tutti i fabbisogni (ogni compresenza vale per un alunno); "per classe" prende il fabbisogno più alto (una compresenza copre tutta la classe). Puoi usare il valore predefinito dell'istituto.
 - **Docenti assegnati**: ogni docente con le sue ore. L'elenco contiene solo chi ha tipo posto **Sostegno**; lo stesso docente non si può assegnare due volte alla stessa classe.
 - Il generatore programma le **compresenze** di sostegno. Il totale "assegnate / richieste" ti dice se le ore bastano.
+
+## Mensa
+<!-- sezione: consulta -->
+
+La **mensa** (il pranzo del tempo prolungato) è una **pausa** della scansione oraria, non una materia: non occupa un'ora di lezione, ma ha un'aula, le classi che ci vanno e i docenti che la sorvegliano. Si configura in quattro passi, e la pagina **Mensa** ti dice sempre **cosa manca** (lista di controllo in alto, con il pulsante **Correggi** dove serve).
+
+**1. Segna la pausa come mensa** (*Scansione oraria*). Sulla pausa del pranzo spunta **È la mensa**; scrivi il **nome** («Pranzo»), la **durata** in minuti, l'**aula** (di tipo «Aula per la pausa») e **Conta per il docente** (quanto vale nel monte ore di chi la sorveglia: una mensa da 50 minuti conta 1 ora). Puoi segnarne più d'una, se la scuola ha **turni di mensa**.
+
+**2. Dichiara le ore di mensa nel quadro** (*Quadri orari*). Nel quadro del tempo prolungato scrivi **Ore di mensa** (di solito una per giorno di rientro). Il totale del quadro le comprende (34 ore di discipline + 2 di mensa = 36), ma gli **slot attivi** della classe sono solo le ore delle discipline.
+
+**3. Le classi in mensa si ricavano da sole.** Una classe va in mensa nei giorni di **rientro**, cioè quando ha ore attive **dopo** la pausa (*Classi → Slot attivi*). Non devi indicare nient'altro: se la 1ª C ha ore il lunedì e il mercoledì dopo la pausa, il lunedì e il mercoledì è in mensa.
+
+**4. Assegna i docenti** (pagina **Mensa**). Per ogni pausa mensa c'è una griglia **classi × giorni**: in ogni cella in cui la classe è in mensa scegli uno o più docenti con la **select di ricerca** (scrivi parte del nome per trovarlo; appena ne scegli uno compare un altro campo per aggiungerne un secondo; per togliere un docente aprilo e scegli la voce «— docente —»). Si vede a colpo d'occhio chi manca.
+
+<!-- permesso: gestisci-anagrafica -->
+**Come contano le ore.** Le ore di sorveglianza entrano nel monte ore del docente **una volta sola per giorno e pausa**, anche se sorveglia più classi insieme: Costanzo che il lunedì sorveglia la 1ª C e la 2ª C ha 1 ora, non 2. Compaiono in **Assegnate / dovute** nella scheda, nell'elenco e nel carico della dashboard. Vale anche per i docenti di **sostegno**.
+
+**Dove compare nei PDF.** Nelle griglie di classe, docente e aula la pausa è una riga colorata con nome, orario, aula con piano e, giorno per giorno, i docenti che la sorvegliano; nel **tabellone per classe** c'è una colonna della pausa con i cognomi.
+
+**Avvisi.** Il controllo prima di generare (e la dashboard, sezione «Da controllare») segnala, **senza bloccare** la generazione: classi in mensa senza docente, aula troppo piccola per le classi in mensa quel giorno, ore di mensa del quadro diverse dai giorni di rientro, assistenze su pause che non esistono più.
+
+**Esempio (Scuola Gavazzi).**
+
+| Dove | Campo | Valore |
+| --- | --- | --- |
+| Scansione oraria | Pausa dopo la 6ª ora: durata | 50 |
+| Scansione oraria | Nome della pausa | Pranzo |
+| Scansione oraria | È la mensa | spuntato |
+| Scansione oraria | Aula della pausa | Auditorium |
+| Quadri orari | Quadro «Tempo prolungato 36h», Ore di mensa | 2 |
+| Classi | 1ª C, 2ª C, 3ª C: Slot attivi | ore dopo la pausa lunedì e mercoledì |
+| Mensa | 1ª C, lunedì | Costanzo |
+| Mensa | 1ª C, mercoledì | Costanzo |
+| Mensa | 2ª C, lunedì | Costanzo |
+| Mensa | 2ª C, mercoledì | Paladini |
+
+Costanzo, il lunedì con 1ª C e 2ª C, ha 1 ora (non 2) e il mercoledì 1 ora: 2 ore a settimana in tutto.
+
+Il metodo precedente (una disciplina «Pranzo» **senza ora**, con le cattedre) funziona ancora e si può usare in alternativa: vedi l'esempio nella sezione *Discipline*.
+<!-- /permesso -->
 
 ## Cattedre
 <!-- sezione: consulta -->

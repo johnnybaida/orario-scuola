@@ -38,12 +38,25 @@
                 <tbody>
                     {{-- Chi c'è nella pausa dopo l'ora $ordine (0 = prima della prima ora) in un giorno: i sorveglianti (assistenza alle pause) e, nel foglio
                          di una classe, nei giorni di rientro i docenti delle cattedre «senza ora» (mensa). --}}
-                    @php($cellaPausa = function ($ordine, $giorno) use ($foglio, $slotPerGiorno, $sorveglianti) {
-                        $nomi = $sorveglianti[$ordine][$giorno] ?? [];
-                        if (! $nomi && isset($foglio['slotAttiviIds']) && $ordine > 0) {
-                            // Giorno di rientro: nel foglio della classe i docenti della mensa (disciplina «senza ora» collegata a questa pausa, o a nessuna).
-                            $rientro = $slotPerGiorno[$giorno]->contains(fn ($s) => $s->ordine > $ordine && $foglio['slotAttiviIds']->contains($s->id));
-                            foreach ($rientro ? ($foglio['mensa'] ?? []) : [] as $m) {
+                    @php($cellaPausa = function ($ordine, $giorno) use ($foglio, $slotPerGiorno, $sorveglianti, $pauseMensa) {
+                        $voci = collect($sorveglianti[$ordine][$giorno] ?? []);
+                        $mensa = in_array($ordine, $pauseMensa, true);
+                        // Giorno di rientro: la classe ha ore dopo la pausa (solo per la mensa; le ricreazioni valgono per tutti).
+                        $rientro = isset($foglio['slotAttiviIds']) && $ordine > 0
+                            && $slotPerGiorno[$giorno]->contains(fn ($s) => $s->ordine > $ordine && $foglio['slotAttiviIds']->contains($s->id));
+                        if (isset($foglio['classeId'])) {
+                            // Foglio di una classe: i docenti che sorvegliano proprio lei (nessuna classe indicata = tutte quelle in mensa).
+                            $nomi = $mensa && ! $rientro ? [] : $voci->filter(fn ($v) => empty($v['classi']) || in_array($foglio['classeId'], $v['classi'], true))->pluck('nome')->all();
+                        } elseif (isset($foglio['docenteId'])) {
+                            // Foglio di un docente: solo la sua sorveglianza, con le classi se indicate.
+                            $mia = $voci->firstWhere('docente_id', $foglio['docenteId']);
+                            $nomi = $mia ? [$mia['nome'].($mia['classiNomi'] ? ' ('.implode(', ', $mia['classiNomi']).')' : '')] : [];
+                        } else {
+                            $nomi = $voci->pluck('nome')->all();
+                        }
+                        if (! $nomi && isset($foglio['slotAttiviIds']) && $ordine > 0 && $rientro) {
+                            // Metodo precedente: i docenti delle cattedre di una disciplina «senza ora» collegata a questa pausa, o a nessuna.
+                            foreach ($foglio['mensa'] ?? [] as $m) {
                                 if ($m['pausa'] === $ordine || $m['pausa'] === null) {
                                     $nomi[] = $m['disciplina'].': '.implode(', ', $m['docenti']);
                                 }

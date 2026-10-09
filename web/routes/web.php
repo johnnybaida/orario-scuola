@@ -61,6 +61,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
     Route::middleware('ruolo:'.implode(',', Ruoli::CONSULTAZIONE))->group(function () use ($parametriRisorse) {
         Route::resource('sedi', SedeController::class)->parameters($parametriRisorse['sedi'])->except(['store', 'update', 'destroy']);
         Route::resource('aule', AulaController::class)->parameters($parametriRisorse['aule'])->except(['store', 'update', 'destroy']);
+        Route::get('/mensa', [\App\Http\Controllers\MensaController::class, 'index'])->name('mensa.index');
         Route::resource('discipline', DisciplinaController::class)->parameters($parametriRisorse['discipline'])->except(['store', 'update', 'destroy']);
         Route::resource('quadri-orari', QuadroOrarioController::class)->parameters($parametriRisorse['quadri-orari'])->except(['store', 'update', 'destroy']);
         Route::resource('docenti', DocenteController::class)->parameters($parametriRisorse['docenti'])->except(['store', 'update', 'destroy']);
@@ -102,6 +103,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
         Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->only(['store', 'update', 'destroy']);
+        Route::put('/mensa', [\App\Http\Controllers\MensaController::class, 'update'])->name('mensa.update');
 
         Route::get('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'form'])->name('sostituzioni.form');
         Route::post('/sospensioni/{sospensione}/sostituzione', [\App\Http\Controllers\SostituzioneController::class, 'assegna'])->name('sostituzioni.assegna');

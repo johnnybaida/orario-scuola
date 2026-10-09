@@ -79,7 +79,7 @@ La guida (*Discipline → Esempio: la mensa*) descrive tre casi (A: un docente p
 
 ### Anomalie che emergono dai dati
 
-1. **Pausa pranzo e 7ª ora spenta insieme.** La pausa va dalle 14:00 alle 14:50 *e* la 7ª (14:50–15:40) non è attiva per nessuna classe: nell'orario in bozza (v11) le lezioni del pomeriggio cadono in 8ª e 9ª (15:40–17:20), con un'ora vuota tra la fine della pausa e la prima lezione. Dal registro attività: la pausa di 50' dopo la 6ª c'era già (oggi le è stato solo dato il nome «Pausa pranzo»), quindi la 7ª è stata spenta non perché fosse il pranzo, ma perché il rientro spunta **tre** ore (7ª–9ª) per giorno: 30 + 2 × 3 = 36 slot, mentre con 2h di PRA nel quadro ne servono 34. Togliere un'ora per giorno era obbligatorio, e la scelta è caduta sulla 7ª. È il passo «togliere la settima ora» che rende tutto poco intuitivo; se le lezioni reali sono 14:50–16:30, **le ore da spegnere sono le 9ª, non le 7ª** (vedi §7).
+1. **Pausa pranzo e 7ª ora spenta insieme.** La pausa va dalle 14:00 alle 14:50 *e* la 7ª (14:50–15:40) non è attiva per nessuna classe: nell'orario in bozza (v11) le lezioni del pomeriggio cadono in 8ª e 9ª (15:40–17:20). L'ora vuota è **voluta**: rappresenta il pranzo (confermato dalla scuola). Il pranzo è quindi descritto da due dati diversi (la pausa di 50' e una 7ª spenta a mano in ogni classe), e il rientro, che spunta sempre 7ª–9ª, obbliga a ricordarsi di spegnere la 7ª. È il passo «togliere la settima ora» che rende tutto poco intuitivo (proposta al §10.2).
 2. **Assistenze orfane.** Le due assistenze puntano alla pausa «dopo la 7ª», che non esiste più: non compaiono nei PDF e valgono 0 nel monte ore, **in silenzio** (`AssistenzaPause::elenco()/ore()` le scartano). Nessun avviso le segnala.
 3. **La cattedra non dice il giorno.** 2C ha Costanzo 1h e Paladini 1h: chi c'è il lunedì e chi il mercoledì? Il dato non esiste; i PDF (`mensaDellaClasse`, `celleMensa`) stampano **entrambi i docenti in entrambi i giorni**.
 4. **Doppio conteggio possibile.** Costanzo ha 3h di mensa (1C 2h + 2C 1h). Se il lunedì 1C e 2C mangiano insieme nell'Auditorium con lei, l'ora reale è una, non due. Il sistema non può saperlo: la cattedra è per classe.
@@ -239,7 +239,7 @@ Le modifiche **non committate** su `pausa_dopo_ora` diventerebbero superflue: si
 
 ### 10.2 L'ora vuota (decisione del 9 ottobre)
 
-**Com'è oggi.** La 7ª ora (14:50–15:40) resta **spenta apposta** per il pranzo: il pranzo è rappresentato da un'ora vuota, in aggiunta alla pausa di 50' dopo la 6ª. L'utente l'ha confermato e non gli piace, e ha ragione:
+**Com'è oggi.** La 7ª ora (14:50–15:40) resta **spenta apposta** per il pranzo: il pranzo è rappresentato da un'ora vuota, in aggiunta alla pausa di 50' dopo la 6ª. La scuola lo conferma e preferisce un'altra soluzione, per questi motivi:
 
 - l'ora vuota non ha nome, aula né docenti: nei PDF compare come un buco, e la mensa si ricostruisce solo dalla riga della pausa;
 - vanno tenuti allineati due dati (pausa di 50' + 7ª spenta) che descrivono la stessa cosa;

@@ -37,7 +37,7 @@ class PromptOrarioTest extends TestCase
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']));
         $this->get('/prompt-ai')->assertOk()->assertSee('Copia il testo')->assertSee('Palestra A')->assertSee('Rossi Anna')
             ->assertSee('Motoria in 1ª A (2h')->assertSee('Indisponibile: LUN 1ª')->assertSee('[preferenziale (peso 40/100)]')->assertSee('Motoria NON può essere collocata in queste ore: LUN 1ª')
-            ->assertSee('## Glossario')->assertSee('**Senza ora**')->assertSee('**Compresenza**')
+            ->assertSee('## Glossario')->assertSee('**Senza ora / mensa**')->assertSee('**Compresenza**')
             ->assertSee('in almeno 2 giorno/i della settimana Motoria deve avere un blocco di almeno 2 ore consecutive', false)->assertSee('[OBBLIGATORIO]');
 
         $file = $this->get('/prompt-ai?scarica=1')->assertOk();

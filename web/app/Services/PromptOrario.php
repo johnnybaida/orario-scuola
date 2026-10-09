@@ -34,6 +34,7 @@ class PromptOrario
             $this->classi($slot),
             $this->docenti($slot),
             $this->sostegno(),
+            $this->mensa(),
             $this->laboratori(),
             $this->vincoli($slot),
             $this->richiesta(),
@@ -96,7 +97,7 @@ class PromptOrario
             ."- **Quadro orario**: le ore settimanali di ogni disciplina per una classe. **Cattedra**: un docente che insegna una disciplina in una classe per un certo numero di ore settimanali.\n"
             ."- **Compresenza**: due docenti insieme nella stessa lezione (stesso slot, stessa classe): nessuno dei due è «in due posti».\n"
             ."- **CLIL**: docente (spesso madrelingua) presente insieme al titolare solo per alcune ore di una cattedra; in quelle ore non può essere altrove e rispetta le sue indisponibilità.\n"
-            ."- **Senza ora**: disciplina (es. mensa) che conta nel quadro orario e nel monte ore ma non è una lezione da collocare in un'ora.\n"
+            ."- **Senza ora / mensa**: la mensa è una pausa (non un'ora di lezione): conta come «ore di mensa» nel quadro orario e come ore di sorveglianza nel monte ore dei docenti, ma non va collocata in un'ora; una disciplina «senza ora» (metodo precedente) si comporta allo stesso modo.\n"
             ."- **Sostegno**: docente assegnato a una classe che affianca i colleghi; «per_alunno» = l'ora copre un solo alunno, «per_classe» = copre tutti; «docente unico» = lo stesso docente per tutte le ore di quel fabbisogno. Gli alunni sono identificati solo da un codice anonimo.\n"
             ."- **DADA**: didattica per ambienti: le classi non hanno aula fissa, sono gli alunni a spostarsi nell'aula della disciplina; il tipo di aula dice per quali discipline va bene (un'aula può essere condivisa da più discipline).\n"
             ."- **Capienza**: quante classi possono usare l'aula nella stessa ora. **Piano**: piano dell'edificio di aule e classi (serve ai vincoli sugli spostamenti).\n"
@@ -194,6 +195,32 @@ class PromptOrario
 
         return $this->intro('Sostegno (le ore sono compresenze con gli altri docenti della classe)', $righe)
             ."\nConteggio «per_alunno»: ogni ora di un docente copre un solo alunno; «per_classe»: copre tutti gli alunni della classe. Predefinito della sede: ".Impostazioni::correnti()->conteggio_sostegno.'.';
+    }
+
+    private function mensa(): string
+    {
+        $mensa = app(Mensa::class);
+        $pause = $mensa->pause();
+        if ($pause->isEmpty()) {
+            return '';
+        }
+        $classi = $mensa->classi();
+        $docenti = \App\Models\Docente::query()->pluck('cognome', 'id');
+        $righe = [];
+        foreach ($pause as $ordine => $pausa) {
+            $assegnate = $mensa->assegnazioni($ordine, $classi);
+            $righe[] = "- {$pausa['etichetta']}".($pausa['aula'] ? ", aula {$pausa['aula']}" : '').' (non è una lezione: nessuna ora da collocare)';
+            foreach ($classi as $classe) {
+                $giorni = $mensa->giorni($classe, $ordine);
+                if (! $giorni) {
+                    continue;
+                }
+                $per = collect($giorni)->map(fn ($g) => (Slot::GIORNI_BREVI[$g] ?? $g).': '.(collect($assegnate[$g][$classe->id] ?? [])->map(fn ($d) => $docenti[$d] ?? '?')->implode(', ') ?: 'nessun docente'))->implode('; ');
+                $righe[] = "  - Classe {$classe->nomeCompleto()} in mensa: {$per}";
+            }
+        }
+
+        return $this->intro('Mensa (pausa pranzo: i docenti la sorvegliano, le ore contano nel loro monte ore)', $righe);
     }
 
     private function laboratori(): string

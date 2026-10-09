@@ -22,7 +22,7 @@ class ScansioneOraria
             'inizio' => substr($s->inizio, 0, 5), 'fine' => substr($s->fine, 0, 5), 'ricreazione_minuti' => $s->ricreazione_minuti, 'ricreazione_nome' => $s->ricreazione_nome,
             'pausa_prima_minuti' => $s->pausa_prima_minuti, 'pausa_prima_nome' => $s->pausa_prima_nome,
             'ricreazione_conteggio' => $s->ricreazione_conteggio, 'pausa_prima_conteggio' => $s->pausa_prima_conteggio,
-            'ricreazione_aula_id' => $s->ricreazione_aula_id, 'pausa_prima_aula_id' => $s->pausa_prima_aula_id,
+            'ricreazione_aula_id' => $s->ricreazione_aula_id, 'pausa_prima_aula_id' => $s->pausa_prima_aula_id, 'ricreazione_mensa' => (bool) $s->ricreazione_mensa,
         ])->all();
     }
 
@@ -68,6 +68,7 @@ class ScansioneOraria
                     'ricreazione_nome' => ! empty($ora['ricreazione']) && ! empty($ora['nome']) ? $ora['nome'] : null,
                     'ricreazione_conteggio' => ! empty($ora['ricreazione']) && ! empty($ora['conteggio']) ? (int) $ora['conteggio'] : null,
                     'ricreazione_aula_id' => ! empty($ora['ricreazione']) && ! empty($ora['aula']) ? (int) $ora['aula'] : null,
+                    'ricreazione_mensa' => ! empty($ora['ricreazione']) && ! empty($ora['mensa']),
                 ]);
             }
             Slot::query()->update(['pausa_prima_minuti' => null, 'pausa_prima_nome' => null, 'pausa_prima_conteggio' => null, 'pausa_prima_aula_id' => null]);

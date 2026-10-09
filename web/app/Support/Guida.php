@@ -13,6 +13,7 @@ class Guida
         'sedi.*' => 'sedi-e-aule',
         'aule.*' => 'sedi-e-aule',
         'scansione.*' => 'scansione-oraria',
+        'mensa.*' => 'mensa',
         'discipline.*' => 'discipline',
         'quadri-orari.*' => 'quadri-orari',
         'docenti.*' => 'docenti',

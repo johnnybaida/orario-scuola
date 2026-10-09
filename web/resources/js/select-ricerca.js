@@ -36,7 +36,8 @@ function migliora(select) {
 
 function apri(select, bottone, aggiornaEtichetta) {
     chiudiPannello();
-    const opzioni = [...select.options].filter((o) => o.value !== '');
+    // Con data-svuotabile, se c'è una scelta, la voce vuota resta nella lista per poterla togliere.
+    const opzioni = [...select.options].filter((o) => o.value !== '' || (select.hasAttribute('data-svuotabile') && select.value !== ''));
     const pannello = document.createElement('div');
     pannello.className = 'fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg';
     pannello.draggable = false;
@@ -114,3 +115,4 @@ function apri(select, bottone, aggiornaEtichetta) {
 const inizializza = () => document.querySelectorAll('select[data-ricerca]').forEach(migliora);
 document.addEventListener('DOMContentLoaded', inizializza);
 document.addEventListener('modale:caricata', inizializza);
+document.addEventListener('ricerca:aggiorna', inizializza); // select aggiunte da altri moduli (es. la pagina Mensa)

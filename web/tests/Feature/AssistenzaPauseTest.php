@@ -151,4 +151,21 @@ class AssistenzaPauseTest extends TestCase
         $this->actingAs($referente)->get('/docenti')->assertOk()->assertSee('0,75 / 18')->assertDontSee('1,75 / 18');
         $this->actingAs($referente)->get(route('dashboard'))->assertOk();
     }
+
+    public function test_un_assistenza_su_una_pausa_che_non_esiste_piu_e_un_avviso_che_non_blocca_la_generazione(): void
+    {
+        $this->scuola();
+        $docente = Docente::factory()->create(['cognome' => 'Verdi', 'nome' => 'Luca']);
+        $docente->assistenzePausa()->create(['giorno' => 1, 'ordine' => 1]);   // valida
+        $docente->assistenzePausa()->create(['giorno' => 3, 'ordine' => 7]);   // pausa che non c'è più
+        $validatore = new \App\Services\Validation\PreValidator;
+
+        $avvisi = $validatore->avvisi();
+        $this->assertCount(1, $avvisi);
+        $this->assertStringContainsString("Docente Verdi Luca: l'assistenza del mercoledì alla pausa dopo la 7ª ora non è più valida", $avvisi[0]['testo']);
+        $this->assertSame(route('docenti.edit', $docente), $avvisi[0]['url']);
+        $this->assertNotContains($avvisi[0]['testo'], $validatore->esegui());   // non è un problema bloccante
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get(route('dashboard'))->assertOk()->assertSee('Da controllare')->assertSee('non è più valida');
+    }
 }

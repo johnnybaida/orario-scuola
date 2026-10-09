@@ -56,6 +56,13 @@
                                         <div class="materia">{{ \Illuminate\Support\Str::limit($m['disciplina']->codice, $limite, '…') }}</div>
                                         <div>{{ \Illuminate\Support\Str::limit(implode(', ', $m['docenti']), $limite, '…') }}</div>
                                     @endforeach
+                                    @php($sorv = $celleSorveglianza[$riga['id'].'-'.$giorno.'-'.$ora] ?? [])
+                                    @if ($sorv && $mensaCella->isEmpty())
+                                        <div class="materia">{{ \Illuminate\Support\Str::limit($nomiPausa[$ora] ?? 'Mensa', $limite, '…') }}</div>
+                                    @endif
+                                    @foreach ($sorv as $cognome)
+                                        <div>{{ \Illuminate\Support\Str::limit($cognome, $limite, '…') }}</div>
+                                    @endforeach
                                 </td>
                                 @continue
                             @endif

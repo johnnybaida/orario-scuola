@@ -38,6 +38,7 @@ class DashboardController extends Controller
         $ultimoOrario = Orario::query()->with('periodo')->latest('id')->first();
 
         return view('dashboard', [
+            'avvisi' => $preValidator->avvisi(),
             'completa' => true,
             'conteggi' => $conteggi,
             'tempoScuola' => Classe::query()->selectRaw('tempo_scuola, count(*) n')->groupBy('tempo_scuola')->pluck('n', 'tempo_scuola'),

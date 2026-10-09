@@ -37,6 +37,35 @@ class PreValidator
         ];
     }
 
+    /**
+     * Cose da controllare che **non** bloccano la generazione (a differenza di `problemi()`): il solver non le usa, ma l'orario
+     * stampato sarebbe incompleto. Ogni voce ha il link alla pagina dove correggerle.
+     *
+     * @return list<array{testo: string, url: string}>
+     */
+    public function avvisi(): array
+    {
+        return [
+            ...$this->assistenzeSenzaPausa(),
+            ...app(\App\Services\Mensa::class)->avvisi(),
+        ];
+    }
+
+    /** Assistenza a una pausa che non c'è più in Scansione oraria: non compare nei PDF e non conta nel monte ore, quindi va segnalata. */
+    private function assistenzeSenzaPausa(): array
+    {
+        $pause = app(\App\Services\AssistenzaPause::class)->pause();
+        $avvisi = [];
+
+        foreach (\App\Models\AssistenzaPausa::query()->with('docente')->get()->filter(fn ($a) => ! $pause->has($a->ordine)) as $a) {
+            $giorno = mb_strtolower(Slot::GIORNI[$a->giorno] ?? (string) $a->giorno);
+            $quando = $a->ordine === 0 ? 'prima della prima ora' : "dopo la {$a->ordine}ª ora";
+            $avvisi[] = $this->p("Docente {$a->docente->nomeCompleto()}: l'assistenza del {$giorno} alla pausa {$quando} non è più valida, perché in Scansione oraria non c'è una pausa lì: non compare nei PDF e non conta nelle sue ore. Riassegnala a una pausa esistente o eliminala.", route('docenti.edit', $a->docente));
+        }
+
+        return $avvisi;
+    }
+
     private function p(string $testo, string $url): array
     {
         return ['testo' => $testo, 'url' => $url];
@@ -47,7 +76,8 @@ class PreValidator
         $problemi = [];
 
         foreach (Classe::query()->with('quadroOrario', 'slotAttivi')->get() as $classe) {
-            $oreQuadro = $classe->quadroOrario->ore_totali;
+            $oreMensa = (int) $classe->quadroOrario->ore_mensa;                  // ore di mensa dichiarate dal quadro (pausa pranzo)
+            $oreQuadro = $classe->quadroOrario->ore_totali - $oreMensa;           // ore di discipline: le cattedre le devono coprire
             // Le discipline «senza ora» (mensa) contano nel quadro ma non sono lezioni: la seconda cattedra in compresenza non si somma.
             $cattedre = Cattedra::query()->where('classe_id', $classe->id)->with('disciplina')->get()
                 ->reject(fn (Cattedra $c) => $c->compresenza && $c->disciplina->senza_slot);
@@ -56,14 +86,18 @@ class PreValidator
             $nSlotAttivi = $classe->slotAttivi()->count();
 
             if ($oreCattedre != $oreQuadro) {
+                // Se la classe va in mensa e il quadro non dichiara ore di mensa, la differenza è probabilmente quella.
+                $suggerimento = $oreMensa === 0 && $oreCattedre < $oreQuadro && app(\App\Services\Mensa::class)->pause()->keys()->contains(fn ($o) => app(\App\Services\Mensa::class)->giorni($classe, $o))
+                    ? ' Se la differenza sono le ore di mensa, scrivile in «Ore di mensa» nel quadro orario (e togli dal quadro l\'eventuale riga della mensa).' : '';
                 $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: il quadro orario prevede {$oreQuadro}h "
-                    ."ma le cattedre assegnate coprono {$oreCattedre}h.", route('classi.edit', $classe));
+                    ."ma le cattedre assegnate coprono {$oreCattedre}h.{$suggerimento}", route($suggerimento ? 'quadri-orari.edit' : 'classi.edit', $suggerimento ? $classe->quadroOrario : $classe));
             }
 
             if ($nSlotAttivi !== $oreQuadro - $oreSenzaOra) {
                 $attesi = $oreQuadro - $oreSenzaOra;
-                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: ha {$nSlotAttivi} slot attivi ma ne servono {$attesi}: il quadro è di {$oreQuadro}h"
-                    .($oreSenzaOra ? " e {$oreSenzaOra}h sono di mensa (non occupano un'ora di lezione)" : '')
+                $totale = $classe->quadroOrario->ore_totali;
+                $problemi[] = $this->p("Classe {$classe->nomeCompleto()}: ha {$nSlotAttivi} slot attivi ma ne servono {$attesi}: il quadro è di {$totale}h"
+                    .($oreSenzaOra + $oreMensa ? ' e '.($oreSenzaOra + $oreMensa)."h sono di mensa (non occupano un'ora di lezione)" : '')
                     .'. Aggiungi o togli ore negli «Slot attivi» della classe.', route('classi.edit', $classe));
             }
         }

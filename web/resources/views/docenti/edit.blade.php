@@ -80,7 +80,7 @@
                             <x-info testo="Solo amministratore e referente orario possono modificare l'assistenza." />
                         @endunless
                     </h2>
-                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate.</p>
+                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate. Per la **mensa** usa la pagina <a href="{{ route('mensa.index') }}" class="underline">Mensa</a>, dove assegni i docenti classe per classe.</p>
                     <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Nessuna pausa definita: indica la durata di una ricreazione in Scansione oraria.' : null" etichetta="Aggiungi assistenza" />
                 </fieldset>
 

@@ -20,6 +20,12 @@ class AssistenzaPausa extends Model
         return $this->belongsTo(Docente::class);
     }
 
+    /** Classi sorvegliate: nessuna = tutte le classi in mensa quel giorno. */
+    public function classi(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Classe::class, 'assistenza_pausa_classe', 'assistenza_pausa_id', 'classe_id');
+    }
+
     public function etichettaAudit(): ?string
     {
         return trim(($this->docente?->nomeCompleto() ?? '').' – '.(Slot::GIORNI[$this->giorno] ?? $this->giorno).', '.($this->ordine === 0 ? 'pausa prima della prima ora' : 'pausa dopo la '.$this->ordine.'ª ora'));

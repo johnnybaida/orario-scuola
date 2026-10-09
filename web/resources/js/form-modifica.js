@@ -46,7 +46,8 @@ const formatta = (n) => n.toLocaleString('it-IT', { maximumFractionDigits: 2 });
 function ricalcola() {
     document.querySelectorAll('[data-totale]').forEach((el) => {
         const form = el.closest('form') ?? document;
-        const totale = somma(form, el.dataset.totale);
+        // «a+b»: somma di più gruppi (es. ore delle cattedre + ore di mensa del quadro)
+        const totale = Math.round(el.dataset.totale.split('+').reduce((t, g) => t + somma(form, g), 0) * 100) / 100;
         const rif = el.dataset.riferimento ?? '';
         let riferimento = null;
         if (rif.startsWith('somma:')) riferimento = somma(form, rif.slice(6));

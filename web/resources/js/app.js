@@ -18,3 +18,4 @@ import './menu-profilo.js';
 import './info.js';
 import './copia-testo.js';
 import './conta-slot.js';
+import './mensa.js';

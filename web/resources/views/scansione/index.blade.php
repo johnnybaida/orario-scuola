@@ -45,6 +45,7 @@
                         <th class="px-4 py-2">Pausa dopo (minuti)</th>
                         <th class="px-4 py-2">Conta per il docente <x-info testo="Facoltativo: quanto vale la pausa nel monte ore del docente che la sorveglia, a scatti di 15 minuti (60 minuti = 1 ora). Con «Automatico» vale la durata arrotondata per eccesso al quarto d'ora: 50 minuti contano come 1 ora." /></th>
                         <th class="px-4 py-2">Aula della pausa <x-info testo="Facoltativo: l'aula in cui si svolge la pausa (per esempio il refettorio). Compare nei PDF accanto alla pausa. Si sceglie tra le aule di tipo «Aula per la pausa»: creale in Aule." /></th>
+                        <th class="px-4 py-2">È la mensa <x-info testo="Spunta la pausa in cui le classi pranzano: nella pagina Mensa indichi quali docenti la sorvegliano e per quali classi, e nei PDF compare la riga con i loro nomi. Puoi spuntarne più d'una (turni di mensa)." /></th>
                         <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo (vale anche per la pausa prima della prima ora, che finisce quando comincia la prima ora): scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
                     </tr>
                 </thead>
@@ -79,6 +80,7 @@
                                 @endforeach
                             </select>
                         </td>
+                        <td class="px-4 py-2 text-gray-400">—</td>
                         <td class="px-4 py-2">
                             <input type="text" maxlength="40" class="w-40" placeholder="Pausa" name="pausa_prima[nome]" aria-label="Nome della pausa prima della {{ $ore->keys()->first() }}ª ora"
                                    value="{{ old('pausa_prima.nome', $primaOra->pausa_prima_nome) }}">
@@ -132,6 +134,13 @@
                                             <option value="{{ $a->id }}" @selected((int) old("ore.$ordine.aula", $ora->ricreazione_aula_id) === $a->id)>{{ $a->nome }}</option>
                                         @endforeach
                                     </select>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if ($prossima)
+                                    <input type="checkbox" name="ore[{{ $ordine }}][mensa]" value="1" aria-label="La pausa dopo la {{ $ordine }}ª ora è la mensa" @checked(old("ore.$ordine.mensa", $ora->ricreazione_mensa))>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
