@@ -45,7 +45,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
 - **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre.
-- **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltativa, `nome_pausa`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
+- **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Non si importano:** vincoli, sostegno e le altre impostazioni.
 
@@ -71,6 +71,8 @@ Ogni aula appartiene alla sede in cui stai lavorando (non si sceglie nel form).
 - **Tipo**: la categoria dell'aula (classe, laboratorio, palestra, aula di musica, ...). Il tipo serve a collegare le discipline che richiedono un'aula speciale: una lezione di Scienze motorie, se la disciplina richiede il tipo "palestra", si svolge in un'aula di quel tipo.
 - **Piano**: il piano dell'edificio (0 = piano terra, negativo = interrato). Facoltativo: serve al vincolo *Spostamenti tra piani* (C5).
 - **Capienza**: quante lezioni possono svolgersi **nello stesso momento** in aule di quel tipo. 1 = una sola classe alla volta; 2 = due classi insieme (es. palestra divisibile). Non è il numero di alunni.
+
+Il tipo **«Aula per la pausa (mensa, ricreazione)»** serve per le aule in cui si svolgono le pause (per esempio il refettorio): si collegano alla pausa in *Scansione oraria* e compaiono nei PDF.
 
 La colonna **Usata da** mostra quali discipline richiedono quel tipo di aula.
 
