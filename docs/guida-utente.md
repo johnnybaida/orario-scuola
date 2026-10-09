@@ -31,6 +31,7 @@ La **Dashboard** ti dice a che punto sei:
 - **Sei pronto a generare?**: i problemi che bloccherebbero la generazione, ognuno con il link **Correggi** alla pagina giusta. Se non ce ne sono, vedi "Tutto a posto".
 - **Generazione e worker**: stato del worker di coda (con **Avvia**), ultima generazione con seed e punteggio, e **Nuova generazione**.
 - **Ultimo orario**: versione, stato, punteggio e avvisi aperti, con il tabellone PDF e la ricerca di una classe o di un docente.
+- **Da controllare**: avvisi che **non** impediscono di generare ma lasciano l'orario stampato incompleto (per esempio un docente assegnato a una pausa che non esiste più, una classe in mensa senza docente, un'aula della mensa troppo piccola), con il link **Correggi**.
 - **Carico dei docenti**: chi ha ore assegnate diverse dalle ore dovute; le ore mancanti sono *ore a disposizione*. Accanto al nome compaiono i minuti di **assistenza alle pause** (già contati nelle ore assegnate) e di **laboratorio** (ore di servizio a parte, che non toccano le ore dovute).
 - **Percorso di avvio**: i passi del percorso tipico, spuntati quando hai già inserito qualcosa.
 
@@ -105,6 +106,7 @@ La scansione oraria definisce **a che ora inizia e finisce ogni ora di lezione**
 - **Inizio** e **Fine**: gli orari dell'ora. Le ore non possono sovrapporsi e ognuna deve finire dopo il suo inizio. La **durata** si calcola da sola.
 - **Pausa dopo (minuti)**: per le ore seguite da una ricreazione scrivi **quanti minuti dura**; lascia vuoto dove non ce n'è. Puoi averne quante ne servono, ciascuna di durata diversa (per esempio 10 minuti dopo la 3ª ora e 15 dopo la 5ª). La ricreazione **parte dalla fine di quell'ora** e accanto compare l'orario calcolato (es. 10:30–10:40). L'ora successiva deve iniziare **non prima** della fine della ricreazione: se tra le due ore resta altro tempo libero, quello non è una ricreazione e nei PDF non compare. Svuotando il campo la ricreazione si toglie. **Mentre scrivi i minuti, l'inizio dell'ora successiva si sposta da solo** (e con lui le ore che la seguono nella stessa mattinata): lo stesso succede se cambi la **Fine** di un'ora. Le ore del pomeriggio, separate da una pausa lasciata a mano, non si toccano; puoi sempre ritoccare gli orari dopo lo spostamento.
 - **Pausa prima della prima ora**: la prima riga della tabella, «Prima della 1ª», permette di aggiungere una pausa **prima** della prima ora (per esempio un'accoglienza): scrivi i **minuti** e, se vuoi, il nome. La pausa **finisce quando comincia la prima ora** (con la prima ora alle 8:00 e 10 minuti, va dalle 7:50 alle 8:00) e l'orario si calcola da solo. Vale per tutti i giorni; compare nei PDF (riga sopra la prima ora e legenda del tabellone) e si può assegnare un docente per l'assistenza, come per le altre pause.
+- **È la mensa**: spunta la pausa in cui le classi pranzano. Serve alla pagina **Mensa** (classi in mensa, docenti che sorvegliano) e ai PDF; puoi spuntarne più d'una (turni di mensa). Vedi la sezione *Mensa*.
 - **Nome della pausa**: facoltativo, accanto ai minuti. Scrivi per esempio **Mensa** per la pausa lunga prima dei rientri pomeridiani; se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF al posto di «Ricreazione». Hanno la mensa le classi che hanno ore dopo quella pausa (i rientri pomeridiani).
 - **Conta per il docente**: quanto vale la pausa nel monte ore del docente che la sorveglia, a scatti di **15 minuti** (15, 30, 45, 60…). Con **Automatico** vale la durata arrotondata per eccesso al quarto d'ora: una mensa di 50 minuti conta come **1 ora**, una ricreazione di 10 minuti come 15 minuti. La durata reale della pausa non cambia (orari e PDF restano com'erano): cambia solo il totale «Assegnate / dovute» del docente.
 - **Aula della pausa**: facoltativa, l'aula in cui si svolge la pausa (per esempio il **refettorio** per la mensa). Si sceglie tra le aule di tipo **«Aula per la pausa (mensa, ricreazione)»**, che crei in **Aule**; finché non ne esiste una la select è disattivata. L'aula compare nei **PDF** (nella riga della pausa delle griglie, nella legenda del tabellone) e nell'elenco «Assistenza alle pause» del docente. Non occupa l'aula nell'orario e il generatore non ne tiene conto.
@@ -197,7 +199,8 @@ Un quadro orario è il monte ore settimanale per disciplina (es. "Tempo normale 
 
 - **Nome**: es. "Tempo normale 30h" o "Tempo prolungato 36h".
 - **Discipline**: ogni riga è una disciplina con le sue **ore settimanali** (1–40). Una disciplina può comparire una sola volta: quelle già inserite sono disattivate nelle altre righe.
-- Il **totale** si aggiorna mentre scrivi.
+- **Ore di mensa**: facoltativo, per il tempo prolungato. Sono le ore settimanali di mensa della classe (di solito una per giorno di rientro): contano nel **totale** del quadro ma non sono lezioni, quindi gli **slot attivi** della classe sono le ore delle discipline (36 di quadro con 2 di mensa → 34 slot attivi). Chi sorveglia la mensa si indica nella pagina *Mensa*.
+- Il **totale** (discipline + mensa) si aggiorna mentre scrivi.
 <!-- permesso: gestisci-anagrafica -->
 - Aggiungi e togli le righe con i pulsanti della sezione e salva una volta sola, anche alla creazione.
 - Un quadro usato da qualche classe **non si può eliminare**.
@@ -268,6 +271,8 @@ Ogni classe ha:
 ### Rientri pomeridiani
 
 Con il **tempo prolungato** puoi scegliere i **giorni di rientro**, ognuno in modo indipendente (per esempio martedì e giovedì per una classe, lunedì e mercoledì per un'altra). Spuntando un giorno si attivano le sue ore pomeridiane (7ª–9ª) nella griglia degli slot attivi. Il campo è attivo solo con Tempo scuola = Prolungato.
+
+**Totale ore / quadro orario.** Sotto le cattedre della scheda il totale somma le ore delle cattedre e le **ore di mensa** del quadro, e le mostra in chiaro: per esempio «36 / 36 (34 di discipline + 2 di mensa)». Diventa giallo se non coincide con il quadro.
 
 ### Slot attivi
 
