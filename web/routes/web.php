@@ -71,6 +71,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->except(['store', 'update', 'destroy', 'show']);
         Route::get('/laboratori-disponibilita', [\App\Http\Controllers\LaboratorioController::class, 'disponibilita'])->name('laboratori.disponibilita');
         Route::resource('generazioni', GenerazioneController::class)->parameters($parametriRisorse['generazioni'])->only(['index', 'show']);
+        Route::get('/prompt-ai', [\App\Http\Controllers\PromptController::class, 'index'])->name('prompt.index');
         Route::get('/generazioni/{generazione}/stato', [GenerazioneController::class, 'stato'])->name('generazioni.stato');
         Route::get('/generazioni/{generazione}/diagnostica', [GenerazioneController::class, 'diagnostica'])->middleware('can:gestisci-anagrafica')->name('generazioni.diagnostica');
 

@@ -22,6 +22,7 @@ class Guida
         'vincoli.*' => 'vincoli',
         'laboratori.*' => 'laboratori',
         'generazioni.*' => 'genera-orario',
+        'prompt.*' => 'genera-orario',
         'orari.*' => 'orari-e-modifica-manuale',
         'utenze.*' => 'utenze',
         'dati.*' => 'dati-esporta-e-importa',

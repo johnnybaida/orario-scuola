@@ -576,6 +576,8 @@ Conta solo il passaggio tra **ore consecutive** dello stesso giorno; un'ora vuot
 Con più sedi, ogni sede ha le sue generazioni e i suoi orari: si genera, si approva e si pubblica **una sede alla volta**, nella sede in cui stai lavorando. Le versioni dell'orario sono numerate per sede e l'orario pubblicato di una sede non cambia quando pubblichi quello di un'altra. I PDF riportano il nome della sede nel titolo.
 
 
+**Prompt per l'AI.** In alto nella pagina **Generazioni** il collegamento **Prompt per l'AI** apre un testo con tutti i dati della sede: scansione oraria, aule, discipline, classi con quadro orario e ore attive, docenti con cattedre, indisponibilità, sospensioni e assistenza alle pause, sostegno, laboratori e vincoli, più le regole del generatore e la richiesta di produrre l'orario. Premi **Copia il testo** (o **Scarica come file**) e incollalo in un assistente AI perché provi a costruire lui l'orario, per confronto o per un'idea di partenza. Non contiene nomi di alunni (l'applicazione non li censisce). Riguarda la sede in cui stai lavorando; il testo può essere lungo, la pagina indica quanti caratteri e token approssimativi ha. Controlla sempre il risultato: un'AI può sbagliare i conti, e l'orario valido resta quello del generatore.
+
 La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento nella pagina.
 
 <!-- permesso: gestisci-anagrafica -->

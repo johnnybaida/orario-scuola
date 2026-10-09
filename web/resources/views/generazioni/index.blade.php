@@ -31,6 +31,7 @@
 
     <x-barra-tabella>
         <x-slot:azioni>
+            <a href="{{ route('prompt.index') }}" class="text-sm underline text-gray-600">Prompt per l'AI</a>
             @can('gestisci-anagrafica')
                 <a href="{{ route('generazioni.create') }}" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Nuova generazione</a>
             @endcan
