@@ -51,14 +51,14 @@ class OrarioPdfExporter
                     $cambio = $cambi[$l->id] ?? null;
                     $aula = $l->aulaDaMostrare() ?? ($cambio['a'] ?? null);
 
-                    return $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->con_clil && $l->cattedra->docenteClil ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : '').($aula ? "\n".($cambio ? '→ ' : '').$aula->nome : '');
+                    return $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->con_clil && $l->cattedra->docenteClil ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : '').($aula ? "\n".($cambio ? '→ ' : '').$aula->nomeConPiano() : '');
                 },
                 'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
                     ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a3', 'landscape');
     }
 
     public function docente(Orario $orario, Docente $docente): PdfDocument
@@ -90,14 +90,14 @@ class OrarioPdfExporter
                 'titolo' => $this->conSede("Orario docente {$docente->nomeCompleto()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->con_clil && $l->cattedra->docente_clil_id === $docente->id ? ' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nome : ''),
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->con_clil && $l->cattedra->docente_clil_id === $docente->id ? ' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
                 'laboratori' => app(Laboratori::class)->elenco($docente),
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a3', 'landscape');
     }
 
     /**
@@ -115,7 +115,7 @@ class OrarioPdfExporter
             $sue = $lezioni->filter(fn (Lezione $l) => $this->inAula($l, $aula))->groupBy('slot_id');
 
             return [
-                'titolo' => $this->conSede("Orario aula {$aula->nome}"),
+                'titolo' => $this->conSede("Orario aula {$aula->nomeConPiano()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys())->max('ordine')),
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
@@ -124,7 +124,7 @@ class OrarioPdfExporter
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a4', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli])->setPaper('a3', 'landscape');
     }
 
     /** Con più sedi il nome della sede è nel titolo: i fogli stampati di sedi diverse non si confondono. */
@@ -174,16 +174,16 @@ class OrarioPdfExporter
 
             return $ora ? [
                 'ordine' => $ordine, 'inizio' => substr($ora->inizio, 0, 5), 'fine' => substr($ora->fine, 0, 5),
-                'prima' => $ora->pausa_prima_minuti ? ['da' => $ora->inizioPausaPrima(), 'minuti' => $ora->pausa_prima_minuti, 'nome' => mb_strtolower($ora->nomePausaPrima()), 'aula' => $ora->pausaPrimaAula?->nome] : null,
+                'prima' => $ora->pausa_prima_minuti ? ['da' => $ora->inizioPausaPrima(), 'minuti' => $ora->pausa_prima_minuti, 'nome' => mb_strtolower($ora->nomePausaPrima()), 'aula' => $ora->pausaPrimaAula?->nomeConPiano()] : null,
                 'ricreazione' => $ora->fineRicreazione() && $prossima
-                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa()), 'aula' => $ora->ricreazioneAula?->nome] : null,
+                    ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa()), 'aula' => $ora->ricreazioneAula?->nomeConPiano()] : null,
             ] : null;
         })->filter()->values()->all();
 
         if ($per === 'aula') {
             $usate = $lezioni->map(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)?->id)->filter()->unique();
             $righe = Aula::query()->orderBy('nome')->get()->filter(fn (Aula $a) => $usate->contains($a->id))
-                ->map(fn (Aula $a) => ['id' => $a->id, 'etichetta' => $a->nome])->values();
+                ->map(fn (Aula $a) => ['id' => $a->id, 'etichetta' => $a->nomeConPiano(true)])->values();   // piano abbreviato: la colonna è stretta
             if ($lezioni->contains(fn (Lezione $l) => ! SpostamentiAula::aulaEffettiva($l))) {
                 $righe->push(['id' => 0, 'etichetta' => 'Senza aula']);
             }

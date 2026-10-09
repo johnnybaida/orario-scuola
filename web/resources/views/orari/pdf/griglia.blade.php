@@ -4,20 +4,21 @@
     <meta charset="UTF-8">
     <style>
         @page { margin: 12mm; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; }
-        h1 { font-size: 24px; text-align: center; margin: 0 0 16px 0; }
+        /* Foglio A3 orizzontale (stampabile anche in A4 «adatta alla pagina»): misure ×1,2 rispetto al vecchio A4. */
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 14px; }
+        h1 { font-size: 29px; text-align: center; margin: 0 0 20px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #999; padding: 4px; text-align: center; vertical-align: middle; }
-        th { background: #eee; font-size: 13px; padding: 7px; }
-        .ordine { width: 64px; background: #f5f5f5; font-weight: bold; font-size: 13px; }
-        .orario { font-weight: normal; font-size: 10px; color: #555; }
+        th, td { border: 1px solid #999; padding: 5px; text-align: center; vertical-align: middle; }
+        th { background: #eee; font-size: 16px; padding: 9px; }
+        .ordine { width: 78px; background: #f5f5f5; font-weight: bold; font-size: 16px; }
+        .orario { font-weight: normal; font-size: 12px; color: #555; }
         .cella { white-space: pre-line; }
-        .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 11px; padding: 3px; }
-        .sostegno { color: #047857; font-size: 11px; }
+        .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 13px; padding: 4px; }
+        .sostegno { color: #047857; font-size: 13px; }
     </style>
 </head>
 <body>
-    {{-- Un foglio A4 orizzontale per ogni elemento di $fogli (classe o docente), con il titolo centrato e tutta la settimana. --}}
+    {{-- Un foglio A3 orizzontale per ogni elemento di $fogli (classe o docente), con il titolo centrato e tutta la settimana. --}}
     @foreach ($fogli as $foglio)
         <section @if (! $loop->last) style="page-break-after: always" @endif>
             <h1>{{ $foglio['titolo'] }}</h1>
@@ -46,14 +47,14 @@
                         <tr class="ricreazione">
                             <td colspan="{{ $slotPerGiorno->count() + 1 }}">
                                 {{ $pausaPrima->nomePausaPrima() }} {{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }}
-                                ({{ $pausaPrima->pausa_prima_minuti }} minuti){{ $pausaPrima->pausaPrimaAula ? ' · '.$pausaPrima->pausaPrimaAula->nome : '' }}
+                                ({{ $pausaPrima->pausa_prima_minuti }} minuti){{ $pausaPrima->pausaPrimaAula ? ' · '.$pausaPrima->pausaPrimaAula->nomeConPiano() : '' }}
                             </td>
                         </tr>
                     @endif
                     @for ($ordine = 1; $ordine <= $maxOrdine; $ordine++)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
-                        {{-- Celle alte quanto serve perché la settimana riempia il foglio A4 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
-                        @php($altezza = (int) floor((400 - 20 * $nRicreazioni) / max(1, $maxOrdine)))
+                        {{-- Celle alte quanto serve perché la settimana riempia il foglio A3 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
+                        @php($altezza = (int) floor((590 - 26 * $nRicreazioni) / max(1, $maxOrdine)))
                         <tr>
                             <td class="ordine" style="height: {{ $altezza }}pt">{{ $ordine }}ª@if ($primoSlot)<br><span class="orario">{{ substr($primoSlot->inizio, 0, 5) }}-{{ substr($primoSlot->fine, 0, 5) }}</span>@endif</td>
                             @foreach ($slotPerGiorno as $giorno => $slotGiorno)
@@ -76,7 +77,7 @@
                             <tr class="ricreazione">
                                 <td colspan="{{ $slotPerGiorno->count() + 1 }}">
                                     {{ $primoSlot->nomePausa() }} {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
-                                    ({{ $primoSlot->ricreazione_minuti }} minuti){{ $primoSlot->ricreazioneAula ? ' · '.$primoSlot->ricreazioneAula->nome : '' }}
+                                    ({{ $primoSlot->ricreazione_minuti }} minuti){{ $primoSlot->ricreazioneAula ? ' · '.$primoSlot->ricreazioneAula->nomeConPiano() : '' }}
                                 </td>
                             </tr>
                         @endif

@@ -188,4 +188,16 @@ class ExportPdfTest extends TestCase
         $this->assertSame('application/pdf', $risposta->headers->get('Content-Type'));
         $this->actingAs(User::factory()->create(['ruolo' => 'docente']))->get("/orari/{$orario->id}/export/docenti")->assertForbidden();
     }
+
+    public function test_l_aula_nei_pdf_porta_il_piano_se_indicato(): void
+    {
+        $this->assertSame('2° piano', \App\Models\Aula::factory()->make(['piano' => 2])->etichettaPiano());
+        $this->assertSame('piano terra', \App\Models\Aula::factory()->make(['piano' => 0])->etichettaPiano());
+        $this->assertSame('interrato', \App\Models\Aula::factory()->make(['piano' => -1])->etichettaPiano());
+        $this->assertSame('P2', \App\Models\Aula::factory()->make(['piano' => 2])->etichettaPiano(true));
+        $this->assertSame('PT', \App\Models\Aula::factory()->make(['piano' => 0])->etichettaPiano(true));
+        $this->assertNull(\App\Models\Aula::factory()->make(['piano' => null])->etichettaPiano());
+        $this->assertSame('Human Lab (2° piano)', \App\Models\Aula::factory()->make(['nome' => 'Human Lab', 'piano' => 2])->nomeConPiano());
+        $this->assertSame('Palestra', \App\Models\Aula::factory()->make(['nome' => 'Palestra', 'piano' => null])->nomeConPiano());
+    }
 }

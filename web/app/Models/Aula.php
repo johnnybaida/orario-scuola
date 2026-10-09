@@ -22,6 +22,28 @@ class Aula extends Model
      *
      * @return array<string, string>
      */
+    /** «2° piano», «piano terra», «interrato»; breve: «P2», «PT», «P-1». Null se il piano non è indicato. */
+    public function etichettaPiano(bool $breve = false): ?string
+    {
+        if ($this->piano === null) {
+            return null;
+        }
+
+        return match (true) {
+            $this->piano === 0 => $breve ? 'PT' : 'piano terra',
+            $this->piano < 0 => $breve ? "P{$this->piano}" : ($this->piano === -1 ? 'interrato' : abs($this->piano).'° interrato'),
+            default => $breve ? "P{$this->piano}" : "{$this->piano}° piano",
+        };
+    }
+
+    /** «Human Lab (2° piano)»: il nome con il piano, se c'è (per i PDF). */
+    public function nomeConPiano(bool $breve = false): string
+    {
+        $piano = $this->etichettaPiano($breve);
+
+        return $piano ? "{$this->nome} ({$piano})" : $this->nome;
+    }
+
     public static function tipiConAule(): array
     {
         return self::query()->orderBy('nome')->get()->groupBy('tipo')
