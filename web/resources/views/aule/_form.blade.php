@@ -1,6 +1,7 @@
 @php($aula = $aula ?? null)
-@php($dada = $aula && \App\Enums\TipoAula::eDada($aula->tipo) ? $discipline->firstWhere('tipo_aula_richiesto', $aula->tipo) : null)
-@php($tipoSel = old('tipo', $dada ? 'dada:'.$dada->id : ($aula?->tipo ?? 'classe')))
+@php($eDada = $aula && \App\Enums\TipoAula::eDada($aula->tipo))
+@php($tipoSel = old('tipo', $eDada ? 'dada' : ($aula?->tipo ?? 'classe')))
+@php($dadaSel = collect(old('dada_discipline', $eDada ? $discipline->filter(fn ($d) => $d->accettaTipo($aula->tipo))->pluck('id')->all() : [])))
 
 <div>
     <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
@@ -16,16 +17,26 @@
                 <option value="{{ $tipo }}" @selected($tipoSel === $tipo)>{{ \App\Enums\TipoAula::etichettaDi($tipo) }}</option>
             @endforeach
         </optgroup>
-        <optgroup label="Aula DADA (dedicata a una disciplina)">
-            @foreach ($discipline as $disciplina)
-                <option value="dada:{{ $disciplina->id }}" @selected($tipoSel === 'dada:'.$disciplina->id)>DADA · {{ $disciplina->nome }}</option>
-            @endforeach
+        <optgroup label="Didattica DADA">
+            <option value="dada" @selected($tipoSel === 'dada')>DADA · aula dedicata a una o più discipline</option>
         </optgroup>
     </select>
     <p class="mt-1 text-xs text-gray-500">
-        Per la didattica DADA scegli "DADA · <em>disciplina</em>": gli alunni si spostano in quest'aula per quella
-        materia e la disciplina viene collegata automaticamente.
+        Per la didattica DADA scegli «DADA» e spunta qui sotto le discipline che si svolgono in quest'aula.
     </p>
+</div>
+
+<div data-attiva-se="#tipo=dada">
+    <label class="block text-sm font-medium text-gray-700">Discipline di quest'aula DADA
+        <x-info testo="Si attiva scegliendo il tipo «DADA». Gli alunni si spostano in quest'aula per le discipline spuntate: una sola per un'aula dedicata, più d'una se l'aula è condivisa (per esempio Italiano, Inglese e Spagnolo). Ogni disciplina può avere più aule: la propria e una condivisa. Le discipline spuntate non possono usare l'aula nello stesso momento (capienza 1)." />
+    </label>
+    <div class="mt-1 flex max-h-40 flex-wrap gap-x-4 gap-y-1 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
+        @foreach ($discipline as $disciplina)
+            <label class="flex items-center gap-1.5">
+                <input type="checkbox" name="dada_discipline[]" value="{{ $disciplina->id }}" @checked($dadaSel->contains($disciplina->id))> {{ $disciplina->nome }}
+            </label>
+        @endforeach
+    </div>
 </div>
 
 <div>

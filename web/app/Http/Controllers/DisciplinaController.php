@@ -27,7 +27,7 @@ class DisciplinaController extends Controller
 
     public function store(DisciplinaRequest $request): RedirectResponse
     {
-        Disciplina::query()->create($request->validated());
+        Disciplina::query()->create($this->dati($request));
 
         return redirect()->route('discipline.index')->with('successo', 'Disciplina creata.');
     }
@@ -43,7 +43,7 @@ class DisciplinaController extends Controller
 
     public function update(DisciplinaRequest $request, Disciplina $disciplina): RedirectResponse
     {
-        $disciplina->update($request->validated());
+        $disciplina->update($this->dati($request));
 
         return redirect()->route('discipline.index')->with('successo', 'Disciplina aggiornata.');
     }
@@ -53,5 +53,15 @@ class DisciplinaController extends Controller
         $disciplina->delete();
 
         return redirect()->route('discipline.index')->with('successo', 'Disciplina eliminata.');
+    }
+
+    /** Gli altri tipi ammessi non ripetono quello richiesto e senza altri tipi il campo resta vuoto. */
+    private function dati(DisciplinaRequest $request): array
+    {
+        $dati = $request->validated();
+        $extra = array_values(array_diff(array_unique($dati['tipi_aula_extra'] ?? []), [$dati['tipo_aula_richiesto'] ?? null]));
+        $dati['tipi_aula_extra'] = $extra ?: null;
+
+        return $dati;
     }
 }

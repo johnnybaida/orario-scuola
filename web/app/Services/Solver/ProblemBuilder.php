@@ -94,6 +94,7 @@ class ProblemBuilder
                     'disciplina' => $cattedra->disciplina->codice,
                     'durata' => 1,
                     'tipo_aula' => $cattedra->disciplina->tipo_aula_richiesto,
+                    'tipi_aula' => $cattedra->disciplina->tipiAmmessi(),   // più tipi se la disciplina ha aule proprie e condivise
                     'gruppo_parallelo' => null,
                     'bloccata_slot' => null,
                 ];

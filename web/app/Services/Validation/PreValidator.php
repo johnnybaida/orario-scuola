@@ -122,20 +122,19 @@ class PreValidator
         $problemi = [];
         $totaleSlot = Slot::query()->count();
 
-        $domandaPerTipo = Cattedra::query()
-            ->join('discipline', 'discipline.id', '=', 'cattedre.disciplina_id')
-            ->whereNotNull('discipline.tipo_aula_richiesto')
-            ->selectRaw('discipline.tipo_aula_richiesto as tipo, sum(cattedre.ore) as ore_totali')
-            ->groupBy('discipline.tipo_aula_richiesto')
-            ->pluck('ore_totali', 'tipo');
+        // Domanda per insieme di tipi ammessi (una disciplina può avere un'aula propria e una condivisa).
+        $domanda = Cattedra::query()->with('disciplina')->get()->filter(fn ($c) => $c->disciplina->tipiAmmessi())
+            ->groupBy(fn ($c) => implode('|', $c->disciplina->tipiAmmessi()))->map(fn ($g) => $g->sum('ore'));
 
-        foreach ($domandaPerTipo as $tipo => $oreTotali) {
-            $capacitaSettimanale = Aula::query()->where('tipo', $tipo)->sum('capienza') * $totaleSlot;
+        foreach ($domanda as $chiave => $oreTotali) {
+            $tipi = explode('|', $chiave);
+            $etichetta = implode("' o '", $tipi);
+            $capacitaSettimanale = Aula::query()->whereIn('tipo', $tipi)->sum('capienza') * $totaleSlot;
 
             if ($capacitaSettimanale === 0) {
-                $problemi[] = $this->p("Nessuna aula di tipo '{$tipo}' censita, ma servono {$oreTotali}h settimanali.", route('aule.index'));
+                $problemi[] = $this->p("Nessuna aula di tipo '{$etichetta}' censita, ma servono {$oreTotali}h settimanali.", route('aule.index'));
             } elseif ($oreTotali > $capacitaSettimanale) {
-                $problemi[] = $this->p("Aule di tipo '{$tipo}': servono {$oreTotali}h settimanali ma la capacità "
+                $problemi[] = $this->p("Aule di tipo '{$etichetta}': servono {$oreTotali}h settimanali ma la capacità "
                     ."massima teorica è {$capacitaSettimanale}h.", route('aule.index'));
             }
         }

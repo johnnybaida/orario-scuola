@@ -45,7 +45,7 @@
                         <td class="px-4 py-2 font-mono">{{ $disciplina->codice }}</td>
                         <td class="px-4 py-2">{{ $disciplina->nome }}</td>
                         <td class="px-4 py-2">{{ $disciplina->classe_concorso }}</td>
-                        <td class="px-4 py-2">{{ $disciplina->tipo_aula_richiesto }}</td>
+                        <td class="px-4 py-2">{{ collect($disciplina->tipiAmmessi())->map(fn ($t) => \App\Enums\TipoAula::etichettaDi($t))->implode(', ') }}</td>
                         <td class="px-4 py-2">{{ $disciplina->padre?->nome }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             @can('gestisci-anagrafica')

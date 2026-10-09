@@ -97,8 +97,8 @@ class EditorLezione
         if (! $tipo) {
             return $errore("{$lezione->cattedra->disciplina->nome} non richiede un'aula speciale: si svolge nell'aula della classe.");
         }
-        if ($aula->tipo !== $tipo) {
-            return $errore("{$aula->nome} è di tipo '{$aula->tipo}' ma serve un'aula di tipo '{$tipo}'.");
+        if (! $lezione->cattedra->disciplina->accettaTipo($aula->tipo)) {
+            return $errore("{$aula->nome} è di tipo '{$aula->tipo}' ma serve un'aula di tipo '".implode("' o '", $lezione->cattedra->disciplina->tipiAmmessi())."'.");
         }
         $conflitti = [];
         $altre = Lezione::query()->where('orario_id', $lezione->orario_id)->where('slot_id', $lezione->slot_id)->where('aula_id', $aula->id)
@@ -134,7 +134,7 @@ class EditorLezione
     {
         $lezione->loadMissing('cattedra.classe.aulaBase', 'cattedra.classe.slotAttivi', 'cattedra.disciplina', 'aula');
         $tipo = $lezione->cattedra->disciplina->tipo_aula_richiesto;
-        $aule = $tipo ? Aula::query()->where('tipo', $tipo)->orderBy('nome')->get()
+        $aule = $tipo ? Aula::query()->whereIn('tipo', $lezione->cattedra->disciplina->tipiAmmessi())->orderBy('nome')->get()
             : collect([SpostamentiAula::aulaEffettiva($lezione)])->filter();
         $perSlot = $this->destinazioni($lezione) + [$lezione->slot_id => ['stato' => 'ok', 'motivi' => []]];
 
@@ -458,7 +458,7 @@ class EditorLezione
             ->groupBy('aula_id')
             ->map(fn ($gruppo) => $gruppo->pluck('cattedra.classe_id')->unique()->count());
 
-        $libere = Aula::query()->where('tipo', $tipo)->orderBy('id')->get()
+        $libere = Aula::query()->whereIn('tipo', $cattedra->disciplina->tipiAmmessi())->orderBy('id')->get()
             ->filter(fn (Aula $a) => ($occupazione[$a->id] ?? 0) < $a->capienza);
 
         return ($preferita && $libere->contains('id', $preferita)) ? $preferita : $libere->first()?->id;
@@ -517,12 +517,13 @@ class EditorLezione
         }
 
         if ($disciplina->tipo_aula_richiesto) {
-            $capienzaTotale = Aula::query()->where('tipo', $disciplina->tipo_aula_richiesto)->sum('capienza');
+            $tipi = $disciplina->tipiAmmessi();
+            $capienzaTotale = Aula::query()->whereIn('tipo', $tipi)->sum('capienza');
             $occupanti = Lezione::query()
                 ->where('orario_id', $orarioId)
                 ->where('slot_id', $slotId)
                 ->whereNotIn('id', $lezioniEscluse)
-                ->whereHas('cattedra.disciplina', fn ($q) => $q->where('tipo_aula_richiesto', $disciplina->tipo_aula_richiesto))
+                ->whereHas('cattedra', fn ($q) => $q->whereIn('disciplina_id', \App\Models\Disciplina::idCheAmmettono($tipi)))
                 ->with('cattedra.classe')
                 ->get();
             if ($occupanti->count() >= $capienzaTotale) {

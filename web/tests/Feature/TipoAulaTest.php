@@ -45,8 +45,8 @@ class TipoAulaTest extends TestCase
         $spagnolo = Disciplina::factory()->create(['codice' => 'SPA', 'nome' => 'Spagnolo']);
         $referente = $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']));
 
-        $referente->post('/aule', ['sede_id' => $sede->id, 'nome' => 'Lingue 1', 'tipo' => 'dada:'.$francese->id, 'capienza' => 1])->assertSessionHasNoErrors();
-        $referente->post('/aule', ['sede_id' => $sede->id, 'nome' => 'Lingue 2', 'tipo' => 'dada:'.$spagnolo->id, 'capienza' => 1]);
+        $referente->post('/aule', ['sede_id' => $sede->id, 'nome' => 'Lingue 1', 'tipo' => 'dada', 'dada_discipline' => [$francese->id], 'capienza' => 1])->assertSessionHasNoErrors();
+        $referente->post('/aule', ['sede_id' => $sede->id, 'nome' => 'Lingue 2', 'tipo' => 'dada', 'dada_discipline' => [$spagnolo->id], 'capienza' => 1]);
 
         $this->assertSame(2, Aula::query()->where('tipo', 'dada_sec_ling')->count());
         $this->assertSame('dada_sec_ling', $francese->fresh()->tipo_aula_richiesto);

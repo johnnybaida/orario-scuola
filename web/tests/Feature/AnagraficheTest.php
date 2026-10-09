@@ -54,14 +54,14 @@ class AnagraficheTest extends TestCase
         $disciplina = Disciplina::factory()->create(['codice' => 'ITA']);
 
         $this->actingAs($this->referente())->post('/aule', [
-            'sede_id' => $sede->id, 'nome' => 'Aula Italiano', 'tipo' => "dada:{$disciplina->id}", 'capienza' => 1,
+            'sede_id' => $sede->id, 'nome' => 'Aula Italiano', 'tipo' => 'dada', 'dada_discipline' => [$disciplina->id], 'capienza' => 1,
         ])->assertRedirect(route('aule.index'));
 
         $this->assertDatabaseHas('aule', ['tipo' => 'dada_ita']);
         $this->assertSame('dada_ita', $disciplina->fresh()->tipo_aula_richiesto);
 
         $this->actingAs($this->referente())->get('/aule/create', ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->assertDontSee('<html', false)->assertSee('DADA · '.$disciplina->nome);
+            ->assertOk()->assertDontSee('<html', false)->assertSee('DADA · aula dedicata')->assertSee($disciplina->nome);
     }
 
     public function test_crea_unaula_dada_con_tipo_libero_e_la_collega_a_una_disciplina(): void

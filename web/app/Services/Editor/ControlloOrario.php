@@ -146,7 +146,7 @@ class ControlloOrario
             $dove = "{$l->cattedra->classe->nomeCompleto()}, {$l->slot->descrizione()}: {$l->cattedra->disciplina->nome}";
             if (! $l->aula) {
                 $problemi[] = $this->p('errore', "{$dove} richiede un'aula di tipo '{$tipo}' ma non ne ha una assegnata.", [$l->id], [$l->cattedra->classe_id]);
-            } elseif ($l->aula->tipo !== $tipo) {
+            } elseif (! $l->cattedra->disciplina->accettaTipo($l->aula->tipo)) {
                 $problemi[] = $this->p('errore', "{$dove} richiede un'aula di tipo '{$tipo}' ma è in {$l->aula->nome} (tipo '{$l->aula->tipo}').", [$l->id], [$l->cattedra->classe_id]);
             }
         }

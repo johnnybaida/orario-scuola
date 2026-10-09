@@ -35,9 +35,22 @@
         @endif
     </select>
     <p class="mt-1 text-xs text-gray-500">
-        Elenco dei tipi di aula censiti in "Aule". Per DADA: crea l'aula con tipo "DADA · questa disciplina"
-        e il collegamento avviene da solo; qui puoi comunque sceglierlo a mano.
+        Elenco dei tipi di aula censiti in "Aule". Per DADA: crea l'aula e spunta questa disciplina, il collegamento avviene da solo;
+        qui puoi comunque sceglierlo a mano.
     </p>
+    @if (count($tipiAula) > 1)
+        @php($extraSel = collect(old('tipi_aula_extra', $disciplina?->tipi_aula_extra ?? [])))
+        <label class="mt-3 block text-sm font-medium text-gray-700">Altre aule ammesse
+            <x-info testo="Facoltativo: tipi di aula in cui la disciplina può svolgersi in più rispetto a quello richiesto. Serve, per esempio, quando ha la propria aula DADA e anche un'aula DADA condivisa con altre discipline: il generatore sceglie quella libera." />
+        </label>
+        <div class="mt-1 flex max-h-32 flex-wrap gap-x-4 gap-y-1 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
+            @foreach ($tipiAula as $tipo => $etichetta)
+                <label class="flex items-center gap-1.5">
+                    <input type="checkbox" name="tipi_aula_extra[]" value="{{ $tipo }}" @checked($extraSel->contains($tipo))> {{ $etichetta }}
+                </label>
+            @endforeach
+        </div>
+    @endif
 </div>
 
 <div>

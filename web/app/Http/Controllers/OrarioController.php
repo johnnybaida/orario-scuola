@@ -158,7 +158,7 @@ class OrarioController extends Controller
             $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
         } else {
             $aule = Aula::query()->orderBy('nome')->get();
-            $tipiRichiesti = Cattedra::query()->with('disciplina')->get()->pluck('disciplina.tipo_aula_richiesto')->filter()->unique();
+            $tipiRichiesti = Cattedra::query()->with('disciplina')->get()->flatMap(fn ($c) => $c->disciplina->tipiAmmessi())->unique();
             $usate = $lezioni->map(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)?->id)->filter()->unique();
             $righe = $aule->filter(fn (Aula $a) => $usate->contains($a->id) || $tipiRichiesti->contains($a->tipo))
                 ->map(fn (Aula $a) => ['id' => $a->id, 'etichetta' => $a->nome])->values();

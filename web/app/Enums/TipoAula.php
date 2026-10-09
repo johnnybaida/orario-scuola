@@ -57,10 +57,30 @@ enum TipoAula: string
             return $noto->etichetta();
         }
         if (self::eDada($tipo)) {
-            return 'DADA · '.ucfirst(str_replace('_', ' ', substr($tipo, strlen(self::PREFISSO_DADA))));
+            // Un'aula condivisa da più discipline ha un tipo «dada_ing__ita» (separatore doppio): «DADA · Ing + Ita».
+            return 'DADA · '.collect(explode('__', substr($tipo, strlen(self::PREFISSO_DADA))))->map(fn ($p) => ucfirst(str_replace('_', ' ', $p)))->implode(' + ');
         }
 
         return ucfirst(str_replace('_', ' ', $tipo));
+    }
+
+    /**
+     * Il tipo DADA di un gruppo di discipline che si svolgono nella stessa aula: quello della disciplina se è una sola, quello
+     * comune se sono tutte seconde lingue, altrimenti «dada_{codice}__{codice}» (codici in ordine; se supera i 50 caratteri
+     * del tipo, un'impronta dei codici).
+     *
+     * @param  \Illuminate\Support\Collection<int, Disciplina>  $discipline
+     */
+    public static function dadaPerGruppo(\Illuminate\Support\Collection $discipline): string
+    {
+        $tipi = $discipline->map(fn (Disciplina $d) => self::dadaPer($d))->unique()->sort()->values();
+        if ($tipi->count() === 1) {
+            return $tipi->first();
+        }
+        $codici = $tipi->map(fn (string $t) => substr($t, strlen(self::PREFISSO_DADA)))->implode('__');
+        $tipo = self::PREFISSO_DADA.$codici;
+
+        return strlen($tipo) <= 50 ? $tipo : self::PREFISSO_DADA.substr(md5($codici), 0, 12);
     }
 
     /** Il tipo DADA di una disciplina: comune a tutte le seconde lingue, altrimenti «dada_{codice}». */

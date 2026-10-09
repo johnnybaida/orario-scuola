@@ -15,8 +15,8 @@ class AulaController extends Controller
     {
         return view('aule.index', [
             'aule' => Aula::query()->orderBy('nome')->get(),
-            'usataDa' => Disciplina::query()->whereNotNull('tipo_aula_richiesto')->get()
-                ->groupBy('tipo_aula_richiesto')->map(fn ($d) => $d->pluck('nome')->implode(', ')),
+            'usataDa' => Disciplina::query()->get()->flatMap(fn (Disciplina $d) => array_map(fn ($t) => [$t, $d->nome], $d->tipiAmmessi()))
+                ->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1)->implode(', ')),
         ]);
     }
 
@@ -46,7 +46,7 @@ class AulaController extends Controller
 
     public function update(AulaRequest $request, Aula $aula): RedirectResponse
     {
-        $aula->update($this->dati($request));
+        $aula->update($this->dati($request, $aula));
 
         return redirect()->route('aule.index')->with('successo', 'Aula aggiornata.');
     }
@@ -58,23 +58,31 @@ class AulaController extends Controller
         return redirect()->route('aule.index')->with('successo', 'Aula eliminata.');
     }
 
-    /** Tipi base più quelli già in uso, esclusi i tipi DADA che la UI propone per disciplina. */
+    /** Tipi base più quelli già in uso, esclusi i DADA: per quelli la UI propone «DADA» con le discipline da spuntare. */
     private function tipiSuggeriti(): array
     {
-        $dada = Disciplina::query()->where('tipo_aula_richiesto', 'like', TipoAula::PREFISSO_DADA.'%')->pluck('tipo_aula_richiesto')->all();
         $usati = Aula::query()->distinct()->orderBy('tipo')->pluck('tipo')->all();
 
-        return array_values(array_diff(array_unique([...TipoAula::comuni(), ...$usati]), $dada));
+        return array_values(array_filter(array_unique([...TipoAula::comuni(), ...$usati]), fn (string $t) => ! TipoAula::eDada($t)));
     }
 
-    /** Il valore "dada:{id}" della select crea/riusa il tipo DADA della disciplina (vedi TipoAula::dadaPer) e la collega. */
-    private function dati(AulaRequest $request): array
+    /**
+     * Con tipo «dada» il tipo vero si ricava dalle discipline spuntate (vedi TipoAula::dadaPerGruppo) e viene **aggiunto**
+     * ai tipi che quelle discipline ammettono: ciascuna può così avere la propria aula e anche una condivisa. Se l'aula
+     * cambia tipo, il vecchio tipo si toglie alle discipline che lo ammettevano, a meno che un'altra aula lo abbia ancora.
+     */
+    private function dati(AulaRequest $request, ?Aula $aula = null): array
     {
-        $dati = $request->validated();
-        if (str_starts_with($dati['tipo'], 'dada:')) {
-            $disciplina = Disciplina::query()->findOrFail((int) substr($dati['tipo'], 5));
-            $dati['tipo'] = TipoAula::dadaPer($disciplina);
-            $disciplina->update(['tipo_aula_richiesto' => $dati['tipo']]);
+        $dati = $request->safe()->except('dada_discipline');
+        if ($dati['tipo'] === 'dada') {
+            $scelte = Disciplina::query()->whereIn('id', $request->input('dada_discipline', []))->get();
+            $dati['tipo'] = TipoAula::dadaPerGruppo($scelte);
+            $scelte->each(fn (Disciplina $d) => $d->aggiungiTipo($dati['tipo']));
+        }
+
+        $vecchio = $aula?->tipo;
+        if ($vecchio && $vecchio !== $dati['tipo'] && TipoAula::eDada($vecchio) && ! Aula::query()->where('tipo', $vecchio)->whereKeyNot($aula->id)->exists()) {
+            Disciplina::query()->get()->each(fn (Disciplina $d) => $d->togliTipo($vecchio));
         }
 
         return $dati;

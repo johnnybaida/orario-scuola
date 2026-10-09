@@ -160,43 +160,38 @@ class Contesto:
                 self.model.Add(v <= 1)
 
     def _vincolo_aule(self):
-        disciplina_tipo_aula = self.problema.get('disciplina_tipo_aula', {})
-
-        per_tipo = defaultdict(list)
-        for lez in self.lezioni:
-            tipo = lez.get('tipo_aula')
-            if tipo:
-                per_tipo[tipo].append(lez)
-
+        """H3+H7: ogni lezione che richiede un'aula sceglie una tra quelle dei tipi ammessi (`tipi_aula`, altrimenti il solo
+        `tipo_aula`); in ogni slot un'aula ospita al massimo `capacita` classi, contando le lezioni di tutte le discipline che
+        possono usarla (una disciplina può avere un'aula propria e una condivisa con altre)."""
         self.aula_scelta = {}
-        for tipo, lezioni_tipo in per_tipo.items():
-            aule_tipo = [a for a in self.aule.values() if a['tipo'] == tipo]
-            if not aule_tipo:
-                for lez in lezioni_tipo:
-                    self.diagnostica.append(
-                        f"Lezione {lez['id']}: richiede aula di tipo '{tipo}' ma nessuna è censita."
-                    )
+        for lez in self.lezioni:
+            tipi = lez.get('tipi_aula') or ([lez['tipo_aula']] if lez.get('tipo_aula') else [])
+            if not tipi:
                 continue
+            ammesse = [a for a in self.aule.values() if a['tipo'] in tipi]
+            if not ammesse:
+                elenco = ' o '.join(f"'{t}'" for t in tipi)
+                self.diagnostica.append(f"Lezione {lez['id']}: richiede aula di tipo {elenco} ma nessuna è censita.")
+                continue
+            scelta = {a['id']: self.model.NewBoolVar(f"aula_L{lez['id']}_A{a['id']}") for a in ammesse}
+            self.model.AddExactlyOne(scelta.values())
+            self.aula_scelta[lez['id']] = scelta
 
-            for lez in lezioni_tipo:
-                scelta = {}
-                for aula in aule_tipo:
-                    scelta[aula['id']] = self.model.NewBoolVar(f"aula_L{lez['id']}_A{aula['id']}")
-                self.model.AddExactlyOne(scelta.values())
-                self.aula_scelta[lez['id']] = scelta
-
-            for aula in aule_tipo:
-                for s in self.slots:
-                    occupanti = []
-                    for lez in lezioni_tipo:
-                        occ_s = self.occupato[lez['id']].get(s)
-                        if occ_s is None:
-                            continue
-                        scelta_aula = self.aula_scelta[lez['id']][aula['id']]
-                        z = self.model.NewBoolVar(f"z_L{lez['id']}_A{aula['id']}_S{s}")
-                        self.model.Add(z <= occ_s)
-                        self.model.Add(z <= scelta_aula)
-                        self.model.Add(z >= occ_s + scelta_aula - 1)
-                        occupanti.append(z)
-                    if occupanti:
-                        self.model.Add(sum(occupanti) <= max(0, aula['capacita'] - self.aula_fissi.get((aula['id'], s), 0)))
+        for aula in self.aule.values():
+            lezioni_aula = [lez for lez in self.lezioni if aula['id'] in self.aula_scelta.get(lez['id'], {})]
+            if not lezioni_aula:
+                continue
+            for s in self.slots:
+                occupanti = []
+                for lez in lezioni_aula:
+                    occ_s = self.occupato[lez['id']].get(s)
+                    if occ_s is None:
+                        continue
+                    scelta_aula = self.aula_scelta[lez['id']][aula['id']]
+                    z = self.model.NewBoolVar(f"z_L{lez['id']}_A{aula['id']}_S{s}")
+                    self.model.Add(z <= occ_s)
+                    self.model.Add(z <= scelta_aula)
+                    self.model.Add(z >= occ_s + scelta_aula - 1)
+                    occupanti.append(z)
+                if occupanti:
+                    self.model.Add(sum(occupanti) <= max(0, aula['capacita'] - self.aula_fissi.get((aula['id'], s), 0)))

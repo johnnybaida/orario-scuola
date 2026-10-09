@@ -80,10 +80,10 @@ La colonna **Usata da** mostra quali discipline richiedono quel tipo di aula.
 Con la didattica DADA le classi non hanno un'aula fissa: **sono gli alunni a spostarsi** nell'aula della disciplina.
 
 1. Vai in **Aule** e crea un'aula.
-2. Come tipo scegli **"DADA · nome della disciplina"**.
-3. La disciplina viene collegata automaticamente a quell'aula. Le **seconde lingue** (francese, spagnolo, tedesco…) condividono un unico tipo, **«DADA · Seconda lingua»**: crea più aule di quel tipo se servono e scegli una qualunque delle lingue.
+2. Come tipo scegli **«DADA»** e **spunta le discipline** che si svolgono in quell'aula (una sola per un'aula dedicata, più d'una per un'aula condivisa).
+3. Le discipline spuntate vengono collegate automaticamente all'aula. Le **seconde lingue** (francese, spagnolo, tedesco…) condividono un unico tipo, **«DADA · Seconda lingua»**: crea più aule di quel tipo se servono e scegli una qualunque delle lingue.
 4. Nelle classi lascia vuoto il campo **Aula base**.
-5. Ogni disciplina DADA può avere **più aule** (due aule di Italiano, per esempio): il generatore sceglie quella libera a ogni ora.
+5. Ogni disciplina DADA può avere **più aule**: due aule di Italiano, oppure la **propria aula più una condivisa** con altre discipline (crei l'aula di Italiano, quella di Inglese, quella di Spagnolo e poi un'aula «DADA» con le tre spuntate). Le aule si sommano: il generatore sceglie quella libera a ogni ora. Nella scheda della disciplina, **Altre aule ammesse** mostra e permette di correggere l'elenco.
 6. Per ridurre i **salti di piano** degli alunni tra un'ora e l'altra, indica il **piano** di ogni aula e aggiungi il vincolo **Spostamenti tra piani (C5)** da *Vincoli* (vedi gli esempi lì).
 7. Per leggere l'orario ci sono tre modi, tutti nella pagina **Orari**: la **vista classe** (dove deve andare la classe a ogni ora, con il nome dell'aula in ogni lezione), la **vista aula** (chi arriva in aula a ogni ora: è anche il foglio da appendere alla porta) e la **vista docente**. Con la didattica tradizionale restano utili le stesse viste, ma nella classe l'aula compare solo quando non è la sua (palestra, laboratori).
 <!-- /permesso -->

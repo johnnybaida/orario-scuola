@@ -23,6 +23,9 @@ class DisciplinaRequest extends FormRequest
             // Stringa libera: deve coincidere con un Aula.tipo esistente (usato
             // anche per il modello DADA, un'aula dedicata a questa disciplina).
             'tipo_aula_richiesto' => ['nullable', 'string', 'max:50'],
+            // Altri tipi di aula in cui la disciplina può svolgersi (es. un'aula DADA condivisa con altre discipline).
+            'tipi_aula_extra' => ['nullable', 'array'],
+            'tipi_aula_extra.*' => ['string', 'max:50'],
             'padre_id' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('discipline')],
         ];
     }
