@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'tipi_aula_extra', 'senza_slot', 'padre_id'])]
+#[Fillable(['sede_id', 'codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'tipi_aula_extra', 'senza_slot', 'pausa_dopo_ora', 'padre_id'])]
 class Disciplina extends Model
 {
     use HasFactory, \App\Models\Concerns\Auditable, \App\Models\Concerns\PerSede;

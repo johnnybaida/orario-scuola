@@ -25,6 +25,7 @@ class DisciplinaRequest extends FormRequest
             'tipo_aula_richiesto' => ['nullable', 'string', 'max:50'],
             // Altri tipi di aula in cui la disciplina può svolgersi (es. un'aula DADA condivisa con altre discipline).
             'senza_slot' => ['boolean'],
+            'pausa_dopo_ora' => ['nullable', 'integer', 'min:0', 'max:12'],
             'tipi_aula_extra' => ['nullable', 'array'],
             'tipi_aula_extra.*' => ['string', 'max:50'],
             'padre_id' => ['nullable', app(\App\Services\SedeCorrente::class)->esiste('discipline')],

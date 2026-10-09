@@ -22,6 +22,7 @@ class DisciplinaController extends Controller
         return view('discipline.create', [
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
             'tipiAula' => Aula::tipiConAule(),
+            'pause' => app(\App\Services\AssistenzaPause::class)->pause(),
         ]);
     }
 
@@ -38,6 +39,7 @@ class DisciplinaController extends Controller
             'disciplina' => $disciplina,
             'discipline' => Disciplina::query()->where('id', '!=', $disciplina->id)->orderBy('nome')->get(),
             'tipiAula' => Aula::tipiConAule(),
+            'pause' => app(\App\Services\AssistenzaPause::class)->pause(),
         ]);
     }
 
@@ -62,6 +64,7 @@ class DisciplinaController extends Controller
         $extra = array_values(array_diff(array_unique($dati['tipi_aula_extra'] ?? []), [$dati['tipo_aula_richiesto'] ?? null]));
         $dati['tipi_aula_extra'] = $extra ?: null;
         $dati['senza_slot'] = $request->boolean('senza_slot');
+        $dati['pausa_dopo_ora'] = $dati['senza_slot'] && ($dati['pausa_dopo_ora'] ?? '') !== '' ? (int) $dati['pausa_dopo_ora'] : null;   // la pausa vale solo per le discipline senza ora
 
         return $dati;
     }

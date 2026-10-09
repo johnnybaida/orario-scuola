@@ -13,24 +13,32 @@
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
+        th.pausa, td.pausa { background-color: #fff7e0; }
         .legenda { margin-top: 8px; font-size: {{ max(7, $fontPx - 1) }}px; color: #444; }
     </style>
 </head>
 <body>
     <h1>{{ $titolo }}</h1>
 
+    {{-- Colonne di ogni giorno: le ore, più una colonna per ogni pausa in cui si svolge una disciplina «senza ora» (mensa). --}}
+    @php($colonne = collect(in_array(0, $colonnePausa) ? [['pausa', 0]] : [])->merge(collect($ore)->flatMap(fn ($o) => in_array($o, $colonnePausa) ? [['ora', $o], ['pausa', $o]] : [['ora', $o]]))->values())
+
     <table>
         <thead>
             <tr>
                 <th class="classe" rowspan="2">{{ $per === 'aula' ? 'Aula' : 'Classe' }}</th>
                 @foreach ($giorni as $giorno)
-                    <th class="inizio-giorno" colspan="{{ count($ore) }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
+                    <th class="inizio-giorno" colspan="{{ $colonne->count() }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
                 @endforeach
             </tr>
             <tr>
                 @foreach ($giorni as $giorno)
-                    @foreach ($ore as $ora)
-                        <th @class(['inizio-giorno' => $loop->first])>{{ $ora }}ª</th>
+                    @foreach ($colonne as [$tipo, $ora])
+                        @if ($tipo === 'ora')
+                            <th @class(['inizio-giorno' => $loop->first])>{{ $ora }}ª</th>
+                        @else
+                            <th @class(['inizio-giorno' => $loop->first, 'pausa'])>{{ $nomiPausa[$ora] ?? 'Pausa' }}</th>
+                        @endif
                     @endforeach
                 @endforeach
             </tr>
@@ -40,7 +48,17 @@
                 <tr>
                     <td class="classe">{{ $riga['etichetta'] }}</td>
                     @foreach ($giorni as $giorno)
-                        @foreach ($ore as $ora)
+                        @foreach ($colonne as [$tipo, $ora])
+                            @if ($tipo === 'pausa')
+                                @php($mensaCella = collect($celleMensa[$riga['id'].'-'.$giorno.'-'.$ora] ?? []))
+                                <td @class(['inizio-giorno' => $loop->first, 'pausa']) @if ($mensaCella->isNotEmpty()) style="{{ \App\Support\ColoriDiscipline::stile($colori[$mensaCella->first()['disciplina']->id] ?? ['#ffffff', '#000000']) }}" @endif>
+                                    @foreach ($mensaCella as $m)
+                                        <div class="materia">{{ \Illuminate\Support\Str::limit($m['disciplina']->codice, $limite, '…') }}</div>
+                                        <div>{{ \Illuminate\Support\Str::limit(implode(', ', $m['docenti']), $limite, '…') }}</div>
+                                    @endforeach
+                                </td>
+                                @continue
+                            @endif
                             @php($s = $slot->get($giorno.'-'.$ora))
                             @php($gruppo = $s ? $celle->get($s->id.'-'.$riga['id'], collect()) : collect())
                             @php($supporti = ($s && $per === 'classe') ? ($sostegni->get($s->id.'-'.$riga['id'])?->unique('docente_id') ?? collect()) : collect())

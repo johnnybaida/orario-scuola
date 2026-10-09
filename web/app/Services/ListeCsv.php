@@ -42,7 +42,7 @@ class ListeCsv
         'aule' => ['titolo' => 'Aule', 'modello' => Aula::class, 'request' => AulaRequest::class, 'permesso' => 'gestisci-anagrafica',
             'colonne' => ['nome', 'tipo', 'capienza', 'piano']],
         'discipline' => ['titolo' => 'Discipline', 'modello' => Disciplina::class, 'request' => DisciplinaRequest::class, 'permesso' => 'gestisci-anagrafica',
-            'colonne' => ['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre', 'senza_slot', 'altre_aule']],
+            'colonne' => ['codice', 'nome', 'classe_concorso', 'tipo_aula_richiesto', 'padre', 'senza_slot', 'altre_aule', 'pausa_dopo_ora']],
         'docenti' => ['titolo' => 'Docenti', 'modello' => Docente::class, 'request' => DocenteRequest::class, 'permesso' => 'gestisci-docenti-classi',
             'colonne' => ['nome', 'cognome', 'email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe', 'classi_concorso']],
         'classi' => ['titolo' => 'Classi', 'modello' => Classe::class, 'request' => ClasseRequest::class, 'permesso' => 'gestisci-docenti-classi',
@@ -69,7 +69,7 @@ class ListeCsv
             'sedi' => Sede::query()->orderBy('nome')->get()->map(fn ($s) => [$s->nome, $s->indirizzo]),
             'aule' => Aula::query()->orderBy('nome')->get()->map(fn ($a) => [$a->nome, $a->tipo, $a->capienza, $a->piano]),
             'discipline' => Disciplina::query()->with('padre')->orderBy('codice')->get()
-                ->map(fn ($d) => [$d->codice, $d->nome, $d->classe_concorso, $d->tipo_aula_richiesto, $d->padre?->codice, (int) $d->senza_slot, implode('|', $d->tipi_aula_extra ?? [])]),
+                ->map(fn ($d) => [$d->codice, $d->nome, $d->classe_concorso, $d->tipo_aula_richiesto, $d->padre?->codice, (int) $d->senza_slot, implode('|', $d->tipi_aula_extra ?? []), $d->pausa_dopo_ora]),
             'docenti' => Docente::query()->with('classiConcorso')->orderBy('cognome')->orderBy('nome')->get()
                 ->map(fn ($d) => [$d->nome, $d->cognome, $d->email, $d->tipo_contratto, $d->tipo_posto, $d->regime, $d->ore_dovute, (int) $d->coe, $d->classiConcorso->pluck('classe_concorso')->implode('|')]),
             'classi' => Classe::query()->with('aulaBase', 'quadroOrario', 'slotAttivi')->orderBy('anno_corso')->orderBy('sezione')->get()
@@ -128,7 +128,7 @@ class ListeCsv
             $mancanti = array_diff($mancanti, ['email', 'tipo_contratto', 'tipo_posto', 'regime', 'ore_dovute', 'coe', 'classi_concorso']);
         }
         if ($lista === 'discipline') {
-            $mancanti = array_diff($mancanti, ['senza_slot', 'altre_aule']); // facoltativa (1 = non occupa un'ora di lezione, es. mensa): i file più vecchi non l'hanno
+            $mancanti = array_diff($mancanti, ['senza_slot', 'altre_aule', 'pausa_dopo_ora']); // facoltativa (1 = non occupa un'ora di lezione, es. mensa): i file più vecchi non l'hanno
         }
         if (in_array($lista, ['aule', 'classi'], true)) {
             $mancanti = array_diff($mancanti, ['piano', 'conteggio_sostegno', 'slot_attivi']); // facoltativa: i file più vecchi non l'hanno
@@ -345,7 +345,7 @@ if ($esito['errori']) {
                 $padre = $r['padre'] ? $this->trova(Disciplina::query()->where('codice', $r['padre']), "disciplina padre «{$r['padre']}»") : null;
 
                 return [['codice' => $r['codice']], ['codice' => $r['codice'], 'nome' => $r['nome'], 'classe_concorso' => $r['classe_concorso'],
-                    'tipo_aula_richiesto' => $r['tipo_aula_richiesto'], 'padre_id' => $padre, 'senza_slot' => (int) ($r['senza_slot'] ?? 0),
+                    'tipo_aula_richiesto' => $r['tipo_aula_richiesto'], 'padre_id' => $padre, 'senza_slot' => (int) ($r['senza_slot'] ?? 0), 'pausa_dopo_ora' => ($r['senza_slot'] ?? 0) && is_numeric($r['pausa_dopo_ora'] ?? null) ? (int) $r['pausa_dopo_ora'] : null,
                     'tipi_aula_extra' => array_values(array_filter(array_map('trim', explode('|', (string) ($r['altre_aule'] ?? '')))))]];
             case 'docenti':
                 return [['nome' => $r['nome'], 'cognome' => $r['cognome']], [

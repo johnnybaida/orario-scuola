@@ -133,7 +133,7 @@ class PromptOrario
         $righe = Disciplina::query()->with('padre')->orderBy('nome')->get()->map(function (Disciplina $d) {
             $aule = collect($d->tipiAmmessi())->map(fn ($t) => TipoAula::etichettaDi($t))->implode(' oppure ');
 
-            return "- {$d->codice} – {$d->nome}".($aule ? "; richiede aula: {$aule}" : '').($d->senza_slot ? '; NON occupa un\'ora di lezione' : '')
+            return "- {$d->codice} – {$d->nome}".($aule ? "; richiede aula: {$aule}" : '').($d->senza_slot ? '; NON occupa un\'ora di lezione'.($d->pausa_dopo_ora !== null ? " (si svolge nella pausa dopo la {$d->pausa_dopo_ora}ª ora)" : '') : '')
                 .($d->padre ? "; sotto-disciplina di {$d->padre->nome}" : '');
         })->all();
 

@@ -36,6 +36,22 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {{-- Chi c'è nella pausa dopo l'ora $ordine (0 = prima della prima ora) in un giorno: i sorveglianti (assistenza alle pause) e, nel foglio
+                         di una classe, nei giorni di rientro i docenti delle cattedre «senza ora» (mensa). --}}
+                    @php($cellaPausa = function ($ordine, $giorno) use ($foglio, $slotPerGiorno, $sorveglianti) {
+                        $nomi = $sorveglianti[$ordine][$giorno] ?? [];
+                        if (! $nomi && isset($foglio['slotAttiviIds']) && $ordine > 0) {
+                            // Giorno di rientro: nel foglio della classe i docenti della mensa (disciplina «senza ora» collegata a questa pausa, o a nessuna).
+                            $rientro = $slotPerGiorno[$giorno]->contains(fn ($s) => $s->ordine > $ordine && $foglio['slotAttiviIds']->contains($s->id));
+                            foreach ($rientro ? ($foglio['mensa'] ?? []) : [] as $m) {
+                                if ($m['pausa'] === $ordine || $m['pausa'] === null) {
+                                    $nomi[] = $m['disciplina'].': '.implode(', ', $m['docenti']);
+                                }
+                            }
+                        }
+
+                        return $nomi;
+                    })
                     @php($maxOrdine = $slotPerGiorno->flatten()->max('ordine'))
                     {{-- Ricreazioni: ore seguite da una pausa (intervallo_dopo), con orario e durata; il loro spazio si toglie all'altezza delle ore. --}}
                     @php($nRicreazioni = collect(range(1, max(1, $maxOrdine) - 1))->filter(fn ($o) => $slotPerGiorno->flatten()->firstWhere('ordine', $o)?->ricreazione_minuti)->count())
@@ -45,16 +61,18 @@
                     @if ($pausaPrima)
                         @php($nRicreazioni++)
                         <tr class="ricreazione">
-                            <td colspan="{{ $slotPerGiorno->count() + 1 }}">
-                                {{ $pausaPrima->nomePausaPrima() }} {{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }}
-                                ({{ $pausaPrima->pausa_prima_minuti }} minuti){{ $pausaPrima->pausaPrimaAula ? ' · '.$pausaPrima->pausaPrimaAula->nomeConPiano() : '' }}
-                            </td>
+                            <td class="ordine" style="font-size: 13px">{{ $pausaPrima->nomePausaPrima() }}<br><span class="orario">{{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }} ({{ $pausaPrima->pausa_prima_minuti }}')</span>@if ($pausaPrima->pausaPrimaAula)<br><span class="orario">{{ $pausaPrima->pausaPrimaAula->nomeConPiano() }}</span>@endif</td>
+                            @foreach ($slotPerGiorno as $giorno => $slotGiorno)
+                                <td>{{ implode(', ', $cellaPausa(0, $giorno)) }}</td>
+                            @endforeach
                         </tr>
                     @endif
-                    @for ($ordine = 1; $ordine <= $maxOrdine; $ordine++)
+                    {{-- Nel foglio di una classe si saltano le ore che la classe non usa mai (es. la 7ª ora liberata dalla mensa). --}}
+                    @php($ordiniVisibili = collect(range(1, max(1, $maxOrdine)))->filter(fn ($o) => ! isset($foglio['slotAttiviIds']) || $slotPerGiorno->flatten()->contains(fn ($s) => $s->ordine === $o && $foglio['slotAttiviIds']->contains($s->id)))->values())
+                    @foreach ($ordiniVisibili as $ordine)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
                         {{-- Celle alte quanto serve perché la settimana riempia il foglio A3 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
-                        @php($altezza = (int) floor((590 - 26 * $nRicreazioni) / max(1, $maxOrdine)))
+                        @php($altezza = (int) floor((590 - 26 * $nRicreazioni) / max(1, $ordiniVisibili->count())))
                         <tr>
                             <td class="ordine" style="height: {{ $altezza }}pt">{{ $ordine }}ª@if ($primoSlot)<br><span class="orario">{{ substr($primoSlot->inizio, 0, 5) }}-{{ substr($primoSlot->fine, 0, 5) }}</span>@endif</td>
                             @foreach ($slotPerGiorno as $giorno => $slotGiorno)
@@ -75,20 +93,23 @@
                         </tr>
                         @if ($primoSlot?->ricreazione_minuti && $ordine < $maxOrdine)
                             <tr class="ricreazione">
-                                <td colspan="{{ $slotPerGiorno->count() + 1 }}">
-                                    {{ $primoSlot->nomePausa() }} {{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }}
-                                    ({{ $primoSlot->ricreazione_minuti }} minuti){{ $primoSlot->ricreazioneAula ? ' · '.$primoSlot->ricreazioneAula->nomeConPiano() : '' }}
-                                </td>
+                                <td class="ordine" style="font-size: 13px">{{ $primoSlot->nomePausa() }}<br><span class="orario">{{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }} ({{ $primoSlot->ricreazione_minuti }}')</span>@if ($primoSlot->ricreazioneAula)<br><span class="orario">{{ $primoSlot->ricreazioneAula->nomeConPiano() }}</span>@endif</td>
+                                @foreach ($slotPerGiorno as $giorno => $slotGiorno)
+                                    <td>{{ implode(', ', $cellaPausa($ordine, $giorno)) }}</td>
+                                @endforeach
                             </tr>
                         @endif
-                    @endfor
+                    @endforeach
                 </tbody>
             </table>
             @if (! empty($foglio['laboratori']))
-                <p style="font-size: 11px; margin-top: 6px;"><strong>Laboratori pomeridiani:</strong> {{ implode(' · ', $foglio['laboratori']) }}</p>
+                <p style="font-size: 13px; margin-top: 6px;"><strong>Laboratori pomeridiani:</strong> {{ implode(' · ', $foglio['laboratori']) }}</p>
+            @endif
+            @if (! empty($foglio['senzaOra']))
+                <p style="font-size: 13px; margin-top: 6px;"><strong>Mensa e attività senza ora:</strong> {{ implode(' · ', $foglio['senzaOra']) }}</p>
             @endif
             @if (! empty($foglio['assistenze']))
-                <p style="font-size: 11px; margin-top: 6px;"><strong>Assistenza alle pause:</strong> {{ implode(' · ', $foglio['assistenze']) }}</p>
+                <p style="font-size: 13px; margin-top: 6px;"><strong>Assistenza alle pause:</strong> {{ implode(' · ', $foglio['assistenze']) }}</p>
             @endif
         </section>
     @endforeach

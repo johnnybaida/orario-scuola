@@ -30,6 +30,18 @@
 </div>
 
 <div>
+    <label for="pausa_dopo_ora" class="block text-sm font-medium text-gray-700">Si svolge nella pausa
+        <x-info testo="Solo per le discipline «senza ora» come la mensa: la pausa in cui si svolge (le pause si definiscono in Scansione oraria). Serve a mostrare la disciplina e il suo docente nella riga della pausa dei PDF e nel tabellone generale, nei giorni di rientro delle classi." />
+    </label>
+    <select name="pausa_dopo_ora" id="pausa_dopo_ora" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <option value="">Nessuna (non compare nelle pause)</option>
+        @foreach ($pause as $ordine => $pausa)
+            <option value="{{ $ordine }}" @selected((string) old('pausa_dopo_ora', $disciplina?->pausa_dopo_ora) === (string) $ordine)>{{ $pausa['etichetta'] }}</option>
+        @endforeach
+    </select>
+</div>
+
+<div>
     <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Aula richiesta</label>
     @php($sel = old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto))
     <select name="tipo_aula_richiesto" id="tipo_aula_richiesto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">

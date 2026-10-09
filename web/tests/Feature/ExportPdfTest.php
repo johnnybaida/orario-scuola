@@ -151,8 +151,7 @@ class ExportPdfTest extends TestCase
 
         $griglia = $esporta->classe($orario, $classe)->getDomPDF()->outputHtml();
         $this->assertStringContainsString('09:40-10:30', $griglia);
-        $this->assertStringContainsString('Ricreazione 10:30-10:40', $griglia);
-        $this->assertStringContainsString('10 minuti', $griglia);
+        $this->assertStringContainsString('Ricreazione<br><span class="orario">10:30-10:40 (10\')</span>', $griglia);   // riga della pausa: etichetta, orario e durata
 
         $tabellone = $esporta->generale($orario)->getDomPDF()->outputHtml();
         $this->assertStringContainsString('1&ordf; 09:40-10:30', $tabellone);
@@ -199,5 +198,65 @@ class ExportPdfTest extends TestCase
         $this->assertNull(\App\Models\Aula::factory()->make(['piano' => null])->etichettaPiano());
         $this->assertSame('Human Lab (2° piano)', \App\Models\Aula::factory()->make(['nome' => 'Human Lab', 'piano' => 2])->nomeConPiano());
         $this->assertSame('Palestra', \App\Models\Aula::factory()->make(['nome' => 'Palestra', 'piano' => null])->nomeConPiano());
+    }
+
+    public function test_la_pausa_mostra_chi_la_sorveglia_e_la_mensa_senza_ora_compare_nei_fogli(): void
+    {
+        foreach ([1, 2] as $ordine) {
+            Slot::factory()->create(['giorno' => 1, 'ordine' => $ordine, 'inizio' => $ordine === 1 ? '08:00:00' : '09:30:00', 'fine' => $ordine === 1 ? '08:50:00' : '10:20:00',
+                'ricreazione_minuti' => $ordine === 1 ? 40 : null, 'ricreazione_nome' => $ordine === 1 ? 'Mensa' : null]);
+        }
+        $classe = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'C']);
+        $classe->slotAttivi()->sync(Slot::query()->pluck('id'));
+        $orario = Orario::factory()->create();
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $verdi = Docente::factory()->create(['cognome' => 'Verdi', 'nome' => 'Luca']);
+        $rossi->assistenzePausa()->create(['giorno' => 1, 'ordine' => 1]);
+        $verdi->assistenzePausa()->create(['giorno' => 1, 'ordine' => 1]);
+        $rossi->assistenzePausa()->create(['giorno' => 2, 'ordine' => 9]);   // pausa che non esiste: non compare
+        $pranzo = \App\Models\Disciplina::factory()->create(['nome' => 'Pranzo', 'senza_slot' => true]);
+        Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id, 'disciplina_id' => $pranzo->id, 'ore' => 2]);
+
+        $esportatore = app(\App\Services\Export\OrarioPdfExporter::class);
+        $classi = $esportatore->classi($orario)->getDomPDF()->outputHtml();
+        $this->assertStringContainsString('<td>Rossi Anna, Verdi Luca</td>', $classi);   // la cella del lunedì nella riga della pausa
+        $this->assertStringNotContainsString('Sorveglianza:', $classi);
+        $this->assertStringContainsString('Mensa e attivit&agrave; senza ora:', $classi);
+        $this->assertStringContainsString('Pranzo: Rossi Anna (2h)', $classi);
+
+        // senza assistenze, nei giorni di rientro la riga della pausa mostra i docenti della mensa della classe
+        \App\Models\AssistenzaPausa::query()->get()->each->delete();
+        $this->assertStringContainsString('<td>Pranzo: Rossi Anna</td>', $esportatore->classi($orario)->getDomPDF()->outputHtml());
+
+        $docenti = $esportatore->docenti($orario, collect([$rossi]))->getDomPDF()->outputHtml();
+        $this->assertStringContainsString('Pranzo in 1&ordf; C (2h)', str_replace('ª', '&ordf;', $docenti));
+    }
+
+    public function test_il_tabellone_mostra_la_disciplina_senza_ora_nella_colonna_della_sua_pausa(): void
+    {
+        foreach ([1, 2] as $giorno) {
+            foreach ([1, 2] as $ordine) {
+                Slot::query()->create(['giorno' => $giorno, 'ordine' => $ordine, 'inizio' => $ordine === 1 ? '08:00:00' : '09:30:00', 'fine' => $ordine === 1 ? '08:50:00' : '10:20:00',
+                    'intervallo_dopo' => $ordine === 1, 'ricreazione_minuti' => $ordine === 1 ? 40 : null, 'ricreazione_nome' => $ordine === 1 ? 'Mensa' : null]);
+            }
+        }
+        $tempoPieno = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'C']);   // rientro il lunedì (ore 1 e 2)
+        $tempoPieno->slotAttivi()->sync(Slot::query()->where('giorno', 1)->pluck('id')->merge(Slot::query()->where('giorno', 2)->where('ordine', 1)->pluck('id')));
+        $orario = Orario::factory()->create();
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $pranzo = \App\Models\Disciplina::factory()->create(['codice' => 'PRA', 'nome' => 'Pranzo', 'senza_slot' => true, 'pausa_dopo_ora' => 1]);
+        Cattedra::factory()->create(['classe_id' => $tempoPieno->id, 'docente_id' => $rossi->id, 'disciplina_id' => $pranzo->id, 'ore' => 2]);
+        $ita = Cattedra::factory()->create(['classe_id' => $tempoPieno->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $ita->id, 'slot_id' => Slot::query()->where('giorno', 1)->where('ordine', 1)->first()->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $ita->id, 'slot_id' => Slot::query()->where('giorno', 2)->where('ordine', 1)->first()->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $ita->id, 'slot_id' => Slot::query()->where('giorno', 1)->where('ordine', 2)->first()->id]);
+
+        $html = app(\App\Services\Export\OrarioPdfExporter::class)->generale($orario)->getDomPDF()->outputHtml();
+
+        $this->assertSame(2, preg_match_all('/<th class="[^"]*pausa">Mensa<\/th>/', $html));   // la colonna della pausa compare nei due giorni
+        $this->assertStringContainsString('PRA', $html);
+        $this->assertStringContainsString('Rossi', $html);
+        // il martedì la classe non ha ore dopo la pausa: la cella della mensa è vuota (una sola cella con la disciplina)
+        $this->assertSame(1, substr_count($html, '<div class="materia">PRA</div>'));
     }
 }
