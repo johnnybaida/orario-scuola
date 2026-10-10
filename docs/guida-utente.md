@@ -251,7 +251,7 @@ Nella pagina del docente puoi anche:
 
 **Assistenza alle pause (mensa).** Sotto le sospensioni, la sezione **Assistenza alle pause** indica quando il docente **sorveglia gli alunni** durante una pausa (anche quella prima della prima ora), per esempio la mensa: per ogni riga scegli il **giorno** e la **pausa** (tra quelle definite in *Scansione oraria*, con il loro nome e orario). Vale per tutti gli orari: non dipende da una generazione e non cambia con le versioni. Compare sotto l'orario del docente, nei PDF del docente («Assistenza alle pause») e nel **carico dei docenti** della dashboard (le ore di assistenza, **60 minuti conteggiati = 1 ora**, si sommano alle ore di cattedra e sostegno nel totale **Assegnate / dovute** del docente, anche nell'elenco docenti: a quanto vale ogni pausa si decide in *Scansione oraria*, colonna «Conta per il docente»). Un avviso segnala se il docente è indisponibile tutto quel giorno. La modificano amministratore e referente orario.
 
-**Supplenti.** Nella riga della sospensione puoi indicare **uno o più supplenti** spuntandoli nell'elenco dei docenti (scorri l'elenco se è lungo). Dopo aver salvato, **Gestisci sostituzione** apre la pagina dove le cattedre del titolare passano ai supplenti con un clic: per ogni cattedra scegli il supplente (con un solo supplente passano tutte insieme). Le lezioni dell'orario restano le stesse e le eredita il supplente. I controlli prima di generare ti rimandano a quella pagina finché le cattedre non sono state passate. Quando il titolare rientra, **Riporta al titolare** rimette a lui le cattedre; se la sospensione è finita e le cattedre sono ancora ai supplenti, i controlli prima di generare te lo ricordano. Togliendo la sospensione dalla scheda le cattedre tornano al titolare da sole. La sostituzione la gestiscono l'amministratore e il referente orario.
+**Supplenti.** Nella riga della sospensione puoi indicare **uno o più supplenti** spuntandoli nell'elenco dei docenti (scorri l'elenco se è lungo). Dopo aver salvato, **Gestisci sostituzione** apre la pagina dove le cattedre del titolare passano ai supplenti con un clic: per ogni cattedra scegli il supplente (con un solo supplente passano tutte insieme). Le lezioni dell'orario restano le stesse e le eredita il supplente. (Per un orario **già generato**, senza cambiare le cattedre, e con la possibilità di tornare all'orario di prima, usa invece **Sostituisci un docente** nella pagina Orari.) I controlli prima di generare ti rimandano a quella pagina finché le cattedre non sono state passate. Quando il titolare rientra, **Riporta al titolare** rimette a lui le cattedre; se la sospensione è finita e le cattedre sono ancora ai supplenti, i controlli prima di generare te lo ricordano. Togliendo la sospensione dalla scheda le cattedre tornano al titolare da sole. La sostituzione la gestiscono l'amministratore e il referente orario.
 
 Salva con il pulsante **Salva** in basso a destra: un solo salvataggio vale per tutta la pagina. Per importare più docenti insieme vedi **Esporta e importa CSV** in *Per iniziare*.
 <!-- /permesso -->
@@ -772,7 +772,7 @@ Un orario segue questo percorso: **Bozza → In revisione → Approvato → Pubb
 - **In revisione**: sola lettura. Il dirigente può **Approvare** oppure rimandare in bozza con **Riporta in bozza**.
 - **Approvato**: sola lettura. Chi approva può **Pubblicare** l'orario o riportarlo in bozza.
 - **Pubblicato**: è l'orario in vigore. Per ogni periodo ce n'è **uno solo**: pubblicandone un altro, il precedente passa da solo in **Archiviato**.
-- **Archiviato**: resta consultabile ed esportabile.
+- **Archiviato**: resta consultabile ed esportabile. Chi approva gli orari può **Ripubblicarlo** (torna in vigore e l'orario pubblicato in quel momento passa in archivio): serve, per esempio, al rientro di un docente sostituito.
 
 Ogni orario è una **scheda** con tre blocchi: **Consulta** (le viste per classe e per docente), **Esporta in PDF** e **Stato e copia**. I pulsanti dello stato compaiono nella scheda dell'orario solo per i passaggi che il tuo ruolo può fare: **approvare, pubblicare e archiviare** spetta all'amministratore e al dirigente scolastico; **inviare in revisione** a chi gestisce l'anagrafica. Ogni cambio di stato resta nel registro delle modifiche.
 
@@ -780,7 +780,7 @@ Ogni orario è una **scheda** con tre blocchi: **Consulta** (le viste per classe
 
 **Duplica** (per chi gestisce l'anagrafica) crea una **copia in bozza** di qualunque orario, qualunque sia il suo stato: stesse lezioni, stesse compresenze di sostegno e stesso periodo, versione successiva. Ti chiede il **nome della copia** (proposto: «nome dell'originale (copia)»). Gli avvisi non si copiano. L'originale non cambia.
 
-**Cambi temporanei dell'orario** (una settimana con l'uscita didattica, un docente assente per qualche giorno, …): non modificare l'orario in vigore. **Duplicalo** dandogli un nome parlante (es. «Settimana 6–10 ottobre – uscita didattica»), apporta i cambi sulla copia in bozza, poi falla passare per revisione, approvazione e pubblicazione quando serve; l'orario di base resta intatto e tornerai a usarlo alla fine. Ricorda che pubblicando una versione la precedente dello stesso periodo passa in archivio: per tornare all'orario di base, **duplica quello archiviato** e ripubblicalo.
+**Cambi temporanei dell'orario** (una settimana con l'uscita didattica, un docente assente per qualche giorno, …; per le assenze dei docenti vedi anche **Sostituire un docente** qui sotto): non modificare l'orario in vigore. **Duplicalo** dandogli un nome parlante (es. «Settimana 6–10 ottobre – uscita didattica»), apporta i cambi sulla copia in bozza, poi falla passare per revisione, approvazione e pubblicazione quando serve; l'orario di base resta intatto e tornerai a usarlo alla fine. Ricorda che pubblicando una versione la precedente dello stesso periodo passa in archivio: per tornare all'orario di base basta **Ripubblicarlo** dall'archivio (chi approva gli orari).
 
 **Rinomina** (accanto al nome, nella scheda) cambia il nome in qualsiasi momento.
 
@@ -847,6 +847,7 @@ Ogni riga dice classe, giorno e ora e, quando il problema coinvolge altre classi
 | **Tabellone per aula** | su un'altra aula nella stessa ora (cambio di aula) o su un'altra ora (spostamento) |
 
 ### Sostituire un docente (assenze lunghe)
+<!-- permesso: gestisci-anagrafica -->
 
 Quando un docente si assenta per un periodo, **non serve rigenerare l'orario**: si passano le sue ore a un supplente, si stampano i PDF aggiornati e, al rientro, si torna all'orario di prima.
 
@@ -854,6 +855,8 @@ Quando un docente si assenta per un periodo, **non serve rigenerare l'orario**: 
 2. Il supplente prende **tutte le ore in cui è libero**. Le ore in cui è già impegnato (altra lezione, altro sostegno, indisponibilità) **restano all'assente** e compaiono nel **registro delle modifiche** («Sostituzione non applicata: …»): le sistemi una per una con il pulsante **✎ → Sostituto**, magari scegliendo un altro supplente per quell'ora.
 3. Controlla la copia (**Controllo**), poi **approvala e pubblicala** come ogni orario. I **PDF** mostrano il supplente («Verdi (per Rossi)») e, nei fogli del supplente, le ore subentrate.
 4. **Al rientro**, da **Orari**, sulla copia pubblicata premi **Rientro: ripubblica «…»**: l'orario originale torna pubblicato e la copia va in archivio; spunta **elimina questa copia** se non ti serve più. (Solo chi approva gli orari; un orario archiviato si può anche **Ripubblicare** a mano.)
+
+<!-- /permesso -->
 
 **Modifica di quest'ora (✎).** Su ogni riquadro, in tutte le viste, c'è il pulsante **✎**: apre una finestra con tutto ciò che riguarda quell'ora della classe.
 - **Docente**: le cattedre della stessa classe e disciplina (per esempio un supplente). Non si può scegliere un docente qualsiasi: avrebbe un monte ore diverso da quello previsto dal quadro.
@@ -897,9 +900,9 @@ Stai usando l'applicazione come **{ruolo}**. Il ruolo decide quali voci del menu
 | Ruolo | Cosa può fare |
 | --- | --- |
 | Amministratore | Tutto, comprese le utenze, l'esportazione e l'importazione dei dati, l'approvazione degli orari e il registro attività |
-| Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario |
+| Referente Orario | Anagrafiche, vincoli, generazione ed editor dell'orario, sostituzioni dei docenti nell'orario |
 | Segreteria | Consulta tutto; gestisce docenti e classi |
-| Dirigente Scolastico | Consulta tutto; approva, pubblica e archivia gli orari; consulta il registro attività |
+| Dirigente Scolastico | Consulta tutto; approva, pubblica, archivia e ripubblica gli orari (compreso il rientro dopo una sostituzione); consulta il registro attività |
 | Referente Sostituzioni | Consulta tutto |
 | Docente | Accesso base, collegato alla propria anagrafica |
 
@@ -965,6 +968,8 @@ In fondo alla barra laterale compare la **versione** installata (per esempio *Ve
 
 ## Glossario
 
+- **Sostituto / supplente** (orari): il docente che fa un'ora al posto del titolare, senza cambiare la cattedra; vale solo nell'orario (o nella copia) in cui è impostato.
+- **Rientro**: il ritorno del docente assente; si ripubblica l'orario originale.
 - **Ambito** (vincoli): a chi si applica un vincolo (tutti, classi o docenti scelti).
 - **Aula base**: l'aula di riferimento di una classe.
 - **Buca**: ora vuota tra due lezioni dello stesso docente nello stesso giorno.
@@ -1010,6 +1015,7 @@ In fondo alla barra laterale compare la **versione** installata (per esempio *Ve
 - **Ho eliminato un docente o una classe per errore.** Con loro vengono eliminate anche le cattedre collegate e le lezioni degli orari già generati che le usavano. Controlla sempre la conferma prima di eliminare.
 <!-- /permesso -->
 <!-- permesso: consulta -->
+- **Dopo «Sostituisci un docente» alcune ore sono rimaste al docente assente.** Sono quelle in cui il supplente era già impegnato (altra lezione, sostegno, indisponibilità): le trovi nel registro delle modifiche in cima alla copia, con il motivo. Sistemale una per una con **✎ → Sostituto**, scegliendo un altro supplente per quell'ora.
 - **Non riesco a modificare la griglia di un orario.** Si modifica solo in stato *Bozza*: se l'orario è in revisione, approvato, pubblicato o archiviato usa **Duplica** (nasce una nuova bozza) oppure, se ne hai il permesso, riportalo in bozza.
 <!-- /permesso -->
 - **Non vedo un pulsante o una voce del menu.** Dipendono dal tuo ruolo: chiedi all'amministratore se ti serve un ruolo diverso.
