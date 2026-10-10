@@ -55,11 +55,8 @@ class OrarioPdfExporter
                 },
                 'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
                     ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
-                'senzaOra' => $this->senzaOra($classe->cattedre()->with('disciplina', 'docente')->get(), false),
                 'classeId' => $classe->id,
                 'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
-                // I docenti della mensa (cattedre «senza ora»): compaiono nella riga della pausa nei giorni di rientro.
-                'mensa' => $this->mensaDellaClasse($classe),
             ];
         })->all();
 
@@ -98,7 +95,6 @@ class OrarioPdfExporter
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->docenteClilEffettivo()?->id === $docente->id ? ' (CLIL)'.($l->clil_sostituto_id ? ' (per '.$l->cattedra->docenteClil?->cognome.')' : '') : '').($l->docenteEffettivo()->id === $docente->id && $l->docente_sostituto_id ? ' (per '.$l->cattedra->docente->cognome.')' : '').($l->docenteClilEffettivo() && $l->docenteClilEffettivo()->id !== $docente->id ? "\n+ ".$this->nomeClil($l).' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
-                'senzaOra' => $this->senzaOra($docente->cattedre()->with('disciplina', 'classe')->get(), true),
                 'docenteId' => $docente->id,
                 'laboratori' => app(Laboratori::class)->elenco($docente),
             ];
@@ -177,29 +173,6 @@ class OrarioPdfExporter
             ])->values()->all())->all())->all();
     }
 
-    /**
-     * Le discipline «senza ora» (mensa) di una classe con i loro docenti: [['pausa' => ordine dell'ora che precede la pausa o null,
-     * 'disciplina' => nome, 'docenti' => [nomi]]].
-     *
-     * @return list<array{pausa: ?int, disciplina: string, docenti: list<string>}>
-     */
-    private function mensaDellaClasse(Classe $classe): array
-    {
-        return $classe->cattedre()->with('disciplina', 'docente')->get()->filter(fn ($c) => $c->disciplina->senza_slot)
-            ->groupBy('disciplina_id')->map(fn ($g) => [
-                'pausa' => $g->first()->disciplina->pausa_dopo_ora, 'disciplina' => $g->first()->disciplina->nome,
-                'docenti' => $g->map(fn ($c) => $c->docente->nomeCompleto())->unique()->values()->all(),
-            ])->values()->all();
-    }
-
-    /** «Pranzo: Rossi Anna (2h)»: le cattedre di discipline «senza ora» (mensa), che non sono lezioni e non stanno nella griglia. */
-    private function senzaOra(iterable $cattedre, bool $conClasse): array
-    {
-        return collect($cattedre)->filter(fn ($c) => $c->disciplina->senza_slot)->map(fn ($c) => $conClasse
-            ? "{$c->disciplina->nome} in {$c->classe->nomeCompleto()} ({$c->ore}h)"
-            : "{$c->disciplina->nome}: {$c->docente->nomeCompleto()} ({$c->ore}h)".($c->compresenza ? ', in compresenza' : ''))->values()->all();
-    }
-
     /** Stessa regola di Lezione::scopeInAula, su lezioni già caricate. */
     private function inAula(Lezione $l, Aula $aula): bool
     {
@@ -227,11 +200,10 @@ class OrarioPdfExporter
 
         // Carattere il più grande possibile (8-14px) perché ~9 caratteri stiano in una colonna dell'A2 orizzontale;
         // materie e cognomi più lunghi vengono comunque troncati con "…".
-        // Colonne extra per le pause in cui si svolge una disciplina «senza ora» (mensa), solo nella vista per classe.
+        // Colonne extra per le pause della mensa, solo nella vista per classe.
         $pause = app(AssistenzaPause::class)->pause();
-        $mensa = \App\Models\Disciplina::query()->where('senza_slot', true)->whereNotNull('pausa_dopo_ora')->get()->filter(fn ($d) => $pause->has($d->pausa_dopo_ora));
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
-        $colonnePausa = $per === 'classe' ? $mensa->pluck('pausa_dopo_ora')->merge($pauseMensa->keys())->unique()->sort()->values()->all() : [];
+        $colonnePausa = $per === 'classe' ? $pauseMensa->keys()->unique()->sort()->values()->all() : [];
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
         $tuttiGliSlot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
@@ -282,26 +254,10 @@ class OrarioPdfExporter
             }
         }
 
-        // Cella della pausa: [classe-giorno-pausa => [['disciplina' => Disciplina, 'docenti' => [cognomi]]]], solo nei giorni di rientro
-        // (la classe ha ore dopo la pausa).
-        $celleMensa = [];
-        if ($colonnePausa) {
-            foreach (Classe::query()->with('slotAttivi', 'cattedre.disciplina', 'cattedre.docente')->get() as $classe) {
-                foreach ($classe->cattedre->filter(fn ($c) => $mensa->contains('id', $c->disciplina_id))->groupBy('disciplina_id') as $gruppo) {
-                    $disciplina = $gruppo->first()->disciplina;
-                    foreach ($classe->slotAttivi->groupBy('giorno') as $giorno => $slotDelGiorno) {
-                        if ($slotDelGiorno->contains(fn (Slot $s) => $s->ordine > $disciplina->pausa_dopo_ora)) {
-                            $celleMensa[$classe->id.'-'.$giorno.'-'.$disciplina->pausa_dopo_ora][] = ['disciplina' => $disciplina, 'docenti' => $gruppo->pluck('docente.cognome')->unique()->values()->all()];
-                        }
-                    }
-                }
-            }
-        }
-
         // Colonne di ogni giorno: solo le ore con almeno una lezione (o un sostegno) quel giorno e le pause con qualcuno da mostrare (mensa,
         // sorveglianza): le colonne vuote non si stampano e lo spazio va alle altre, che crescono insieme al carattere.
         $oreUsate = $usati->groupBy('giorno')->map(fn ($slot) => $slot->pluck('ordine')->unique()->all());
-        $pausePiene = collect(array_merge(array_keys($celleMensa), array_keys($celleSorveglianza)))
+        $pausePiene = collect(array_keys($celleSorveglianza))
             ->mapWithKeys(function (string $chiave) {
                 [, $giorno, $ora] = explode('-', $chiave);
 
@@ -374,9 +330,8 @@ class OrarioPdfExporter
             'slot' => $tuttiGliSlot->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
             'celle' => $celle,
             'sostegni' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->classe_id),
-            'discipline' => $lezioni->pluck('cattedra.disciplina')->merge($colonnePausa ? $mensa : [])->unique('id')->sortBy('codice'),
+            'discipline' => $lezioni->pluck('cattedra.disciplina')->unique('id')->sortBy('codice'),
             'colonnePausa' => $colonnePausa,
-            'celleMensa' => $celleMensa,
             'celleSorveglianza' => $celleSorveglianza,
             'nomiPausa' => $pause->map(fn ($p) => $p['nome'])->all(),
             'limite' => $limite,

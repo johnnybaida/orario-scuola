@@ -3,7 +3,7 @@
         <label class="block text-xs text-gray-500">Disciplina</label>
         <select name="cattedre[{{ $i }}][disciplina_id]" required class="w-full">
             @foreach ($discipline as $disciplina)
-                <option value="{{ $disciplina->id }}" @if ($disciplina->senza_slot) data-senza-slot @endif @selected(($riga['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
+                <option value="{{ $disciplina->id }}" @selected(($riga['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
             @endforeach
         </select>
     </div>
@@ -17,7 +17,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Ore</label>
-        <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" data-senza-compresenza value="{{ $riga['ore'] ?? '' }}" class="w-16">
+        <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" value="{{ $riga['ore'] ?? '' }}" class="w-16">
     </div>
     <div class="w-32">
         <label class="block text-xs text-gray-500">Docente CLIL <x-info testo="Facoltativo: un docente (es. madrelingua) presente insieme al titolare solo per alcune ore di questa cattedra. Le sue ore contano nel suo monte ore." /></label>

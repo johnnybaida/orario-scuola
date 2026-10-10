@@ -239,7 +239,7 @@ class ControlloOrario
         $problemi = [];
         $conteggi = $lezioni->countBy('cattedra_id');
 
-        foreach (Cattedra::query()->with('classe', 'disciplina', 'docente')->get()->reject(fn (Cattedra $c) => $c->disciplina->senza_slot) as $cattedra) {
+        foreach (Cattedra::query()->with('classe', 'disciplina', 'docente')->get() as $cattedra) {
             $ore = $conteggi[$cattedra->id] ?? 0;
             if ($ore !== $cattedra->ore) {
                 $problemi[] = $this->p('errore', "{$cattedra->classe->nomeCompleto()}: {$cattedra->disciplina->nome} ({$cattedra->docente->nomeCompleto()}) ha {$ore} ore invece delle {$cattedra->ore} previste.",

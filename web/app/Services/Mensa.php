@@ -119,15 +119,15 @@ class Mensa
             ? ['ok' => false, 'testo' => 'Nessuna classe è in mensa: una classe va in mensa nei giorni di rientro, cioè quando ha ore attive dopo la pausa (scheda della classe, Slot attivi).', 'url' => route('classi.index')]
             : ['ok' => true, 'testo' => $inMensa->count().' classi in mensa ('.$inMensa->map->nomeCompleto()->implode(', ').')', 'url' => route('classi.index')];
 
-        $senzaOre = $inMensa->filter(fn (Classe $c) => (int) $c->quadroOrario->ore_mensa === 0 && $c->oreSenzaOra() === 0);
+        $senzaOre = $inMensa->filter(fn (Classe $c) => (int) $c->quadroOrario->ore_mensa === 0 && $c->oreMensa() === 0);
         $righe[] = $senzaOre->isEmpty()
             ? ['ok' => true, 'testo' => 'I quadri orari delle classi in mensa indicano le ore di mensa', 'url' => route('quadri-orari.index')]
             : ['ok' => false, 'testo' => 'Il quadro orario di '.$senzaOre->map->nomeCompleto()->implode(', ').' non indica le ore di mensa (campo «Ore di mensa» del quadro).', 'url' => route('quadri-orari.index')];
 
-        $slotSbagliati = $inMensa->filter(fn (Classe $c) => $c->slotAttivi->count() !== $c->quadroOrario->ore_totali - $c->oreSenzaOra());
+        $slotSbagliati = $inMensa->filter(fn (Classe $c) => $c->slotAttivi->count() !== $c->quadroOrario->ore_totali - $c->oreMensa());
         $righe[] = $slotSbagliati->isEmpty()
             ? ['ok' => true, 'testo' => 'Gli slot attivi delle classi in mensa sono le ore delle discipline del quadro (senza la mensa)', 'url' => route('classi.index')]
-            : ['ok' => false, 'testo' => 'Slot attivi da correggere (devono essere le ore di discipline, senza la mensa): '.$slotSbagliati->map(fn (Classe $c) => $c->nomeCompleto().' ne ha '.$c->slotAttivi->count().', ne servono '.($c->quadroOrario->ore_totali - $c->oreSenzaOra()))->implode('; ').'.', 'url' => route('classi.index')];
+            : ['ok' => false, 'testo' => 'Slot attivi da correggere (devono essere le ore di discipline, senza la mensa): '.$slotSbagliati->map(fn (Classe $c) => $c->nomeCompleto().' ne ha '.$c->slotAttivi->count().', ne servono '.($c->quadroOrario->ore_totali - $c->oreMensa()))->implode('; ').'.', 'url' => route('classi.index')];
 
         $mancanti = $this->celleSenzaDocente($pause, $classi);
         $righe[] = $mancanti === []

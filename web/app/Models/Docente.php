@@ -82,12 +82,12 @@ class Docente extends Model
     /**
      * Ore assegnate: cattedre + sostegno + compresenze CLIL + assistenza alle pause (60 minuti conteggiati = 1 ora); le cattedre «senza ora»
      * non si sommano se il docente ha assistenze (la mensa conta una volta sola). Richiede i withSum dell'elenco docenti
-     * (cattedre_sum_ore, assegnazioni_sostegno_sum_ore, cattedre_clil_sum_ore_clil, ore_senza_ora) e `assistenzePausa` caricata.
+     * (cattedre_sum_ore, assegnazioni_sostegno_sum_ore, cattedre_clil_sum_ore_clil e `assistenzePausa` caricata.
      */
     public function oreAssegnate(\App\Services\AssistenzaPause $assistenza): float
     {
         return round((int) $this->cattedre_sum_ore + (int) $this->assegnazioni_sostegno_sum_ore + (int) $this->cattedre_clil_sum_ore_clil
-            + $assistenza->ore($this) - $assistenza->oreCattedreDaEscludere($this), 2);
+            + $assistenza->ore($this), 2);
     }
 
     public function nomeCompleto(): string

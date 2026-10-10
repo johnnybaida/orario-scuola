@@ -22,6 +22,9 @@ use ZipArchive;
  */
 class DatiScuola
 {
+    /** Colonne che non esistono più: i vecchi archivi che le contengono si importano comunque, senza di esse (tabella => colonne). */
+    private const COLONNE_TOLTE = ['discipline' => ['senza_slot', 'pausa_dopo_ora']];
+
     private const ESCLUSE = ['audit_log', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'password_reset_tokens', 'sessions', 'migrations', 'users'];
 
     /** @return list<string> tabelle esportabili, con quelle da cui altre dipendono prima */
@@ -130,6 +133,14 @@ class DatiScuola
         $dati = [];
         foreach ($tabelle as $t) {
             $dati[$t] = json_decode($zip->getFromName("{$t}.json"), true);
+            // Archivi di versioni precedenti: le colonne tolte nel frattempo si ignorano (non bloccano l'import).
+            foreach (is_array($dati[$t]) ? (self::COLONNE_TOLTE[$t] ?? []) : [] as $tolta) {
+                $dati[$t] = array_map(function ($riga) use ($tolta) {
+                    unset($riga[$tolta]);
+
+                    return $riga;
+                }, $dati[$t]);
+            }
             $colonne = Schema::getColumnListing($t);
             if (! is_array($dati[$t]) || array_diff(array_keys($dati[$t][0] ?? []), $colonne)) {
                 throw new RuntimeException("I dati di «{$t}» non sono compatibili con questa installazione.");

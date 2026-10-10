@@ -59,15 +59,6 @@
                         } else {
                             $nomi = $voci->pluck('nome')->all();
                         }
-                        if (! $nomi && isset($foglio['slotAttiviIds']) && $ordine > 0 && $rientro) {
-                            // Metodo precedente: i docenti delle cattedre di una disciplina «senza ora» collegata a questa pausa, o a nessuna.
-                            foreach ($foglio['mensa'] ?? [] as $m) {
-                                if ($m['pausa'] === $ordine || $m['pausa'] === null) {
-                                    $nomi[] = $m['disciplina'].': '.implode(', ', $m['docenti']);
-                                }
-                            }
-                        }
-
                         return $nomi;
                     })
                     @php($maxOrdine = $slotPerGiorno->flatten()->max('ordine'))
@@ -85,7 +76,7 @@
                     @foreach ($ordiniVisibili as $ordine)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
                         {{-- Celle alte quanto serve perché la settimana riempia il foglio A3 orizzontale (fino a 9 ore; margini stretti, pause su una riga); dompdf rispetta l'altezza solo sulle celle. --}}
-                        @php($righeExtra = collect([$foglio['laboratori'] ?? [], $foglio['senzaOra'] ?? [], $foglio['assistenze'] ?? []])->filter()->count())
+                        @php($righeExtra = collect([$foglio['laboratori'] ?? [], $foglio['assistenze'] ?? []])->filter()->count())
                         @php($altezza = (int) floor((680 - 19 * $nRicreazioni - 24 * $righeExtra) / max(1, $ordiniVisibili->count())))
                         <tr>
                             <td class="ordine" style="height: {{ $altezza }}pt">{{ $ordine }}ª@if ($primoSlot)<br><span class="orario">{{ substr($primoSlot->inizio, 0, 5) }}-{{ substr($primoSlot->fine, 0, 5) }}</span>@endif</td>
@@ -113,9 +104,6 @@
             </table>
             @if (! empty($foglio['laboratori']))
                 <p style="font-size: 13px; margin-top: 6px;"><strong>Laboratori pomeridiani:</strong> {{ implode(' · ', $foglio['laboratori']) }}</p>
-            @endif
-            @if (! empty($foglio['senzaOra']))
-                <p style="font-size: 13px; margin-top: 6px;"><strong>Mensa e attività senza ora:</strong> {{ implode(' · ', $foglio['senzaOra']) }}</p>
             @endif
             @if (! empty($foglio['assistenze']))
                 <p style="font-size: 13px; margin-top: 6px;"><strong>Assistenza alle pause:</strong> {{ implode(' · ', $foglio['assistenze']) }}</p>

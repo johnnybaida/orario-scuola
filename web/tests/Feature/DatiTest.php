@@ -64,10 +64,10 @@ class DatiTest extends TestCase
         $tabelle = (new DatiScuola)->tabelle();
         $this->assertSame([], array_values(array_diff($tutte, $tabelle)), 'tabelle dei dati non esportate');
 
-        // colonne nuove: docente CLIL, lezione CLIL, disciplina senza ora, aule ammesse, aula della pausa
+        // colonne nuove: docente CLIL, lezione CLIL, aule ammesse, aula della pausa
         $clil = Docente::factory()->create();
         $cattedra = Cattedra::factory()->create(['docente_clil_id' => $clil->id, 'ore_clil' => 1]);
-        $cattedra->disciplina->update(['senza_slot' => true, 'tipi_aula_extra' => ['dada_ita']]);
+        $cattedra->disciplina->update(['tipi_aula_extra' => ['dada_ita']]);
         $aula = \App\Models\Aula::factory()->create(['tipo' => 'pausa']);
         $slot = \App\Models\Slot::factory()->create(['ricreazione_minuti' => 40, 'ricreazione_conteggio' => 60, 'ricreazione_aula_id' => $aula->id]);
         $lezione = \App\Models\Lezione::factory()->create(['cattedra_id' => $cattedra->id, 'slot_id' => $slot->id, 'con_clil' => true]);
@@ -82,7 +82,6 @@ class DatiTest extends TestCase
         $this->assertSame($clil->id, $cattedra->fresh()->docente_clil_id);
         $this->assertSame(1, $cattedra->fresh()->ore_clil);
         $this->assertTrue($lezione->fresh()->con_clil);
-        $this->assertTrue($cattedra->disciplina->fresh()->senza_slot);
         $this->assertSame(['dada_ita'], $cattedra->disciplina->fresh()->tipi_aula_extra);
         $this->assertSame([$aula->id, 60], [$slot->fresh()->ricreazione_aula_id, $slot->fresh()->ricreazione_conteggio]);
     }
@@ -153,5 +152,25 @@ class DatiTest extends TestCase
         $zip = $this->esporta(['sedi']);
         $this->carica($zip)->assertOk();
         $this->post('/dati/importa', ['tabelle' => ['sedi']])->assertSessionHasErrors('conferma');
+    }
+
+    public function test_un_archivio_di_una_versione_precedente_con_le_colonne_tolte_si_importa_comunque(): void
+    {
+        $this->actingAs($this->admin());
+        $disciplina = \App\Models\Disciplina::factory()->create(['codice' => 'ITA']);
+        $zip = $this->esporta(['discipline']);
+
+        // si riscrive l'archivio come lo faceva la versione precedente: ogni disciplina con senza_slot e pausa_dopo_ora
+        $archivio = new \ZipArchive;
+        $archivio->open($zip);
+        $righe = array_map(fn ($r) => $r + ['senza_slot' => 0, 'pausa_dopo_ora' => null], json_decode($archivio->getFromName('discipline.json'), true));
+        $archivio->addFromString('discipline.json', json_encode($righe));
+        $archivio->close();
+
+        $disciplina->delete();
+        $this->carica($zip)->assertOk();
+        $this->post('/dati/importa', ['tabelle' => ['discipline'], 'conferma' => 1])->assertRedirect(route('dati.index'));
+
+        $this->assertDatabaseHas('discipline', ['id' => $disciplina->id, 'codice' => 'ITA']);
     }
 }

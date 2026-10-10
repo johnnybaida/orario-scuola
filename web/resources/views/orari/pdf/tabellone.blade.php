@@ -56,14 +56,9 @@
                     @foreach ($giorni as $giorno)
                         @foreach ($colonnePerGiorno[$giorno] as [$tipo, $ora])
                             @if ($tipo === 'pausa')
-                                @php($mensaCella = collect($celleMensa[$riga['id'].'-'.$giorno.'-'.$ora] ?? []))
-                                <td @class(['inizio-giorno' => $loop->first, 'pausa']) @if ($mensaCella->isNotEmpty()) style="{{ \App\Support\ColoriDiscipline::stile($colori[$mensaCella->first()['disciplina']->id] ?? ['#ffffff', '#000000']) }}" @endif>
-                                    @foreach ($mensaCella as $m)
-                                        <div class="materia">{{ $adatta($m['disciplina']->codice, '', '', true) }}</div>
-                                        <div>{{ $adatta(implode(', ', $m['docenti'])) }}</div>
-                                    @endforeach
+                                <td @class(['inizio-giorno' => $loop->first, 'pausa'])>
                                     @php($sorv = $celleSorveglianza[$riga['id'].'-'.$giorno.'-'.$ora] ?? [])
-                                    @if ($sorv && $mensaCella->isEmpty())
+                                    @if ($sorv)
                                         <div class="materia">{{ $adatta($nomiPausa[$ora] ?? 'Mensa', '', '', true) }}</div>
                                     @endif
                                     @foreach ($sorv as $cognome)

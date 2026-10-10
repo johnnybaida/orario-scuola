@@ -48,7 +48,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Come fare:** esporta la lista, aggiungi le righe in Excel e reimporta il file. Il separatore può essere la virgola o il punto e virgola.
 - **Esito:** le righe con errori vengono elencate con il numero di riga e le altre sono importate; le righe già presenti vengono **saltate** (l'import non le aggiorna).
 - **Ordine:** i riferimenti ad altre liste si scrivono con il nome o il codice (la disciplina di una cattedra, l'aula base di una classe, ...), quindi importa prima le liste da cui dipendono: sedi, aule, scansione oraria, discipline, quadri orari, docenti, classi, cattedre, poi indisponibilità, sospensioni, assistenza alle pause, laboratori e impostazioni.
-- **Colonne facoltative:** i file esportati da versioni precedenti restano validi; le colonne nuove (`senza_slot`, `altre_aule` e `pausa_dopo_ora` nelle discipline, `mensa` nella scansione oraria, `ore_mensa` nei quadri orari, `classi` nelle assistenze alle pause, `classi_concorso` nei docenti, `conteggio_sostegno` e `slot_attivi` nelle classi, `docente_clil_cognome`, `docente_clil_nome` e `ore_clil` nelle cattedre) si possono omettere. Gli elenchi dentro una cella si separano con `|` (per esempio `dada_ita|dada_ing`).
+- **Colonne facoltative:** i file esportati da versioni precedenti restano validi; le colonne nuove (`altre_aule` nelle discipline, `mensa` nella scansione oraria, `ore_mensa` nei quadri orari, `classi` nelle assistenze alle pause, `classi_concorso` nei docenti, `conteggio_sostegno` e `slot_attivi` nelle classi, `docente_clil_cognome`, `docente_clil_nome` e `ore_clil` nelle cattedre) si possono omettere. Gli elenchi dentro una cella si separano con `|` (per esempio `dada_ita|dada_ing`).
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Classi:** `slot_attivi` elenca le ore con giorno e numero (`LUN.1|LUN.2|…`); se la colonna è vuota la classe parte con le ore del mattino.
@@ -131,67 +131,12 @@ Il catalogo delle materie insegnate.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
 - **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
 - **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
-- **Non occupa un'ora di lezione (es. mensa)**: per le voci che contano nel quadro orario e nel monte ore dei docenti ma non sono lezioni da piazzare, come la **mensa**. Come si usa: crea la disciplina «Mensa» con questa spunta, aggiungila al **quadro orario** del tempo prolungato (per esempio 1 ora) e assegna le **cattedre** «Mensa» ai docenti che sorvegliano. Per la classe: il quadro conta anche la mensa (29 ore di discipline + 1 ora di mensa = 30), mentre gli **slot attivi** sono le ore di lezione (29). Con **due docenti** sulla stessa classe, la seconda cattedra va segnata come **Compresenza**: così non si somma nel quadro, ma entrambi i docenti hanno l'ora nel proprio monte ore. Le cattedre di mensa non entrano nella generazione e non compaiono nelle griglie. Se un docente sorveglia più classi insieme, per non contare più volte la stessa ora usa invece l'**assistenza alle pause**: quando un docente ha assistenze, le sue cattedre «senza ora» non si sommano al suo monte ore (la mensa conta da quelle, una volta sola per pausa). Esempi passo per passo nella sezione **Esempio: la mensa** qui sotto. Nel CSV delle discipline la spunta è la colonna facoltativa `senza_slot` (1 = senza ora) e la pausa è `pausa_dopo_ora` (numero dell'ora che precede la pausa). **Metodo precedente**: il campo compare **solo nelle discipline che lo usano già**; per la mensa usa le pause in *Scansione oraria*, le ore di mensa nel *Quadro orario* e la pagina *Mensa*.
-- **Si svolge nella pausa**: per le discipline «senza ora», la pausa (tra quelle definite in *Scansione oraria*) in cui si svolgono, per esempio la mensa. Serve a mostrare la disciplina e il suo docente nella **riga della pausa** dei PDF e in una **colonna apposita del tabellone generale** (per classe), nei giorni di rientro delle classi: per esempio «PRA Costanzo» il lunedì e il mercoledì. Senza questa scelta il tabellone non mostra la mensa.
 - **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
 
 <!-- permesso: gestisci-anagrafica -->
-### Esempio: la mensa
+### La mensa non è una disciplina
 
-Per far contare la mensa nel quadro orario e nel monte ore dei docenti, senza che diventi una lezione da piazzare. Si parte sempre da due passi comuni.
-
-**1. La pausa, in Scansione oraria** (facoltativo, serve per i PDF e per il monte ore di chi la sorveglia):
-
-| Campo | Valore |
-| --- | --- |
-| Nome della pausa | Mensa |
-| Aula della pausa | Refettorio (aula di tipo «Aula per la pausa») |
-| Conta per il docente | Automatico (una mensa da 50 minuti vale 1 ora) |
-
-**2. La disciplina, in Discipline:**
-
-| Campo | Valore |
-| --- | --- |
-| Codice | MEN |
-| Nome | Mensa |
-| Non occupa un'ora di lezione | Spuntato |
-
-Poi, nel **quadro orario del tempo prolungato**, aggiungi la riga Mensa con le ore (per esempio 1). Il totale diventa 30 ore: 29 di discipline più 1 di mensa. Le classi del tempo prolungato hanno **29 slot attivi**, non 30.
-
-**Se prima la mensa occupava un'ora della scansione** (per esempio una «7ª ora» in cui si metteva la lezione «Pranzo»), quell'ora non serve più: nella scheda di ogni classe interessata, negli **Slot attivi**, togli quell'ora. Sopra la griglia la scheda dice quante ore servono (quadro meno mensa) e quante ne hai spuntate, e il controllo prima di generare te lo ricorda con lo stesso conto. L'ora resta nella Scansione oraria, perché è condivisa da tutta la scuola, ma nessuna classe la usa.
-
-*Caso A: un docente per classe.* In **Cattedre** (o nella scheda della classe):
-
-| Campo | Valore |
-| --- | --- |
-| Classe | 1ª A |
-| Docente | Rossi |
-| Disciplina | Mensa |
-| Ore | 1 |
-| Compresenza | No |
-
-Il docente ha 1 ora in più nel monte ore; la classe torna a 30 su 30 nel quadro.
-
-*Caso B: due docenti per classe.* Due cattedre per la stessa classe:
-
-| Campo | 1ª cattedra | 2ª cattedra |
-| --- | --- | --- |
-| Classe | 1ª A | 1ª A |
-| Docente | Rossi | Bianchi |
-| Disciplina | Mensa | Mensa |
-| Ore | 1 | 1 |
-| Compresenza | No | **Sì** |
-
-La seconda va segnata come compresenza: non si somma nel quadro (la classe resta a 30 su 30) ma anche Bianchi ha 1 ora nel proprio monte ore. Con tre classi e due docenti ciascuna sono sei cattedre uguali nella forma.
-
-*Caso C: gli stessi docenti sorvegliano più classi insieme.* Le cattedre contano un'ora per classe e gonfierebbero il monte ore: per i docenti usa invece l'**assistenza alle pause** nella scheda del docente (una volta sola per giorno e pausa):
-
-| Campo | Valore |
-| --- | --- |
-| Giorno | Martedì |
-| Pausa | Mensa 13:00–13:50 |
-
-Alle classi serve comunque una cattedra «Mensa» da 1 ora per tornare a 30 su 30 nel quadro: assegnala a uno dei docenti. Per lui il monte ore **non conta due volte**: se un docente ha assistenze alle pause, la mensa si conta **solo da quelle** e le ore delle sue cattedre «senza ora» non si sommano; senza assistenze valgono invece le cattedre.
+La mensa **non** si crea come disciplina: si gestisce con le **pause** (in *Scansione oraria*, spuntando «mensa»), con le **Ore di mensa** del *quadro orario* e con la pagina **Mensa**, dove assegni i docenti classe per classe. Le istruzioni passo per passo sono nella sezione **Mensa**.
 <!-- /permesso -->
 
 ## Quadri orari
@@ -282,7 +227,7 @@ Con il **tempo prolungato** puoi scegliere i **giorni di rientro**, ognuno in mo
 
 La griglia degli **slot attivi** indica le ore della settimana che la classe usa davvero: le righe sono le ore (1ª–9ª), le colonne i giorni. Il generatore riempie esattamente quegli slot, né di più né di meno, quindi **il numero di slot attivi deve coincidere con le ore del quadro orario**. Puoi modificare le singole ore a mano, per casi particolari: in modifica la griglia prevale sui giorni di rientro.
 
-Sopra la griglia un riquadro dice quante ore di lezione servono e quante ne hai spuntate (si aggiorna mentre clicchi, ed è giallo se non coincidono). Servono le **ore del quadro meno quelle delle discipline «senza ora»** come la mensa: con un quadro da 36h che comprende 2h di Pranzo gli slot attivi sono 34. Se il controllo prima di generare segnala che gli slot non tornano, il messaggio ripete lo stesso conto e il pulsante **Correggi** porta qui.
+Sopra la griglia un riquadro dice quante ore di lezione servono e quante ne hai spuntate (si aggiorna mentre clicchi, ed è giallo se non coincidono). Servono le **ore del quadro meno le ore di mensa**: con un quadro da 36h che comprende 2h di mensa gli slot attivi sono 34. Se il controllo prima di generare segnala che gli slot non tornano, il messaggio ripete lo stesso conto e il pulsante **Correggi** porta qui.
 
 <!-- permesso: gestisci-anagrafica -->
 ### Cattedre
@@ -338,7 +283,6 @@ La **mensa** (il pranzo del tempo prolungato) è una **pausa** della scansione o
 
 Costanzo, il lunedì con 1ª C e 2ª C, ha 1 ora (non 2) e il mercoledì 1 ora: 2 ore a settimana in tutto.
 
-Il metodo precedente (una disciplina «Pranzo» **senza ora**, con le cattedre) funziona ancora e si può usare in alternativa: vedi l'esempio nella sezione *Discipline*.
 <!-- /permesso -->
 
 ## Cattedre
@@ -732,7 +676,7 @@ Conta solo il passaggio tra **ore consecutive** dello stesso giorno; un'ora vuot
 Con più sedi, ogni sede ha le sue generazioni e i suoi orari: si genera, si approva e si pubblica **una sede alla volta**, nella sede in cui stai lavorando. Le versioni dell'orario sono numerate per sede e l'orario pubblicato di una sede non cambia quando pubblichi quello di un'altra. I PDF riportano il nome della sede nel titolo.
 
 
-**Prompt per l'AI.** In alto nella pagina **Generazioni** il collegamento **Prompt per l'AI** apre un testo con tutti i dati della sede: scansione oraria, aule, discipline, classi con quadro orario e ore attive, docenti con cattedre, indisponibilità, sospensioni e assistenza alle pause, sostegno, laboratori e vincoli, più le regole del generatore, un **glossario** dei termini (slot, rientro, compresenza, CLIL, «senza ora», sostegno, DADA, buca, severità…) e la richiesta di produrre l'orario. I vincoli sono scritti **a parole**, non con i nomi dei parametri: per esempio «in almeno 1 giorno della settimana Arte deve avere un blocco di almeno 2 ore consecutive». Premi **Copia il testo** (o **Scarica come file**) e incollalo in un assistente AI perché provi a costruire lui l'orario, per confronto o per un'idea di partenza. Non contiene nomi di alunni (l'applicazione non li censisce). Riguarda la sede in cui stai lavorando; il testo può essere lungo, la pagina indica quanti caratteri e token approssimativi ha. Controlla sempre il risultato: un'AI può sbagliare i conti, e l'orario valido resta quello del generatore.
+**Prompt per l'AI.** In alto nella pagina **Generazioni** il collegamento **Prompt per l'AI** apre un testo con tutti i dati della sede: scansione oraria, aule, discipline, classi con quadro orario e ore attive, docenti con cattedre, indisponibilità, sospensioni e assistenza alle pause, sostegno, laboratori e vincoli, più le regole del generatore, un **glossario** dei termini (slot, rientro, compresenza, CLIL, sostegno, DADA, buca, severità…) e la richiesta di produrre l'orario. I vincoli sono scritti **a parole**, non con i nomi dei parametri: per esempio «in almeno 1 giorno della settimana Arte deve avere un blocco di almeno 2 ore consecutive». Premi **Copia il testo** (o **Scarica come file**) e incollalo in un assistente AI perché provi a costruire lui l'orario, per confronto o per un'idea di partenza. Non contiene nomi di alunni (l'applicazione non li censisce). Riguarda la sede in cui stai lavorando; il testo può essere lungo, la pagina indica quanti caratteri e token approssimativi ha. Controlla sempre il risultato: un'AI può sbagliare i conti, e l'orario valido resta quello del generatore.
 
 La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento nella pagina.
 
@@ -887,7 +831,7 @@ I pulsanti dei PDF si aprono in una **nuova scheda** del browser, così non perd
 - **Tutte le aule** (pulsante **Tutte le aule** nella pagina *Orari*) e **una sola aula** ("Esporta PDF" della vista aula): un PDF A3 orizzontale con **un foglio per aula**, in ordine alfabetico, con classe, materia e docente di ogni ora: è il foglio da appendere alla porta. Compaiono solo le aule usate in quell'orario. Nei PDF per classe e per docente l'aula è scritta sotto ogni lezione, con le stesse regole delle griglie.
 - **Tutti i docenti** (pulsante **Tutti i docenti** nella pagina *Orari*, "Docenti PDF" nella dashboard): un solo PDF A3 orizzontale con **un foglio per docente**, in ordine alfabetico, ciascuno con il titolo centrale, tutta la settimana e in ogni ora classe e materia. Le ore di **sostegno in compresenza** compaiono come "S classe". Compaiono solo i docenti che hanno almeno un'ora in quell'orario. Comodo per consegnare a ciascuno il proprio orario.
 - **Tabellone per aula** (pulsante **Tabellone per aula** nella scheda dell'orario): come il tabellone generale ma con una riga per aula; in ogni cella la classe e la sigla della materia. Come l'altro, ha un colore per ogni disciplina.
-Nei PDF di classe, docente e aula la **pausa** (per esempio la mensa) ha una **riga colorata** nella griglia: a sinistra il nome, l'orario, la durata e l'aula con il piano, poi **una cella per giorno** con chi c'è: i docenti che la **sorvegliano** quel giorno (assistenza alle pause) e, nel foglio della classe, nei giorni di **rientro**, i docenti delle cattedre di discipline **«senza ora»** (il Pranzo). Il nome della pausa («Pranzo», «Mensa»…) lo scegli in **Scansione oraria**; senza nome si chiama «Ricreazione». Sotto la griglia la riga «Mensa e attività senza ora» elenca quelle cattedre con le ore (nel foglio della classe il docente, in quello del docente la classe). Un'assistenza assegnata a una pausa che non esiste più nella scansione non viene stampata. Nel foglio di una classe le **ore che la classe non usa mai** (per esempio la 7ª ora liberata dalla mensa) non compaiono.
+Nei PDF di classe, docente e aula la **pausa** (per esempio la mensa) ha una **riga colorata** nella griglia: a sinistra il nome, l'orario, la durata e l'aula con il piano, poi **una cella per giorno** con chi c'è: i docenti che la **sorvegliano** quel giorno (assistenza alle pause). Il nome della pausa («Pranzo», «Mensa»…) lo scegli in **Scansione oraria**; senza nome si chiama «Ricreazione». Un'assistenza assegnata a una pausa che non esiste più nella scansione non viene stampata. Nel foglio di una classe le **ore che la classe non usa mai** (per esempio la 7ª ora liberata dalla mensa) non compaiono.
 
 I PDF di classe, docente e aula sono su fogli **A3**, così anche gli orari con molte ore (tempo prolungato con rientri e pause) stanno su **una pagina per elemento**; per stamparli in **A4** scegli «Adatta alla pagina» nella finestra di stampa: i caratteri restano leggibili.
 - **Fogli di classe, docente e aula**: ogni orario sta in **una sola pagina** (A3 orizzontale): margini stretti, celle e intestazioni più compatte e le **pause su una riga bassa**, con il testo («Transition Time 08:50-09:00 (10')») per esteso su tutta la larghezza; solo se ci sono sorveglianti o docenti della mensa la riga mostra anche una cella per giorno. **Nei fogli delle aule** la pausa, mensa compresa, è sempre una riga sola come le altre, senza docenti (il foglio è pensato per l'aula).

@@ -37,21 +37,22 @@ class CsvTest extends TestCase
         $this->assertDatabaseHas('aule', ['nome' => 'Lab2', 'sede_id' => app(\App\Services\SedeCorrente::class)->id()]);
     }
 
-    public function test_le_discipline_senza_ora_si_esportano_e_si_importano_e_i_file_vecchi_restano_validi(): void
+    public function test_i_file_vecchi_con_le_colonne_senza_ora_e_pausa_restano_validi_e_non_si_esportano_piu(): void
     {
-        \App\Models\Disciplina::factory()->create(['codice' => 'MEN', 'nome' => 'Mensa', 'senza_slot' => true]);
+        \App\Models\Disciplina::factory()->create(['codice' => 'MEN', 'nome' => 'Mensa']);
         $admin = $this->admin();
 
         $csv = $this->actingAs($admin)->get('/csv/discipline')->streamedContent();
-        $this->assertStringContainsString('senza_slot', $csv);
-        $this->assertMatchesRegularExpression('/MEN;Mensa;[^;]*;;;1/', $csv);
+        $this->assertStringNotContainsString('senza_slot', $csv);
+        $this->assertStringNotContainsString('pausa_dopo_ora', $csv);
 
-        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre;senza_slot\nPRA;Pranzo;;;;1\nITA;Italiano;;;;0\n")->assertOk();
-        $this->assertTrue(\App\Models\Disciplina::query()->where('codice', 'PRA')->first()->senza_slot);
-        $this->assertFalse(\App\Models\Disciplina::query()->where('codice', 'ITA')->first()->senza_slot);
+        // un file di una versione precedente, con le colonne tolte, si importa ignorandole
+        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre;senza_slot;altre_aule;pausa_dopo_ora\nPRA;Pranzo;;;;1;;2\nITA;Italiano;;;;0;;\n")->assertOk();
+        $this->assertDatabaseHas('discipline', ['codice' => 'PRA', 'nome' => 'Pranzo']);
+        $this->assertDatabaseHas('discipline', ['codice' => 'ITA']);
 
-        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre\nGEO;Geografia;;;\n")->assertOk();   // file senza la colonna
-        $this->assertFalse(\App\Models\Disciplina::query()->where('codice', 'GEO')->first()->senza_slot);
+        $this->carica('discipline', "codice;nome;classe_concorso;tipo_aula_richiesto;padre\nGEO;Geografia;;;\n")->assertOk();   // file senza le colonne facoltative
+        $this->assertDatabaseHas('discipline', ['codice' => 'GEO']);
     }
 
     public function test_import_riservato_a_chi_puo_modificare(): void

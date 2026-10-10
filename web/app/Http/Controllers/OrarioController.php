@@ -74,7 +74,7 @@ class OrarioController extends Controller
             'cambiAula' => $spostamenti->cambi($lezioniClasse),
             'slotAttiviIds' => $classe->slotAttivi()->pluck('slot.id'),
             // In ordine alfabetico per materia (poi docente): più facili da trovare nella select.
-            'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()->reject(fn (Cattedra $c) => $c->disciplina->senza_slot)
+            'cattedre' => Cattedra::query()->where('classe_id', $classe->id)->with('docente', 'disciplina')->get()
                 ->sortBy(fn (Cattedra $c) => mb_strtolower($c->disciplina->nome.'|'.$c->docente->nomeCompleto()), SORT_NATURAL)->values(),
             'problemi' => $problemi,
             'problemiPerLezione' => $perLezione,

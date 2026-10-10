@@ -71,8 +71,7 @@ class DashboardController extends Controller
     {
         $assistenza = app(\App\Services\AssistenzaPause::class);
 
-        return Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')
-            ->withSum(['cattedre as ore_senza_ora' => fn ($q) => $q->whereHas('disciplina', fn ($d) => $d->where('senza_slot', true))], 'ore')->get()
+        return Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')->get()
             ->map(fn (Docente $d) => [
                 'docente' => $d,
                 'assistenza' => $assistenza->minuti($d),

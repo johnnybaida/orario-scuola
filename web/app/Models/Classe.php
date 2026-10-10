@@ -59,14 +59,10 @@ class Classe extends Model
         return $this->conteggio_sostegno ?? Impostazioni::correnti()->conteggio_sostegno;
     }
 
-    /**
-     * Ore del quadro che non sono lezioni: le «ore di mensa» del quadro e le discipline «senza ora» (la seconda cattedra in compresenza non si somma).
-     * Gli slot attivi devono essere le ore del quadro meno queste.
-     */
-    public function oreSenzaOra(): int
+    /** Ore del quadro che non sono lezioni: le «ore di mensa» dichiarate dal quadro. Gli slot attivi devono essere le ore del quadro meno queste. */
+    public function oreMensa(): int
     {
-        return (int) $this->cattedre()->with('disciplina')->get()
-            ->filter(fn (Cattedra $c) => $c->disciplina->senza_slot && ! $c->compresenza)->sum('ore') + (int) $this->quadroOrario?->ore_mensa;
+        return (int) $this->quadroOrario?->ore_mensa;
     }
 
     public function nomeCompleto(): string

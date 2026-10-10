@@ -20,8 +20,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Generazione con il solver reale su una scuola piccola che mette insieme tutte le funzioni recenti: mensa «senza ora» con due
- * docenti, docente CLIL su una parte delle ore, aule DADA proprie e condivise, laboratorio pomeridiano, sostegno,
+ * Generazione con il solver reale su una scuola piccola che mette insieme tutte le funzioni recenti: mensa (ore del quadro) e
+ * docenti di mensa solo come assistenze, docente CLIL su una parte delle ore, aule DADA proprie e condivise, laboratorio pomeridiano, sostegno,
  * indisponibilità e i vincoli D1, D3, D6, T3 (salvati come li salva il form: id e slot come stringhe). Il risultato si
  * controlla con verifiche indipendenti dal solver; il test è sensibile (vedi CLAUDE.md: verifica per mutazione).
  */
@@ -66,7 +66,6 @@ class GenerazioneCompletaTest extends TestCase
             'GEO' => $nuova('GEO', ['tipo_aula_richiesto' => 'dada_geo', 'tipi_aula_extra' => ['dada_geo__sci']]),
             'SCI' => $nuova('SCI', ['tipo_aula_richiesto' => 'dada_sci', 'tipi_aula_extra' => ['dada_geo__sci']]),
             'MOT' => $nuova('MOT', ['tipo_aula_richiesto' => 'palestra']),
-            'MEN' => $nuova('MEN', ['senza_slot' => true]),
         ];
 
         foreach (['ITA', 'MAT', 'ING', 'GEO', 'SCI', 'MOT', 'M1', 'M2', 'CLIL', 'SOST'] as $sigla) {
@@ -80,13 +79,12 @@ class GenerazioneCompletaTest extends TestCase
         // Quadri: A = 8 ore; B = 9 ore di lezione + 1 di mensa (tempo prolungato con rientro del lunedì).
         $base = ['ITA' => 3, 'MAT' => 2, 'GEO' => 1, 'SCI' => 1, 'ING' => 1];
         $quadroA = QuadroOrario::factory()->create(['ore_totali' => 8]);
-        $quadroB = QuadroOrario::factory()->create(['ore_totali' => 10]);
+        $quadroB = QuadroOrario::factory()->create(['ore_totali' => 10, 'ore_mensa' => 1]);
         foreach ($base as $codice => $ore) {
             $quadroA->righe()->create(['disciplina_id' => $this->disc[$codice]->id, 'ore_settimanali' => $ore]);
             $quadroB->righe()->create(['disciplina_id' => $this->disc[$codice]->id, 'ore_settimanali' => $ore]);
         }
         $quadroB->righe()->create(['disciplina_id' => $this->disc['MOT']->id, 'ore_settimanali' => 1]);
-        $quadroB->righe()->create(['disciplina_id' => $this->disc['MEN']->id, 'ore_settimanali' => 1]);
 
         $this->classeA = Classe::factory()->create(['sede_id' => $sede->id, 'anno_corso' => 1, 'sezione' => 'A', 'quadro_orario_id' => $quadroA->id, 'tempo_scuola' => 'normale']);
         $this->classeB = Classe::factory()->create(['sede_id' => $sede->id, 'anno_corso' => 1, 'sezione' => 'B', 'quadro_orario_id' => $quadroB->id, 'tempo_scuola' => 'prolungato']);
@@ -103,8 +101,6 @@ class GenerazioneCompletaTest extends TestCase
             }
         }
         $this->classeB->cattedre()->create(['docente_id' => $this->d['MOT']->id, 'disciplina_id' => $this->disc['MOT']->id, 'ore' => 1]);
-        $this->classeB->cattedre()->create(['docente_id' => $this->d['M1']->id, 'disciplina_id' => $this->disc['MEN']->id, 'ore' => 1]);
-        $this->classeB->cattedre()->create(['docente_id' => $this->d['M2']->id, 'disciplina_id' => $this->disc['MEN']->id, 'ore' => 1, 'compresenza' => true]);
 
         // Sostegno nella classe A.
         $this->classeA->fabbisogniSostegno()->create(['codice_anonimo' => '1A-S1', 'ore_settimanali' => 2]);
@@ -148,7 +144,6 @@ class GenerazioneCompletaTest extends TestCase
 
         // Lezioni: 8 + 9 (la mensa non è una lezione) e ogni slot attivo di ogni classe coperto una volta sola.
         $this->assertCount(17, $lezioni);
-        $this->assertSame(0, $lezioni->filter(fn ($l) => $l->cattedra->disciplina->codice === 'MEN')->count());
         foreach ([$this->classeA, $this->classeB] as $classe) {
             $suoi = $lezioni->filter(fn ($l) => $l->cattedra->classe_id === $classe->id);
             $this->assertEqualsCanonicalizing($classe->slotAttivi()->pluck('slot.id')->all(), $suoi->pluck('slot_id')->all(), "slot di {$classe->nomeCompleto()}");

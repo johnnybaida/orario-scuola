@@ -42,7 +42,7 @@ class CsvCompletoTest extends TestCase
         $docente = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
         $docente->classiConcorso()->create(['classe_concorso' => 'A022']);
         $clil = Docente::factory()->create(['cognome' => 'Smith', 'nome' => 'Emma']);
-        $disciplina = Disciplina::factory()->create(['codice' => 'GEO', 'senza_slot' => false, 'tipi_aula_extra' => ['dada_ita', 'dada_ing']]);
+        $disciplina = Disciplina::factory()->create(['codice' => 'GEO', 'tipi_aula_extra' => ['dada_ita', 'dada_ing']]);
         Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $docente->id, 'disciplina_id' => $disciplina->id, 'ore' => 2, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
 
         $csv = ['classi' => $this->csv('classi'), 'docenti' => $this->csv('docenti'), 'discipline' => $this->csv('discipline'), 'cattedre' => $this->csv('cattedre')];
