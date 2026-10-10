@@ -84,7 +84,7 @@ class ExportPdfTest extends TestCase
         $this->assertStringNotContainsString('Mercoled&igrave;', $html);
         $this->assertStringNotContainsString('2&ordf;</th>', $html); // la 2ª ora è vuota ovunque
         $this->assertStringNotContainsString('page-break', $html);   // un solo foglio
-        $this->assertStringContainsString('S Verdi', $html);         // sostegno visibile
+        $this->assertStringContainsString('S. Verdi', $html);         // sostegno visibile
         $this->assertStringContainsString($cattedra->disciplina->codice, $html);
     }
 
@@ -129,7 +129,7 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('Orario classe '.$seconda->nomeCompleto(), $html);
         $this->assertSame(1, substr_count($html, 'page-break-after: always')); // 2 classi = 1 interruzione di pagina
         $this->assertStringContainsString('text-align: center', $html);          // titolo centrato
-        $this->assertStringContainsString('S Verdi', $html);                     // sostegno nella classe
+        $this->assertStringContainsString('S. Verdi', $html);                     // sostegno nella classe
 
         $risposta = $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get("/orari/{$orario->id}/export/classi");
         $risposta->assertOk();
@@ -178,7 +178,7 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('Orario docente '.$verdi->nomeCompleto(), $html);
         $this->assertStringNotContainsString('Senzaore', $html);                       // nessuna ora: niente foglio
         $this->assertStringContainsString($classe->nomeCompleto().' - '.$cattedra->disciplina->nome, $html);
-        $this->assertStringContainsString('S '.$classe->nomeCompleto(), $html);        // sostegno in compresenza
+        $this->assertStringContainsString('S. '.$classe->nomeCompleto(), $html);        // sostegno in compresenza
         $this->assertSame(1, substr_count($html, 'page-break-after: always'));         // 2 docenti = 1 interruzione
         $this->assertLessThan(strpos($html, 'Verdi'), strpos($html, 'Rossi'));         // ordine alfabetico
 

@@ -99,7 +99,7 @@
                                             <span class="cella">{{ $foglio['colonna']($lezione) }}</span>
                                         @endforeach
                                         @foreach ($foglio['sostegni'][$slot->id] ?? [] as $cognome)
-                                            <br><span class="sostegno">S {{ $cognome }}</span>
+                                            <br><span class="sostegno">S. {{ $cognome }}</span>
                                         @endforeach
                                     @endif
                                 </td>

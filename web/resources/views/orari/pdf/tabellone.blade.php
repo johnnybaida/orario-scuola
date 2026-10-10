@@ -94,16 +94,16 @@
                                     @endif
                                     <div>{{ $adatta($lezione->docenteEffettivo()->cognome) }}</div>
                                     @if ($lezione->docenteClilEffettivo())
-                                        <div class="clil">{{ $adatta($lezione->docenteClilEffettivo()->cognome, 'C ') }}</div>
+                                        <div class="clil">{{ $adatta($lezione->docenteClilEffettivo()->cognome, 'C. ') }}</div>
                                     @endif
                                     @if ($per === 'aula')
                                         @foreach ($sostegni->get($lezione->slot_id.'-'.$lezione->cattedra->classe_id)?->unique('docente_id') ?? [] as $supporto)
-                                            <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S ') }}</div>
+                                            <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S. ') }}</div>
                                         @endforeach
                                     @endif
                                 @endforeach
                                 @foreach ($supporti as $supporto)
-                                    <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S ') }}</div>
+                                    <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S. ') }}</div>
                                 @endforeach
                             </td>
                         @endforeach
@@ -130,8 +130,8 @@
         @foreach ($discipline as $disciplina)
             <span style="{{ \App\Support\ColoriDiscipline::stile($colori[$disciplina->id] ?? ['#ffffff', '#000000']) }} padding: 0 3px;"><strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}</span>@unless ($loop->last) &middot; @endunless
         @endforeach
-        &nbsp;|&nbsp; <span class="sostegno"><strong>S</strong> = docente di sostegno in compresenza</span>
-        &nbsp;|&nbsp; <span class="clil"><strong>C</strong> = docente CLIL in compresenza</span>
+        &nbsp;|&nbsp; <span class="sostegno"><strong>S.</strong> = docente di sostegno in compresenza</span>
+        &nbsp;|&nbsp; <span class="clil"><strong>C.</strong> = docente CLIL in compresenza</span>
         @if ($per === 'classe')&nbsp;|&nbsp; <span class="aula"><strong>Aula</strong> in piccolo in basso a sinistra, <strong>piano</strong> in alto a destra (PT = piano terra, P1 = 1° piano…); in <strong>grassetto</strong> = la classe cambia aula rispetto all'ora prima</span>@endif
     </p>
 </body>
