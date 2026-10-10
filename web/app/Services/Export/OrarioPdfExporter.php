@@ -63,7 +63,7 @@ class OrarioPdfExporter
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['origine' => $this->origine($orario), 'fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
     }
 
     public function docente(Orario $orario, Docente $docente): PdfDocument
@@ -104,7 +104,7 @@ class OrarioPdfExporter
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['origine' => $this->origine($orario), 'fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
     }
 
     /**
@@ -131,10 +131,16 @@ class OrarioPdfExporter
             ];
         })->all();
 
-        return Pdf::loadView('orari.pdf.griglia', ['fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
+        return Pdf::loadView('orari.pdf.griglia', ['origine' => $this->origine($orario), 'fogli' => $fogli, 'sorveglianti' => $this->sorveglianti(), 'pauseMensa' => app(\App\Services\Mensa::class)->pause()->keys()->all()])->setPaper('a3', 'landscape');
     }
 
     /** Con più sedi il nome della sede è nel titolo: i fogli stampati di sedi diverse non si confondono. */
+    /** Da dove viene l'orario (id e seed della generazione): piccola nota a piè di pagina per risalire a come è stato generato. */
+    private function origine(Orario $orario): string
+    {
+        return "Orario #{$orario->id} · seed {$orario->seed}";
+    }
+
     private function conSede(string $titolo): string
     {
         $sede = Sede::query()->count() > 1 ? Sede::query()->find(app(SedeCorrente::class)->id()) : null;
@@ -276,6 +282,7 @@ class OrarioPdfExporter
         }
 
         return Pdf::loadView('orari.pdf.tabellone', [
+            'origine' => $this->origine($orario),
             'titolo' => $this->conSede($per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario'),
             'per' => $per,
             'righe' => $righe,

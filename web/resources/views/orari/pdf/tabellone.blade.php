@@ -18,6 +18,7 @@
     </style>
 </head>
 <body>
+@include('orari.pdf._origine')
     <h1>{{ $titolo }}</h1>
 
     {{-- Colonne di ogni giorno: le ore, più una colonna per ogni pausa in cui si svolge una disciplina «senza ora» (mensa). --}}

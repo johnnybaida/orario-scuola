@@ -18,6 +18,7 @@
     </style>
 </head>
 <body>
+@include('orari.pdf._origine')
     {{-- Un foglio A3 orizzontale per ogni elemento di $fogli (classe o docente), con il titolo centrato e tutta la settimana. --}}
     @foreach ($fogli as $foglio)
         <section @if (! $loop->last) style="page-break-after: always" @endif>
