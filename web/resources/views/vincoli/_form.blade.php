@@ -115,13 +115,35 @@
         <option value="segue" @selected(($parametri['modo'] ?? 'segue') === 'segue')>Deve essere seguita da</option>
         <option value="non_segue" @selected(($parametri['modo'] ?? null) === 'non_segue')>NON deve essere seguita da</option>
     </select>
+    @php($opzioniClil = ['tutte' => 'Tutte le lezioni', 'con' => 'Solo le lezioni con CLIL', 'senza' => 'Solo le lezioni senza CLIL'])
     @include('vincoli._discipline', ['titolo' => 'Disciplina di partenza', 'info' => 'La lezione di queste discipline è quella «prima». Se ne scegli più d\'una, vale per ciascuna.'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Lezioni della disciplina di partenza
+        <x-info testo="Per distinguere, per esempio, la Geografia con il docente CLIL da quella senza: scegli «con CLIL» o «senza CLIL»." />
+    </label>
+    <select name="parametri[clil_prima]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        @foreach ($opzioniClil as $valore => $etichetta)
+            <option value="{{ $valore }}" @selected(($parametri['clil_prima'] ?? 'tutte') === $valore)>{{ $etichetta }}</option>
+        @endforeach
+    </select>
     @include('vincoli._discipline', ['campo' => 'seguite_ids', 'titolo' => 'Disciplina che segue', 'info' => 'L\'ora subito dopo (nello stesso giorno; le pause non interrompono) deve essere (o non deve essere) di una di queste.'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Lezioni della disciplina che segue
+        <x-info testo="Per distinguere, per esempio, la Geografia con il docente CLIL da quella senza: scegli «con CLIL» o «senza CLIL»." />
+    </label>
+    <select name="parametri[clil_dopo]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        @foreach ($opzioniClil as $valore => $etichetta)
+            <option value="{{ $valore }}" @selected(($parametri['clil_dopo'] ?? 'tutte') === $valore)>{{ $etichetta }}</option>
+        @endforeach
+    </select>
     <label class="block text-sm font-medium text-gray-700 mt-2">Almeno quante coppie nella settimana (facoltativo)
         <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (può essere infattibile se le ore della prima sono più di quelle della seconda: meglio allora il tipo Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
     </label>
     <input type="number" name="parametri[min_coppie]" min="1" max="30" value="{{ $parametri['min_coppie'] ?? '' }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <input type="hidden" name="parametri[inverso]" value="0">
+    <label class="mt-3 flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" name="parametri[inverso]" value="1" @checked($parametri['inverso'] ?? false)> Vale anche nell'ordine inverso
+        <x-info testo="Solo per «NON deve essere seguita da»: vieta la coppia anche al contrario (per esempio né «Geografia, poi Geografia con CLIL» né «Geografia con CLIL, poi Geografia»)." />
+    </label>
 </div>
 
 <div data-parametri-per="T11_ORE_IN_FASCIA">

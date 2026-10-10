@@ -1,6 +1,9 @@
 """D13_DISCIPLINA_SEGUITA — dopo una lezione delle discipline di partenza, nell'ora subito successiva dello stesso giorno (le pause non interrompono)
 c'è (o non c'è) una lezione delle discipline `discipline_seguite`. Per ciascuna classe dell'ambito (classe o globale).
 
+Le discipline possono essere limitate alle sole lezioni con o senza compresenza CLIL (`clil_prima`, `clil_dopo`: tutte|con|senza);
+`inverso` (solo non_segue) vale anche per la coppia in ordine inverso.
+
 modo `segue`: senza `min_coppie` ogni lezione di partenza deve avere la successiva (anche l'ultima ora del giorno è una violazione); rigido = divieto,
 preferenziale = ogni lezione senza la successiva costa `peso`. Con `min_coppie` servono almeno quelle coppie nella settimana (rigido = divieto,
 preferenziale = ogni coppia mancante costa `peso`).
@@ -11,13 +14,18 @@ from constraints.d1 import _classi_target
 from constraints.util import reify_and, reify_or, slack_deficit
 
 
-def _unione(ctx, classe_id, codici):
-    """slot -> letterale vero se in quello slot la classe ha una lezione di una delle discipline."""
+def _unione(ctx, classe_id, codici, clil=None):
+    """slot -> letterale vero se in quello slot la classe ha una lezione di una delle discipline (clil: None = qualsiasi, True = solo con CLIL, False = solo senza)."""
     per_slot = {}
-    for codice in codici:
-        for s, v in ctx.disc_occ.get((classe_id, codice), {}).items():
-            per_slot.setdefault(s, []).append(v)
+    for lez in ctx.lezioni:
+        if classe_id in lez['classi'] and lez['disciplina'] in codici and (clil is None or bool(lez.get('clil')) == clil):
+            for s, v in ctx.occupato[lez['id']].items():
+                per_slot.setdefault(s, []).append(v)
     return {s: (lits[0] if len(lits) == 1 else reify_or(ctx.model, lits)) for s, lits in per_slot.items()}
+
+
+def _clil(valore):
+    return {'con': True, 'senza': False}.get(valore)
 
 
 def applica(ctx, vincolo):
@@ -30,15 +38,19 @@ def applica(ctx, vincolo):
     penalita = []
 
     for classe_id in _classi_target(ctx, vincolo):
-        prima = _unione(ctx, classe_id, partenza)
-        dopo = _unione(ctx, classe_id, seguite)
-        coppie = []   # (slot_prima, letterale prima, letterale dopo o None se non esiste lo slot successivo)
-        for giorno in ctx.giorni:
-            slot_giorno = ctx.slots_by_day[giorno]
-            for i, s in enumerate(slot_giorno):
-                if s in prima:
-                    successivo = slot_giorno[i + 1] if i + 1 < len(slot_giorno) else None
-                    coppie.append((prima[s], dopo.get(successivo) if successivo is not None else None))
+        prima = _unione(ctx, classe_id, partenza, _clil(p.get('clil_prima')))
+        dopo = _unione(ctx, classe_id, seguite, _clil(p.get('clil_dopo')))
+        direzioni = [(prima, dopo)]
+        if modo == 'non_segue' and p.get('inverso'):
+            direzioni.append((dopo, prima))   # anche nell'ordine inverso (es. mai GEO e GEO con CLIL di seguito, in nessun ordine)
+        coppie = []   # (letterale prima, letterale dopo o None se non esiste lo slot successivo)
+        for davanti, dietro in direzioni:
+            for giorno in ctx.giorni:
+                slot_giorno = ctx.slots_by_day[giorno]
+                for i, s in enumerate(slot_giorno):
+                    if s in davanti:
+                        successivo = slot_giorno[i + 1] if i + 1 < len(slot_giorno) else None
+                        coppie.append((davanti[s], dietro.get(successivo) if successivo is not None else None))
 
         if modo == 'non_segue':
             for a, b in coppie:

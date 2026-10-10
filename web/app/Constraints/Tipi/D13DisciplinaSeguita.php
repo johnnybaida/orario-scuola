@@ -27,15 +27,28 @@ class D13DisciplinaSeguita implements VincoloTipoInterface
             'seguite_ids.*' => ['integer', 'exists:discipline,id'],
             'modo' => ['required', 'in:segue,non_segue'],
             'min_coppie' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'clil_prima' => ['nullable', 'in:tutte,con,senza'],
+            'clil_dopo' => ['nullable', 'in:tutte,con,senza'],
+            'inverso' => ['nullable', 'boolean'],
         ];
+    }
+
+    /** «Geografia con CLIL» / «Geografia senza CLIL» / «Geografia». */
+    private function conClil(string $nomi, ?string $clil): string
+    {
+        return match ($clil) {
+            'con' => "{$nomi} con CLIL",
+            'senza' => "{$nomi} senza CLIL",
+            default => $nomi,
+        };
     }
 
     public function descrizione(array $parametri): string
     {
-        $prima = DisciplineVincolo::nomi($parametri, '?');
-        $dopo = Disciplina::query()->whereIn('id', $parametri['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ') ?: '?';
+        $prima = $this->conClil(DisciplineVincolo::nomi($parametri, '?'), $parametri['clil_prima'] ?? null);
+        $dopo = $this->conClil(Disciplina::query()->whereIn('id', $parametri['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ') ?: '?', $parametri['clil_dopo'] ?? null);
         if (($parametri['modo'] ?? 'segue') === 'non_segue') {
-            return "{$prima}: mai seguita subito dopo da {$dopo}.";
+            return "{$prima}: mai seguita subito dopo da {$dopo}".(! empty($parametri['inverso']) ? ' (né nell\'ordine inverso)' : '').'.';
         }
         $min = $parametri['min_coppie'] ?? null;
 

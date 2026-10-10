@@ -66,3 +66,33 @@ def test_d13_non_segue_evita_la_coppia_ma_non_se_le_ore_sono_fissate():
     aggiungi_lezioni(p, 'STO', 1, bloccata_slot=2)
     p['vincoli'] = [_vincolo(modo='non_segue')]
     assert risolvi(p)['stato'] == 'infattibile'
+
+
+def _geo_clil(n_slot, inverso):
+    """Due ore di GEO (una senza CLIL, una con CLIL) più MAT per riempire; vietato GEO senza CLIL seguita da GEO con CLIL."""
+    p = problema_base(n_slot_giorno1=n_slot)
+    aggiungi_lezioni(p, 'GEO', 2)
+    p['lezioni'][0]['clil'] = False
+    p['lezioni'][1]['clil'] = True
+    if n_slot > 2:
+        aggiungi_lezioni(p, 'MAT', n_slot - 2)
+    v = _vincolo(modo='non_segue', prima=('GEO',), dopo=('GEO',))
+    v['parametri'].update({'clil_prima': 'senza', 'clil_dopo': 'con', 'inverso': inverso})
+    p['vincoli'] = [v]
+    return p
+
+
+def test_d13_distingue_la_disciplina_con_clil_da_quella_senza():
+    p = _geo_clil(2, inverso=False)   # solo 2 slot: GEO con CLIL deve venire prima di GEO senza CLIL
+    r = risolvi(p)
+    assert r['stato'] in ('ottimo', 'fattibile')
+    ordine = {s['id']: s['ordine'] for s in p['slots']}
+    slot = {a['lezione']: ordine[a['slot']] for a in r['assegnazioni']}
+    senza, con = (l['id'] for l in p['lezioni'])
+    assert slot[con] < slot[senza]
+
+
+def test_d13_inverso_vieta_la_coppia_in_entrambi_gli_ordini():
+    assert risolvi(_geo_clil(2, inverso=True))['stato'] == 'infattibile'   # in 2 slot le due GEO sono per forza di seguito
+    r = risolvi(_geo_clil(4, inverso=True))                                # con MAT in mezzo si può
+    assert r['stato'] in ('ottimo', 'fattibile')

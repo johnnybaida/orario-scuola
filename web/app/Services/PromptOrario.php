@@ -267,9 +267,9 @@ class PromptOrario
                 ($p['max_insieme'] ?? '') !== '' ? "al massimo {$p['max_insieme']} docente/i di sostegno insieme nella stessa classe e ora" : null,
                 ($p['tolleranza_giorno'] ?? '') !== '' ? "ore di sostegno distribuite nella settimana (per classe, al massimo la media sui giorni in cui un docente può esserci + {$p['tolleranza_giorno']} ora/e al giorno)" : null,
             ])->filter()->implode('; '),
-            'D13_DISCIPLINA_SEGUITA' => ($p['modo'] ?? 'segue') === 'non_segue'
+            'D13_DISCIPLINA_SEGUITA' => (($p['clil_prima'] ?? 'tutte') !== 'tutte' || ($p['clil_dopo'] ?? 'tutte') !== 'tutte' ? '[lezioni di partenza: '.($p['clil_prima'] ?? 'tutte').' CLIL; lezioni che seguono: '.($p['clil_dopo'] ?? 'tutte').' CLIL] ' : '').(! empty($p['inverso']) ? '[anche nell\'ordine inverso] ' : '').(($p['modo'] ?? 'segue') === 'non_segue'
                 ? "{$disciplina}: mai seguita nell'ora immediatamente dopo (stesso giorno) da ".\App\Models\Disciplina::query()->whereIn('id', $p['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ')
-                : "{$disciplina}: ".(($p['min_coppie'] ?? null) ? "almeno {$p['min_coppie']} volte nella settimana (per classe)" : 'ogni volta')." l'ora immediatamente dopo (stesso giorno, le pause non interrompono) è di ".\App\Models\Disciplina::query()->whereIn('id', $p['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', '),
+                : "{$disciplina}: ".(($p['min_coppie'] ?? null) ? "almeno {$p['min_coppie']} volte nella settimana (per classe)" : 'ogni volta')." l'ora immediatamente dopo (stesso giorno, le pause non interrompono) è di ".\App\Models\Disciplina::query()->whereIn('id', $p['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ')),
             'T11_ORE_IN_FASCIA' => "ogni docente scelto deve fare almeno {$p['min_ore']} ora/e (lezioni o sostegno, in qualunque classe) in queste ore: ".$ore($p['slot_ids'] ?? []),
             'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
             'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'

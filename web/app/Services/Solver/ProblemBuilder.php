@@ -102,6 +102,7 @@ class ProblemBuilder
                     'id' => $id,
                     'classi' => [$cattedra->classe_id],
                     'docenti' => $conClil ? [$cattedra->docente_id, $cattedra->docente_clil_id] : [$cattedra->docente_id],
+                    'clil' => (bool) $conClil,
                     'disciplina' => $cattedra->disciplina->codice,
                     'durata' => 1,
                     'tipo_aula' => $cattedra->disciplina->tipo_aula_richiesto,

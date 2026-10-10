@@ -13,6 +13,7 @@
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
+        .clil { color: #1d4ed8; }
         th.pausa, td.pausa { background-color: #fff7e0; }
         .legenda { margin-top: 8px; font-size: {{ max(7, $fontPx - 1) }}px; color: #444; }
     </style>
@@ -80,6 +81,9 @@
                                         <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
                                         <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
                                     @endif
+                                    @if ($lezione->con_clil && $lezione->cattedra->docenteClil)
+                                        <div class="clil">C {{ \Illuminate\Support\Str::limit($lezione->cattedra->docenteClil->cognome, max($limite - 2, 3), '…') }}</div>
+                                    @endif
                                 @endforeach
                                 @foreach ($supporti as $supporto)
                                     <div class="sostegno">S {{ \Illuminate\Support\Str::limit($supporto->docente->cognome, max($limite - 2, 3), '…') }}</div>
@@ -110,6 +114,7 @@
             <span style="{{ \App\Support\ColoriDiscipline::stile($colori[$disciplina->id] ?? ['#ffffff', '#000000']) }} padding: 0 3px;"><strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}</span>@unless ($loop->last) &middot; @endunless
         @endforeach
         &nbsp;|&nbsp; <span class="sostegno"><strong>S</strong> = docente di sostegno in compresenza</span>
+        &nbsp;|&nbsp; <span class="clil"><strong>C</strong> = docente CLIL in compresenza</span>
     </p>
 </body>
 </html>

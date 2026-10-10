@@ -302,6 +302,10 @@ class VincoloTest extends TestCase
         $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'boh']])->assertSessionHasErrors('parametri.modo');
         $utente->post('/vincoli', array_replace($base, ['ambito_livello' => 'docente', 'ambito_ids' => [1]]) + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue']])->assertSessionHasErrors('ambito_livello');
 
+        $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$ita->id], 'modo' => 'non_segue', 'clil_prima' => 'senza', 'clil_dopo' => 'con', 'inverso' => '1']])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$ita->id], 'modo' => 'non_segue', 'clil_prima' => 'boh']])->assertSessionHasErrors('parametri.clil_prima');
+        $this->assertStringContainsString('senza CLIL', (new \App\Constraints\Tipi\D13DisciplinaSeguita)->descrizione(['disciplina_ids' => [$ita->id], 'seguite_ids' => [$ita->id], 'modo' => 'non_segue', 'clil_prima' => 'senza', 'clil_dopo' => 'con', 'inverso' => 1]));
+
         $problema = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli'][0]['parametri'];
         $this->assertSame([$ita->codice], $problema['discipline']);
         $this->assertSame([$sto->codice], $problema['discipline_seguite']);
@@ -311,5 +315,15 @@ class VincoloTest extends TestCase
         $d = new \App\Constraints\Tipi\D13DisciplinaSeguita;
         $this->assertStringContainsString('almeno 2 volte', $d->descrizione(['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue', 'min_coppie' => 2]));
         $this->assertStringContainsString('mai seguita', $d->descrizione(['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'non_segue']));
+    }
+
+    public function test_il_builder_segnala_nel_contratto_le_lezioni_con_clil(): void
+    {
+        $clil = \App\Models\Docente::factory()->create();
+        \App\Models\Cattedra::factory()->create(['ore' => 3, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+
+        $lezioni = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['lezioni'];
+
+        $this->assertSame([true, false, false], array_column($lezioni, 'clil'));
     }
 }

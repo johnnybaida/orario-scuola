@@ -38,7 +38,7 @@ class OrarioPdfExporter
             $lezioni = Lezione::query()
                 ->where('orario_id', $orario->id)
                 ->whereHas('cattedra', fn ($q) => $q->where('classe_id', $classe->id))
-                ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'aula', 'slot')
+                ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula', 'slot')
                 ->get();
             $cambi = app(SpostamentiAula::class)->cambi($lezioni);
 
@@ -79,7 +79,7 @@ class OrarioPdfExporter
     public function docenti(Orario $orario, ?Collection $docenti = null): PdfDocument
     {
         $lezioni = Lezione::query()->where('orario_id', $orario->id)
-            ->with('cattedra.classe', 'cattedra.disciplina', 'aula')->get()
+            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')->get()
             ->flatMap(fn (Lezione $l) => array_map(fn ($id) => [$id, $l], $l->docentiIds()))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));   // anche il docente CLIL in compresenza
         $compresenze = $orario->compresenzeSostegno()->with('classe')->get()->groupBy('docente_id');
 
@@ -95,7 +95,7 @@ class OrarioPdfExporter
                 'titolo' => $this->conSede("Orario docente {$docente->nomeCompleto()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->con_clil && $l->cattedra->docente_clil_id === $docente->id ? ' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->con_clil && $l->cattedra->docente_clil_id === $docente->id ? ' (CLIL)' : '').($l->con_clil && $l->cattedra->docenteClil && $l->cattedra->docente_clil_id !== $docente->id ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
                 'senzaOra' => $this->senzaOra($docente->cattedre()->with('disciplina', 'classe')->get(), true),
@@ -114,7 +114,7 @@ class OrarioPdfExporter
     public function aule(Orario $orario, ?Collection $aule = null): PdfDocument
     {
         $lezioni = Lezione::query()->where('orario_id', $orario->id)
-            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'aula')->get();
+            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')->get();
 
         $aule ??= Aula::query()->orderBy('nome')->get()->filter(fn (Aula $a) => $lezioni->contains(fn (Lezione $l) => $this->inAula($l, $a)))->values();
 
@@ -125,7 +125,7 @@ class OrarioPdfExporter
                 'titolo' => $this->conSede("Orario aula {$aula->nomeConPiano()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys())->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto(),
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->con_clil && $l->cattedra->docenteClil ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : ''),
                 'sostegni' => [],
                 'laboratori' => app(Laboratori::class)->elenco(null, $aula->id),
             ];
@@ -204,7 +204,7 @@ class OrarioPdfExporter
         $classi = Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get();
         $lezioni = Lezione::query()
             ->where('orario_id', $orario->id)
-            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'aula')
+            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')
             ->get();
         $compresenze = $orario->compresenzeSostegno()->with('docente')->get();
 
