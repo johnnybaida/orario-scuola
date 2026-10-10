@@ -671,7 +671,7 @@ La generazione avviene **in background**: avvia il calcolo e segui l'avanzamento
 <!-- permesso: gestisci-anagrafica -->
 1. Controlla in alto lo stato del **worker di coda**, il programma che esegue i calcoli. Se è "fermo", premi **Avvia**: senza worker le generazioni restano in coda. Quando premi **Avvia generazione** il worker, se è fermo, parte da solo (compare un messaggio); se non riesce a partire vedi il motivo. Per fermarlo usa **Ferma**: termina prima il job in corso. Se lo vedi "in arresto" puoi già riavviarlo.
 2. Premi **Nuova generazione** e compila:
-   - **Tempo limite** (10–900 secondi): per quanto tempo il generatore può cercare un orario migliore. Più tempo, orari generalmente migliori.
+   - **Tempo limite** (10–900 secondi, predefinito 300): per quanto tempo il generatore può cercare un orario migliore. Più tempo, orari generalmente migliori.
    - **Nome dell'orario** (facoltativo): per riconoscerlo poi nell'elenco (es. «Orario di base»). Senza nome si chiamerà «Orario v1», «Orario v2», …
    - **Seed**: si sceglie da un elenco. **Casuale** produce un orario diverso a ogni generazione; scegliendo un seed già usato (elencato con il nome dell'orario che ha prodotto) e a dati invariati si **riottiene lo stesso orario**. Il seed usato viene sempre registrato.
 <!-- /permesso -->

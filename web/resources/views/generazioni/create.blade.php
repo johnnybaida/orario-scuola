@@ -10,7 +10,7 @@
         <div class="form-colonne bg-white border border-gray-200 rounded-lg p-6">
             <div>
                 <label for="time_limit_s" class="block text-sm font-medium text-gray-700">Tempo limite (secondi)</label>
-                <input type="number" name="time_limit_s" id="time_limit_s" min="10" max="900" value="{{ old('time_limit_s', 120) }}" required class="mt-1 block w-full">
+                <input type="number" name="time_limit_s" id="time_limit_s" min="10" max="900" value="{{ old('time_limit_s', 300) }}" required class="mt-1 block w-full">
             </div>
             <div>
                 <label for="nome" class="block text-sm font-medium text-gray-700">Nome dell'orario (facoltativo)</label>
