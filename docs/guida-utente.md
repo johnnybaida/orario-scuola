@@ -805,6 +805,8 @@ Da questa pagina puoi inoltre:
 
 ### Il tabellone (classi e aule)
 
+Nei riquadri del tabellone, oltre alla materia e al docente, compare in blu **«C Cognome»** quando l'ora è in **compresenza con il docente CLIL** (il nome intero è nel suggerimento al passaggio del mouse).
+
 Dalla scheda di un orario, **Tabellone (classi / aule)** apre tutto l'orario in una pagina, con un **colore per ogni disciplina** (la legenda è in fondo) e due modi di organizzarlo, che scegli in alto:
 
 - **Per classe**: una riga per classe, come il tabellone tradizionale. L'ultima colonna conta i **cambi d'aula** di ogni classe.

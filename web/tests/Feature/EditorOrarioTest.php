@@ -771,4 +771,14 @@ class EditorOrarioTest extends TestCase
         $referente->getJson("/orari/{$orario->id}/lezioni/{$lezione->id}/dettaglio")->assertStatus(422);
         $referente->get("/orari/{$orario->id}/tabellone")->assertOk()->assertDontSee('js-modifica-lezione', false);
     }
+
+    public function test_il_tabellone_web_mostra_il_docente_clil_nelle_ore_in_compresenza(): void
+    {
+        [$orario, $lezione, , , , $clil] = $this->oraConSostegno();
+        $referente = $this->actingAs($this->referente());
+
+        $referente->get("/orari/{$orario->id}/tabellone")->assertOk()->assertDontSee('Docente CLIL in compresenza');
+        $lezione->update(['con_clil' => true]);
+        $referente->get("/orari/{$orario->id}/tabellone")->assertOk()->assertSee('Docente CLIL in compresenza: '.$clil->nomeCompleto(), false);
+    }
 }

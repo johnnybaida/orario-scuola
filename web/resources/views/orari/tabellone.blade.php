@@ -108,6 +108,9 @@
                                                     <div class="font-semibold">{{ $d->codice }}</div>
                                                 @endif
                                                 <div class="text-[10px] opacity-80">{{ \Illuminate\Support\Str::limit($lezione->docenteEffettivo()->cognome, 9, '…') }}</div>
+                                                @if ($clil = $lezione->docenteClilEffettivo())
+                                                    <div class="truncate text-[10px] font-medium text-blue-700" title="Docente CLIL in compresenza: {{ $clil->nomeCompleto() }}">C {{ \Illuminate\Support\Str::limit($clil->cognome, 8, '…') }}</div>
+                                                @endif
                                                 @if ($cambio && ! $aulaMode)
                                                     <div class="truncate text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
                                                 @endif
