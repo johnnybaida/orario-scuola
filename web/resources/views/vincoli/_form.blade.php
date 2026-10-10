@@ -146,6 +146,20 @@
     </label>
 </div>
 
+<div data-parametri-per="T4_ORE_GIORNO">
+    <p class="text-sm text-gray-500">Ambito <strong>Docente</strong> (quelli scelti) oppure <strong>Globale</strong> (tutti i docenti). Compila uno o entrambi i limiti. Contano lezioni e sostegno; i giorni in cui il docente non può esserci (indisponibilità) non contano.</p>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore minime al giorno
+        <x-info testo="Ogni giorno in cui il docente può esserci deve avere almeno queste ore (1 = ogni docente viene tutti i giorni). Se un docente ha meno ore della settimana che giorni disponibili, con la severità Rigido il minimo si riduce da solo; con Preferenziale il generatore le distribuisce sul maggior numero di giorni possibile." />
+    </label>
+    <input type="number" name="parametri[min_ore]" min="1" max="9" value="{{ $parametri['min_ore'] ?? 1 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore massime al giorno
+        <x-info testo="Tetto giornaliero (vuoto = nessun tetto). Con il tipo Rigido la generazione diventa infattibile se le ore settimanali del docente superano tetto × giorni disponibili." />
+    </label>
+    <input type="number" name="parametri[max_ore]" min="1" max="9" value="{{ $parametri['max_ore'] ?? '' }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <div data-parametri-per="T11_ORE_IN_FASCIA">
     <p class="text-sm text-gray-500">Ambito <strong>Docente</strong>: scegli i docenti. Ciascuno deve avere almeno questo numero di ore (lezioni o sostegno) tra gli slot selezionati.</p>
     <label class="block text-sm font-medium text-gray-700 mt-2">Ore minime negli slot

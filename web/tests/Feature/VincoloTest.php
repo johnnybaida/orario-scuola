@@ -326,4 +326,22 @@ class VincoloTest extends TestCase
 
         $this->assertSame([true, false, false], array_column($lezioni, 'clil'));
     }
+
+    public function test_t4_ore_minime_e_massime_al_giorno_per_docenti_o_globale(): void
+    {
+        $docente = \App\Models\Docente::factory()->create();
+        $utente = $this->actingAs($this->referente());
+        $base = ['tipo' => 'T4_ORE_GIORNO', 'severita' => 'preferenziale', 'peso' => 50];
+
+        $utente->post('/vincoli', $base + ['ambito_livello' => 'globale', 'parametri' => ['min_ore' => 1, 'max_ore' => '']])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['ambito_livello' => 'docente', 'ambito_ids' => [$docente->id], 'parametri' => ['min_ore' => 1, 'max_ore' => 4]])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['ambito_livello' => 'globale', 'parametri' => ['min_ore' => '', 'max_ore' => '']])->assertSessionHasErrors('parametri.min_ore');
+        $utente->post('/vincoli', $base + ['ambito_livello' => 'globale', 'parametri' => ['min_ore' => 3, 'max_ore' => 2]])->assertSessionHasErrors('parametri.max_ore');
+        $utente->post('/vincoli', $base + ['ambito_livello' => 'classe', 'ambito_ids' => [1], 'parametri' => ['min_ore' => 1]])->assertSessionHasErrors('ambito_livello');
+
+        $this->assertSame('Ogni giorno in cui il docente può esserci: almeno 1 ora/e e al massimo 4 ora/e al giorno.',
+            (new \App\Constraints\Tipi\T4OreGiorno)->descrizione(['min_ore' => 1, 'max_ore' => 4]));
+        $globale = collect(app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli'])->firstWhere('ambito.livello', 'globale');
+        $this->assertSame(1, $globale['parametri']['min_ore']);
+    }
 }

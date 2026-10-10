@@ -26,6 +26,7 @@ def applica(ctx, sostegno_lista):
     diagnostica = []
     risultato = []
     presenze = {}   # (docente, slot) -> presenze in compresenza nelle varie classi
+    ctx.sostegno_ore_docente = {}   # docente -> ore di sostegno assegnate (le legge T4)
     ctx.sostegno_docente = presenze   # (docente, slot) -> presenze in sostegno: le legge T11
     ctx.sostegno_presenze = {}   # classe -> {'slot': {slot: [presente]}, 'ore': ore totali dei docenti}: lo legge S5
 
@@ -55,6 +56,8 @@ def applica(ctx, sostegno_lista):
 
         per_slot = ctx.sostegno_presenze.setdefault(classe_id, {'slot': {}, 'ore': 0})
         per_slot['ore'] += sum(a['ore'] for a in assegnazioni)
+        for a in assegnazioni:
+            ctx.sostegno_ore_docente[a['id']] = ctx.sostegno_ore_docente.get(a['id'], 0) + a['ore']
         for docente_id, vars_slot in copre_classe.items():
             for s, v in vars_slot.items():
                 presenze.setdefault((docente_id, s), []).append(v)

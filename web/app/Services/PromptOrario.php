@@ -270,6 +270,8 @@ class PromptOrario
             'D13_DISCIPLINA_SEGUITA' => (($p['clil_prima'] ?? 'tutte') !== 'tutte' || ($p['clil_dopo'] ?? 'tutte') !== 'tutte' ? '[lezioni di partenza: '.($p['clil_prima'] ?? 'tutte').' CLIL; lezioni che seguono: '.($p['clil_dopo'] ?? 'tutte').' CLIL] ' : '').(! empty($p['inverso']) ? '[anche nell\'ordine inverso] ' : '').(($p['modo'] ?? 'segue') === 'non_segue'
                 ? "{$disciplina}: mai seguita nell'ora immediatamente dopo (stesso giorno) da ".\App\Models\Disciplina::query()->whereIn('id', $p['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ')
                 : "{$disciplina}: ".(($p['min_coppie'] ?? null) ? "almeno {$p['min_coppie']} volte nella settimana (per classe)" : 'ogni volta')." l'ora immediatamente dopo (stesso giorno, le pause non interrompono) è di ".\App\Models\Disciplina::query()->whereIn('id', $p['seguite_ids'] ?? [])->orderBy('nome')->pluck('nome')->implode(', ')),
+            'T4_ORE_GIORNO' => 'ogni docente scelto: '
+                .collect([($p['min_ore'] ?? '') !== '' ? "almeno {$p['min_ore']} ora/e al giorno in ogni giorno in cui può esserci (le indisponibilità non contano)" : null, ($p['max_ore'] ?? '') !== '' ? "al massimo {$p['max_ore']} ora/e al giorno" : null])->filter()->implode('; '),
             'T11_ORE_IN_FASCIA' => "ogni docente scelto deve fare almeno {$p['min_ore']} ora/e (lezioni o sostegno, in qualunque classe) in queste ore: ".$ore($p['slot_ids'] ?? []),
             'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
             'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'

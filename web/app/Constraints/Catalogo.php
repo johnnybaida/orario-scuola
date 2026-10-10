@@ -12,6 +12,7 @@ use App\Constraints\Tipi\S5DistribuzioneSostegno;
 use App\Constraints\Tipi\T11OreInFascia;
 use App\Constraints\Tipi\T2GiornoLibero;
 use App\Constraints\Tipi\T3MaxOreBuche;
+use App\Constraints\Tipi\T4OreGiorno;
 
 class Catalogo
 {
@@ -25,6 +26,7 @@ class Catalogo
         'D13_DISCIPLINA_SEGUITA' => D13DisciplinaSeguita::class,
         'T2_GIORNO_LIBERO' => T2GiornoLibero::class,
         'T11_ORE_IN_FASCIA' => T11OreInFascia::class,
+        'T4_ORE_GIORNO' => T4OreGiorno::class,
         'T3_MAX_ORE_BUCHE' => T3MaxOreBuche::class,
         'C5_SPOSTAMENTI_PIANO' => C5SpostamentiPiano::class,
     ];
