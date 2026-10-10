@@ -26,6 +26,7 @@ def applica(ctx, sostegno_lista):
     diagnostica = []
     risultato = []
     presenze = {}   # (docente, slot) -> presenze in compresenza nelle varie classi
+    ctx.sostegno_docente = presenze   # (docente, slot) -> presenze in sostegno: le legge T11
     ctx.sostegno_presenze = {}   # classe -> {'slot': {slot: [presente]}, 'ore': ore totali dei docenti}: lo legge S5
 
     for entry in sostegno_lista:

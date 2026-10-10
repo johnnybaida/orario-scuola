@@ -268,4 +268,25 @@ class VincoloTest extends TestCase
         $utente->put("/vincoli/{$vincolo->id}", ['tipo' => 'T2_GIORNO_LIBERO', 'ambito_livello' => 'globale', 'parametri' => ['n_giorni' => 1], 'severita' => 'rigido', 'attivo' => '0'])->assertSessionHasNoErrors();
         $this->assertFalse($vincolo->fresh()->attivo);
     }
+
+    public function test_t11_ore_in_fascia_vale_per_i_docenti_scelti_con_slot_e_ore_minime(): void
+    {
+        $docente = \App\Models\Docente::factory()->create();
+        $slot = \App\Models\Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        $utente = $this->actingAs($this->referente());
+        $base = ['tipo' => 'T11_ORE_IN_FASCIA', 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id], 'severita' => 'rigido'];
+
+        $utente->get('/vincoli/create')->assertOk()->assertSee('T11_ORE_IN_FASCIA', false)->assertSee('Ore minime in una fascia', false);
+        $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 1, 'slot_ids' => [$slot->id]]])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 0, 'slot_ids' => [$slot->id]]])->assertSessionHasErrors('parametri.min_ore');
+        $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 1]])->assertSessionHasErrors('parametri.slot_ids');
+        $utente->post('/vincoli', ['ambito_livello' => 'globale', 'ambito_ids' => []] + $base + ['parametri' => ['min_ore' => 1, 'slot_ids' => [$slot->id]]])->assertSessionHasErrors('ambito_livello');
+
+        $vincolo = \App\Models\Vincolo::query()->where('tipo', 'T11_ORE_IN_FASCIA')->firstOrFail();
+        $problema = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli'][0];
+        $this->assertSame([$docente->id], $problema['ambito']['ids']);
+        $this->assertSame([$slot->id], $problema['parametri']['slot_ids']);
+        $this->assertSame(1, $problema['parametri']['min_ore']);
+        $this->assertSame('Almeno 2 ore tra gli slot selezionati (3).', (new \App\Constraints\Tipi\T11OreInFascia)->descrizione(['min_ore' => 2, 'slot_ids' => [1, 2, 3]]));
+    }
 }

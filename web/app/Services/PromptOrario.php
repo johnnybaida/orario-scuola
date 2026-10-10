@@ -267,6 +267,7 @@ class PromptOrario
                 ($p['max_insieme'] ?? '') !== '' ? "al massimo {$p['max_insieme']} docente/i di sostegno insieme nella stessa classe e ora" : null,
                 ($p['tolleranza_giorno'] ?? '') !== '' ? "ore di sostegno distribuite nella settimana (per classe, al massimo la media sui giorni in cui un docente può esserci + {$p['tolleranza_giorno']} ora/e al giorno)" : null,
             ])->filter()->implode('; '),
+            'T11_ORE_IN_FASCIA' => "ogni docente scelto deve fare almeno {$p['min_ore']} ora/e (lezioni o sostegno, in qualunque classe) in queste ore: ".$ore($p['slot_ids'] ?? []),
             'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
             'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'
                 ? "{$disciplina} NON può essere collocata in queste ore: ".$ore($p['slot_ids'] ?? [])

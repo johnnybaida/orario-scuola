@@ -106,22 +106,17 @@
         <option value="vietata" @selected(($parametri['tipo'] ?? null) === 'vietata')>Vietata</option>
         <option value="preferita" @selected(($parametri['tipo'] ?? null) === 'preferita')>Preferita</option>
     </select>
-    <label class="block text-sm font-medium text-gray-700 mt-2">Slot <span class="text-destructive" aria-hidden="true">*</span></label>
-    {{-- Una riga per giorno: il nome del giorno e le sue ore; «Tutte» spunta l'intero giorno. --}}
-    <div class="space-y-1 rounded border border-gray-200 p-2" data-slot-giorni>
-        @foreach ($slot as $giorno => $slotGiorno)
-            <div class="flex items-center gap-3 text-xs">
-                <span class="w-20 shrink-0 font-medium text-gray-700">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</span>
-                @foreach ($slotGiorno as $s)
-                    <label class="flex items-center gap-1">
-                        <input type="checkbox" name="parametri[slot_ids][]" value="{{ $s->id }}" @checked(in_array($s->id, $parametri['slot_ids'] ?? []))>
-                        {{ $s->ordine }}ª
-                    </label>
-                @endforeach
-                <button type="button" data-giorno-tutto class="ml-auto text-gray-500 underline cursor-pointer">Tutte</button>
-            </div>
-        @endforeach
-    </div>
+    @include('vincoli._slot')
+</div>
+
+<div data-parametri-per="T11_ORE_IN_FASCIA">
+    <p class="text-sm text-gray-500">Ambito <strong>Docente</strong>: scegli i docenti. Ciascuno deve avere almeno questo numero di ore (lezioni o sostegno) tra gli slot selezionati.</p>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore minime negli slot
+        <x-info testo="Quante ore, almeno, ogni docente scelto deve fare negli slot selezionati qui sotto (in qualunque classe e disciplina; contano anche le ore di sostegno). 1 = almeno un'ora in quella fascia." />
+    </label>
+    <input type="number" name="parametri[min_ore]" required min="1" max="30" value="{{ $parametri['min_ore'] ?? 1 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    @include('vincoli._slot', ['etichettaSlot' => 'Slot in cui devono fare le ore'])
 </div>
 
 <div data-parametri-per="T2_GIORNO_LIBERO">

@@ -8,6 +8,7 @@ use App\Constraints\Tipi\D3MaxOreGiorno;
 use App\Constraints\Tipi\D6FasciaOraria;
 use App\Constraints\Tipi\D12BloccoMaxConsecutivo;
 use App\Constraints\Tipi\S5DistribuzioneSostegno;
+use App\Constraints\Tipi\T11OreInFascia;
 use App\Constraints\Tipi\T2GiornoLibero;
 use App\Constraints\Tipi\T3MaxOreBuche;
 
@@ -21,6 +22,7 @@ class Catalogo
         'D12_BLOCCO_MAX_CONSECUTIVO' => D12BloccoMaxConsecutivo::class,
         'S5_DISTRIBUZIONE_SOSTEGNO' => S5DistribuzioneSostegno::class,
         'T2_GIORNO_LIBERO' => T2GiornoLibero::class,
+        'T11_ORE_IN_FASCIA' => T11OreInFascia::class,
         'T3_MAX_ORE_BUCHE' => T3MaxOreBuche::class,
         'C5_SPOSTAMENTI_PIANO' => C5SpostamentiPiano::class,
     ];
