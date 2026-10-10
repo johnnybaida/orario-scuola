@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['orario_id', 'docente_id', 'classe_id', 'slot_id', 'codice_anonimo'])]
+#[Fillable(['orario_id', 'docente_id', 'classe_id', 'slot_id', 'codice_anonimo', 'docente_originale_id'])]
 class CompresenzaSostegno extends Model
 {
     use \App\Models\Concerns\PerSedeVia;
@@ -23,6 +23,11 @@ class CompresenzaSostegno extends Model
     public function docente(): BelongsTo
     {
         return $this->belongsTo(Docente::class);
+    }
+
+    public function docenteOriginale(): BelongsTo
+    {
+        return $this->belongsTo(Docente::class, 'docente_originale_id');
     }
 
     public function classe(): BelongsTo

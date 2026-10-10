@@ -70,7 +70,7 @@
                                              draggable="{{ $modificabile && ! $lezione->bloccata ? 'true' : 'false' }}">
                                             @if ($modificabile)@include('orari._pulsante-modifica')@endif
                                             <div class="font-medium">{{ $lezione->cattedra->disciplina->nome }}</div>
-                                            <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
+                                            <div class="text-gray-500">{{ $lezione->docenteEffettivo()->cognome }}</div>
                                             {{-- L'aula si mostra se non è quella della classe, oppure se è cambiata rispetto all'ora precedente (freccia →). --}}
                                             @php($cambioAula = $cambiAula[$lezione->id] ?? null)
                                             @if ($aulaLezione = $lezione->aulaDaMostrare() ?? $cambioAula['a'] ?? null)
@@ -95,8 +95,8 @@
                                                     {{ $lezione->bloccata ? 'Sblocca' : 'Blocca' }}
                                                 </button>
                                             @endif
-                                            @if ($lezione->con_clil && $lezione->cattedra->docenteClil)
-                                                <div class="mt-0.5 text-[10px] text-green-700">● CLIL: {{ $lezione->cattedra->docenteClil->nomeCompleto() }}</div>
+                                            @if ($lezione->docenteClilEffettivo())
+                                                <div class="mt-0.5 text-[10px] text-green-700">● CLIL: {{ $lezione->docenteClilEffettivo()->nomeCompleto() }}</div>
                                             @endif
                                             @if ($compresenze->get($slot->id))
                                                 <div class="mt-1 pt-1 border-t border-blue-200 text-[10px] text-green-700">

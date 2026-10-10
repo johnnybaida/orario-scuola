@@ -37,7 +37,7 @@ La **Dashboard** ti dice a che punto sei:
 
 **Eliminare.** Nelle liste si spuntano le righe e si usa *Elimina selezionati*. Se l'eliminazione porta via anche altri dati (per esempio eliminando un docente spariscono le sue cattedre e le sue lezioni negli orari, eliminando una sede tutto ciò che contiene), l'avviso **te lo elenca con i numeri** e ti chiede una **seconda conferma**. Quello che resta ma perde un collegamento (per esempio le classi di un'aula eliminata) è indicato a parte. Non si può annullare.
 
-Accanto ad **Aiuto**, a sinistra, c'è il pulsante **Schermo intero**: mette tutta la pagina a schermo intero (utile per le griglie e i tabelloni larghi); lo stesso pulsante, o **Esc**, ripristina la finestra. Se il browser non lo permette il pulsante non compare.
+Accanto ad **Aiuto**, a sinistra, c'è il pulsante **Schermo intero**: mette tutta la pagina a schermo intero (utile per le griglie e i tabelloni larghi); lo stesso pulsante, o **Esc**, ripristina la finestra. Se il browser non lo permette il pulsante non compare. **Cambiando pagina il browser esce comunque dallo schermo intero** (è un limite di tutti i siti web, non si può evitare): se vuoi restarci mentre navighi usa lo schermo intero del browser, **F11** (Windows e Linux) o **Ctrl + Cmd + F** (Mac).
 
 In alto a destra, sotto l'icona con le tue **iniziali**, c'è il **menu del profilo**: mostra il tuo nome e ruolo, le **Impostazioni** (per chi può consultare), le voci di amministrazione (*Utenze* e *Dati* per l'amministratore, *Registro attività* per amministratore e dirigente scolastico) e **Esci**.
 
@@ -846,8 +846,18 @@ Ogni riga dice classe, giorno e ora e, quando il problema coinvolge altre classi
 | **Tabellone per classe** | una lezione su un'altra ora **lungo la riga della sua classe** (rilasciarla in un'altra riga non fa nulla) |
 | **Tabellone per aula** | su un'altra aula nella stessa ora (cambio di aula) o su un'altra ora (spostamento) |
 
+### Sostituire un docente (assenze lunghe)
+
+Quando un docente si assenta per un periodo, **non serve rigenerare l'orario**: si passano le sue ore a un supplente, si stampano i PDF aggiornati e, al rientro, si torna all'orario di prima.
+
+1. Nella pagina **Orari**, sull'orario in vigore, premi **Sostituisci un docente** (finestra). Scegli il **docente da sostituire** e il **supplente**, **cosa** sostituire (lezioni, ore CLIL, ore di sostegno) ed eventualmente solo alcuni **giorni**. Lascia **Crea una copia dell'orario**: l'orario di partenza non cambia e nasce una **nuova bozza** («Orario … – Verdi per Rossi»). Se l'orario è già una bozza puoi anche applicare la sostituzione direttamente a lui.
+2. Il supplente prende **tutte le ore in cui è libero**. Le ore in cui è già impegnato (altra lezione, altro sostegno, indisponibilità) **restano all'assente** e compaiono nel **registro delle modifiche** («Sostituzione non applicata: …»): le sistemi una per una con il pulsante **✎ → Sostituto**, magari scegliendo un altro supplente per quell'ora.
+3. Controlla la copia (**Controllo**), poi **approvala e pubblicala** come ogni orario. I **PDF** mostrano il supplente («Verdi (per Rossi)») e, nei fogli del supplente, le ore subentrate.
+4. **Al rientro**, da **Orari**, sulla copia pubblicata premi **Rientro: ripubblica «…»**: l'orario originale torna pubblicato e la copia va in archivio; spunta **elimina questa copia** se non ti serve più. (Solo chi approva gli orari; un orario archiviato si può anche **Ripubblicare** a mano.)
+
 **Modifica di quest'ora (✎).** Su ogni riquadro, in tutte le viste, c'è il pulsante **✎**: apre una finestra con tutto ciò che riguarda quell'ora della classe.
 - **Docente**: le cattedre della stessa classe e disciplina (per esempio un supplente). Non si può scegliere un docente qualsiasi: avrebbe un monte ore diverso da quello previsto dal quadro.
+- **Sostituto**: un altro docente (qualunque) fa quest'ora al posto del titolare, e lo stesso per il docente CLIL; scegli «nessuno» per tornare al titolare. Sono grigi i docenti non liberi in quell'ora, con il motivo (si scelgono solo con **Conflitti provvisori**). La cattedra non cambia.
 - **Aula**, per le discipline che richiedono un'aula speciale.
 - **Compresenza CLIL**: attiva o toglie il docente CLIL della cattedra per quell'ora.
 - **Sostegno 1, 2, 3**: fino a tre docenti di sostegno presenti in quell'ora nella classe; scegli «nessuno» per toglierli. Nell'elenco i docenti già occupati (in lezione, in un'altra classe o indisponibili) sono grigi con il motivo; si possono scegliere solo con **Conflitti provvisori** attivi, e restano segnalati nel **Controllo**.
@@ -878,7 +888,7 @@ I PDF di classe, docente e aula sono su fogli **A3**, così anche gli orari con 
 - **Docente CLIL nei PDF**: compare in tutti, nelle ore in cui è in compresenza. Nei fogli di classe, di docente (anche nel foglio del titolare, sotto la sua lezione) e di aula come «+ Nome Cognome (CLIL)»; nel tabellone come «C Cognome» in blu, con la legenda in fondo.
 - **Origine dell'orario**: in tutti i PDF, in basso a sinistra e in piccolo, c'è la nota «Orario #n · seed …»: l'identificativo dell'orario e il seed con cui è stato generato, per risalire da dove viene (e rigenerarlo uguale).
 - **Celle del tabellone**: il carattere e l'altezza delle righe si adattano al numero di classi, così i nomi sono più leggibili. Nel tabellone per classe ogni cella mostra anche l'**aula** (nome abbreviato e piano: PT = piano terra, P1 = 1° piano…), in **grassetto** quando la classe cambia aula rispetto all'ora prima; nel tabellone per aula ogni cella ha classe, disciplina e **docente**. I nomi più lunghi restano abbreviati con «…».
-- **Tabellone generale**: un solo foglio A2, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
+- **Tabellone generale**: un solo foglio A1, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
 ## Ruoli e permessi
 

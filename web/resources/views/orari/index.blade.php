@@ -47,7 +47,7 @@
                             </h2>
                             <p class="mt-0.5 text-sm text-gray-500">
                                 {{ $orario->periodo->nome }} · versione {{ $orario->versione }} · creato il {{ $orario->created_at?->format('d/m/Y H:i') }}@if ($orario->creatoDa) da {{ $orario->creatoDa->name }}@endif
-                                · punteggio {{ $orario->punteggio }}
+                                · punteggio {{ $orario->punteggio }}@if ($orario->origine) · copia di «{{ $orario->origine->etichetta() }}»@endif
                             </p>
                             @php($c = $conteggi[$orario->id] ?? ['errori' => 0, 'avvisi' => 0])
                             <p class="mt-1 text-sm">
@@ -108,12 +108,21 @@
                                         <form method="POST" action="{{ route('orari.stato', $orario) }}">
                                             @csrf
                                             <input type="hidden" name="stato" value="{{ $nuovoStato }}">
-                                            <button type="submit" class="{{ in_array($nuovoStato, ['in_revisione', 'approvato', 'pubblicato']) ? $principale : $pulsante }}">{{ \App\Support\StatiOrario::AZIONI[$nuovoStato] }}</button>
+                                            <button type="submit" class="{{ in_array($nuovoStato, ['in_revisione', 'approvato', 'pubblicato']) ? $principale : $pulsante }}">{{ $nuovoStato === 'pubblicato' && $orario->stato === 'archiviato' ? 'Ripubblica' : \App\Support\StatiOrario::AZIONI[$nuovoStato] }}</button>
                                         </form>
                                     @endforeach
                                     @can('gestisci-anagrafica')
                                         <a data-modale href="{{ route('orari.duplica.form', $orario) }}" class="{{ $pulsante }}">Duplica</a>
+                                        <a data-modale href="{{ route('orari.sostituzione.form', $orario) }}" class="{{ $pulsante }}">Sostituisci un docente</a>
                                     @endcan
+                                    @if ($orario->origine_id && $orario->origine && auth()->user()->can('approva-orari'))
+                                        <form method="POST" action="{{ route('orari.rientro', $orario) }}" class="flex flex-wrap items-center gap-2"
+                                              onsubmit="return confirm('Rientro del docente: l\'orario originale torna pubblicato. Confermi?')">
+                                            @csrf
+                                            <button type="submit" class="{{ $pulsante }}" title="Ripubblica l'orario da cui questa copia è stata creata">Rientro: ripubblica «{{ \Illuminate\Support\Str::limit($orario->origine->etichetta(), 24) }}»</button>
+                                            <label class="flex items-center gap-1 text-xs text-gray-600"><input type="checkbox" name="elimina_copia" value="1"> elimina questa copia</label>
+                                        </form>
+                                    @endif
                                 </div>
                             </section>
                         @endif

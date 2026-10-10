@@ -5,11 +5,11 @@
     <style>
         @page { margin: 8mm; }
         body { font-family: sans-serif; font-size: {{ $fontPx }}px; }
-        h1 { font-size: 16px; margin: 0 0 8px 0; }
+        h1 { font-size: 24px; margin: 0 0 10px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { border: 1px solid #999; padding: {{ $paddingPx }}px 2px; text-align: center; vertical-align: middle; overflow: hidden; line-height: 1.15; }
         th { background: #eee; }
-        .classe { width: {{ $per === 'aula' ? 125 : 52 }}px; background: #f5f5f5; font-weight: bold; }
+        .classe { width: {{ $per === 'aula' ? 176 : 74 }}px; background: #f5f5f5; font-weight: bold; }
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
@@ -78,16 +78,16 @@
                                     @if ($per === 'aula')
                                         <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->classe->nomeCompleto(), $limite, '…') }}</div>
                                         <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
-                                        <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
+                                        <div>{{ \Illuminate\Support\Str::limit($lezione->docenteEffettivo()->cognome, $limite, '…') }}</div>
                                     @else
                                         <div class="materia">{{ \Illuminate\Support\Str::limit($lezione->cattedra->disciplina->codice, $limite, '…') }}</div>
-                                        <div>{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, $limite, '…') }}</div>
+                                        <div>{{ \Illuminate\Support\Str::limit($lezione->docenteEffettivo()->cognome, $limite, '…') }}</div>
                                     @endif
                                     @if ($per === 'classe' && ($aulaCella = $lezione->aulaDaMostrare() ?? ($cambi[$lezione->id]['a'] ?? null)))
                                         <div class="aula" @if (isset($cambi[$lezione->id])) style="font-weight: bold;" @endif>{{ str_contains($aulaCella->nome, ' ') ? \App\Support\NomiBrevi::aula($aulaCella->nome, max($limite - 5, 3)) : \Illuminate\Support\Str::limit($aulaCella->nome, max($limite - 5, 3), '…') }}@if ($aulaCella->etichettaPiano(true)) {{ $aulaCella->etichettaPiano(true) }}@endif</div>
                                     @endif
-                                    @if ($lezione->con_clil && $lezione->cattedra->docenteClil)
-                                        <div class="clil">C {{ \Illuminate\Support\Str::limit($lezione->cattedra->docenteClil->cognome, max($limite - 2, 3), '…') }}</div>
+                                    @if ($lezione->docenteClilEffettivo())
+                                        <div class="clil">C {{ \Illuminate\Support\Str::limit($lezione->docenteClilEffettivo()->cognome, max($limite - 2, 3), '…') }}</div>
                                     @endif
                                 @endforeach
                                 @foreach ($supporti as $supporto)

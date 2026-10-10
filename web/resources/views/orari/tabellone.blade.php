@@ -97,7 +97,7 @@
                                             @php($trascinabile = $modificabile && ! $lezione->bloccata)
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
-                                                 title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->cattedra->docente->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
+                                                 title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->docenteEffettivo()->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
                                                  class="relative flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
                                                 @if ($modificabile)@include('orari._pulsante-modifica', ['posizione' => 'absolute right-0 top-0'])@endif
                                                 @if ($aulaMode)
@@ -107,7 +107,7 @@
                                                 @else
                                                     <div class="font-semibold">{{ $d->codice }}</div>
                                                 @endif
-                                                <div class="text-[10px] opacity-80">{{ \Illuminate\Support\Str::limit($lezione->cattedra->docente->cognome, 9, '…') }}</div>
+                                                <div class="text-[10px] opacity-80">{{ \Illuminate\Support\Str::limit($lezione->docenteEffettivo()->cognome, 9, '…') }}</div>
                                                 @if ($cambio && ! $aulaMode)
                                                     <div class="truncate text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
                                                 @endif

@@ -190,10 +190,10 @@ class EditorLezione
         }
 
         $esclusioni = $esistente ? [$lezione->id, $esistente->id] : [$lezione->id];
-        $verifica = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni, $lezione->con_clil);
+        $verifica = $this->verificaPosizionamento($orarioId, $lezione->cattedra, $slotDestinazioneId, $esclusioni, $lezione->con_clil, $lezione);
         if ($esistente) {
             $esistente->load('cattedra');
-            $altra = $this->verificaPosizionamento($orarioId, $esistente->cattedra, $lezione->slot_id, $esclusioni, $esistente->con_clil);
+            $altra = $this->verificaPosizionamento($orarioId, $esistente->cattedra, $lezione->slot_id, $esclusioni, $esistente->con_clil, $esistente);
             $verifica = ['rigidi' => [...$verifica['rigidi'], ...$altra['rigidi']], 'conflitti' => [...$verifica['conflitti'], ...$altra['conflitti']]];
         }
 
@@ -274,6 +274,8 @@ class EditorLezione
 
         $lezione->update([
             'cattedra_id' => $nuovaCattedra->id,
+            'docente_sostituto_id' => null,   // il docente lo decide la nuova cattedra
+            'clil_sostituto_id' => null,
             'con_clil' => false,   // la compresenza CLIL appartiene alla cattedra di prima
             'aula_id' => $this->risolviAula($nuovaCattedra, $orarioId, $lezione->slot_id, [$lezione->id], $lezione->aula_id),
         ]);
@@ -308,9 +310,10 @@ class EditorLezione
 
         $clil = null;
         if ($c->docenteClil) {
-            $c->docenteClil->load('indisponibilita');
-            $motivi = $lezione->con_clil ? [] : $this->conflittiPresenza($lezione->orario_id, $c->docenteClil, $lezione->slot_id, null, [$lezione->id]);
-            $clil = ['docente' => $c->docenteClil->nomeCompleto(), 'attivo' => (bool) $lezione->con_clil, 'libero' => $motivi === [], 'motivi' => $motivi];
+            $docenteClil = $lezione->clil_sostituto_id ? $lezione->clilSostituto : $c->docenteClil;   // chi c'è davvero (il sostituto, se c'è)
+            $docenteClil->load('indisponibilita');
+            $motivi = $lezione->con_clil ? [] : $this->conflittiPresenza($lezione->orario_id, $docenteClil, $lezione->slot_id, null, [$lezione->id]);
+            $clil = ['docente' => $docenteClil->nomeCompleto(), 'attivo' => (bool) $lezione->con_clil, 'libero' => $motivi === [], 'motivi' => $motivi];
         }
 
         $aule = [];
@@ -327,8 +330,73 @@ class EditorLezione
             'aula_id' => $lezione->aula_id,
             'aule' => $aule,
             'clil' => $clil,
+            'sostituzione' => $this->candidatiSostituto($lezione),
             'sostegno' => $sostegno->pluck('docente_id')->all(),
             'candidati_sostegno' => $candidati,
+        ];
+    }
+
+    /**
+     * Imposta (o toglie, con null) il docente che sostituisce il titolare o il docente CLIL di quella lezione, senza toccare la cattedra.
+     * Il sostituto deve essere libero in quell'ora (indisponibilità, altra lezione, altro sostegno), salvo provvisorio.
+     *
+     * @param  'titolare'|'clil'  $ruolo
+     */
+    public function cambiaSostituto(Lezione $lezione, string $ruolo, ?int $docenteId, int $utenteId, bool $provvisorio = false): array
+    {
+        $lezione->load('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'slot');
+        $dove = $this->descriviLezione($lezione);
+        $errore = fn (string $m) => $this->persisti($lezione->orario_id, ['ok' => false, 'errori' => ["{$dove}: {$m}"], 'avvisi' => []], $lezione->id);
+        $colonna = $ruolo === 'clil' ? 'clil_sostituto_id' : 'docente_sostituto_id';
+        $originale = $ruolo === 'clil' ? $lezione->cattedra->docente_clil_id : $lezione->cattedra->docente_id;
+
+        if ($ruolo === 'clil' && (! $lezione->con_clil || ! $originale)) {
+            return $errore('la lezione non è in compresenza CLIL.');
+        }
+        // Scegliere il titolare originale equivale a togliere la sostituzione.
+        $valore = $docenteId && $docenteId !== $originale ? $docenteId : null;
+        if ($lezione->{$colonna} === $valore) {
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];
+        }
+
+        $conflitti = [];
+        if ($valore) {
+            $docente = Docente::query()->with('indisponibilita')->find($valore);
+            if (! $docente) {
+                return $errore('docente non trovato.');
+            }
+            $conflitti = array_map(fn ($m) => "{$docente->nomeCompleto()} {$m}.", $this->conflittiPresenza($lezione->orario_id, $docente, $lezione->slot_id, null, [$lezione->id]));
+        }
+        if ($conflitti && ! $provvisorio) {
+            return $this->persisti($lezione->orario_id, ['ok' => false, 'errori' => array_map(fn ($c) => "{$dove}: {$c}", $conflitti), 'avvisi' => []], $lezione->id);
+        }
+
+        $prima = $lezione->{$colonna};
+        $lezione->update([$colonna => $valore]);
+        AuditLog::query()->create([
+            'user_id' => $utenteId, 'entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'cambio_sostituto',
+            'dati_prima' => [$colonna => $prima], 'dati_dopo' => [$colonna => $valore],
+        ]);
+        $this->registra($lezione->orario_id, 'cambio_sostituto', $lezione->id, [$colonna => $prima], [$colonna => $valore], $utenteId);
+
+        return $this->persisti($lezione->orario_id, ['ok' => true, 'errori' => [], 'avvisi' => $this->comeProvvisori(array_map(fn ($c) => "{$dove}: {$c}", $conflitti))], $lezione->id);
+    }
+
+    /** Per il pannello: chi può sostituire il titolare e il docente CLIL di quell'ora (tutti i docenti, con chi è libero). */
+    private function candidatiSostituto(Lezione $lezione): array
+    {
+        $c = $lezione->cattedra;
+        $docenti = Docente::query()->with('indisponibilita')->orderBy('cognome')->orderBy('nome')->get();
+        $elenco = fn (int $originale, ?int $attuale) => $docenti->reject(fn (Docente $d) => $d->id === $originale)->map(function (Docente $d) use ($lezione, $attuale) {
+            $motivi = $d->id === $attuale ? [] : $this->conflittiPresenza($lezione->orario_id, $d, $lezione->slot_id, null, [$lezione->id]);
+
+            return ['id' => $d->id, 'nome' => $d->nomeCompleto(), 'libero' => $motivi === [], 'motivi' => $motivi];
+        })->values()->all();
+
+        return [
+            'titolare' => ['originale' => $c->docente->nomeCompleto(), 'attuale' => $lezione->docente_sostituto_id, 'candidati' => $elenco($c->docente_id, $lezione->docente_sostituto_id)],
+            'clil' => $lezione->con_clil && $c->docente_clil_id
+                ? ['originale' => $c->docenteClil->nomeCompleto(), 'attuale' => $lezione->clil_sostituto_id, 'candidati' => $elenco($c->docente_clil_id, $lezione->clil_sostituto_id)] : null,
         ];
     }
 
@@ -344,7 +412,7 @@ class EditorLezione
      *
      * @return string[]
      */
-    private function conflittiPresenza(int $orarioId, Docente $docente, int $slotId, ?int $classeId, array $lezioniEscluse = []): array
+    public function conflittiPresenza(int $orarioId, Docente $docente, int $slotId, ?int $classeId, array $lezioniEscluse = []): array
     {
         $docente->loadMissing('indisponibilita');
         $motivi = [];
@@ -380,7 +448,7 @@ class EditorLezione
         }
         $conflitti = [];
         if ($attivo) {
-            $d = $lezione->cattedra->docenteClil;
+            $d = $lezione->clil_sostituto_id ? $lezione->clilSostituto : $lezione->cattedra->docenteClil;
             $conflitti = array_map(fn ($m) => "{$d->nomeCompleto()} {$m}.", $this->conflittiPresenza($lezione->orario_id, $d, $lezione->slot_id, null, [$lezione->id]));
         }
         if ($conflitti && ! $provvisorio) {
@@ -559,6 +627,7 @@ class EditorLezione
             'blocco' => $lezione->update(['bloccata' => $stato['bloccata']]),
             'cambio_aula' => $lezione->update(['aula_id' => $stato['aula_id']]),
             'cambio_clil' => $lezione->update(['con_clil' => $stato['con_clil']]),
+            'cambio_sostituto' => $lezione->update($stato),
             'cambio_sostegno' => $this->scriviSostegno($lezione->load('cattedra'), array_column($stato['docenti'], 'docente_id'), $this->compresenzeDi($lezione)->get(), array_column($stato['docenti'], 'codice', 'docente_id')),
         };
 
@@ -668,7 +737,7 @@ class EditorLezione
     {
         $lezione->loadMissing('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'slot');
 
-        return "{$lezione->cattedra->disciplina->nome} ({$lezione->cattedra->docente->nomeCompleto()}), {$lezione->cattedra->classe->nomeCompleto()}, {$lezione->slot->descrizione()}";
+        return "{$lezione->cattedra->disciplina->nome} ({$lezione->docenteEffettivo()->nomeCompleto()}), {$lezione->cattedra->classe->nomeCompleto()}, {$lezione->slot->descrizione()}";
     }
 
     /**
@@ -676,14 +745,15 @@ class EditorLezione
      *
      * @return array{rigidi: string[], conflitti: string[]} rigidi = slot fuori scansione; conflitti = docente/aula
      */
-    private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse, bool $conClil = false): array
+    private function verificaPosizionamento(int $orarioId, Cattedra $cattedra, int $slotId, array $lezioniEscluse, bool $conClil = false, ?Lezione $lezione = null): array
     {
         $cattedra->loadMissing('classe.slotAttivi', 'docente.indisponibilita', 'docenteClil.indisponibilita', 'disciplina');
 
         $rigidi = [];
         $conflitti = [];
         $classe = $cattedra->classe;
-        $docenti = array_filter([$cattedra->docente, $conClil ? $cattedra->docenteClil : null]);   // titolare e, se la lezione è in compresenza CLIL, il docente CLIL
+        // titolare (o suo sostituto) e, se la lezione è in compresenza CLIL, il docente CLIL (o suo sostituto)
+        $docenti = $lezione ? array_filter([$lezione->docenteEffettivo(), $lezione->docenteClilEffettivo()]) : array_filter([$cattedra->docente, $conClil ? $cattedra->docenteClil : null]);
         $disciplina = $cattedra->disciplina;
         $dove = Slot::query()->find($slotId)?->descrizione() ?? 'slot sconosciuto';
         $prefisso = "{$classe->nomeCompleto()}, {$dove}: ";

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['sede_id', 'periodo_id', 'versione', 'nome', 'stato', 'seed', 'punteggio', 'creato_da'])]
+#[Fillable(['sede_id', 'periodo_id', 'versione', 'nome', 'stato', 'seed', 'punteggio', 'creato_da', 'origine_id'])]
 class Orario extends Model
 {
     use \App\Models\Concerns\PerSede;
@@ -37,6 +37,12 @@ class Orario extends Model
     public function periodo(): BelongsTo
     {
         return $this->belongsTo(Periodo::class);
+    }
+
+    /** L'orario da cui questa copia è stata duplicata (per le sostituzioni: l'originale a cui tornare). */
+    public function origine(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'origine_id');
     }
 
     public function lezioni(): HasMany

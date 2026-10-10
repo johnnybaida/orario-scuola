@@ -51,7 +51,7 @@ class OrarioPdfExporter
                     $cambio = $cambi[$l->id] ?? null;
                     $aula = $l->aulaDaMostrare() ?? ($cambio['a'] ?? null);
 
-                    return $l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->con_clil && $l->cattedra->docenteClil ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : '').($aula ? "\n".($cambio ? '→ ' : '').$aula->nomeConPiano() : '');
+                    return $l->cattedra->disciplina->nome."\n".$this->nomeDocente($l).($l->docenteClilEffettivo() ? "\n+ ".$this->nomeClil($l).' (CLIL)' : '').($aula ? "\n".($cambio ? '→ ' : '').$aula->nomeConPiano() : '');
                 },
                 'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
                     ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
@@ -95,7 +95,7 @@ class OrarioPdfExporter
                 'titolo' => $this->conSede("Orario docente {$docente->nomeCompleto()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->con_clil && $l->cattedra->docente_clil_id === $docente->id ? ' (CLIL)' : '').($l->con_clil && $l->cattedra->docenteClil && $l->cattedra->docente_clil_id !== $docente->id ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->docenteClilEffettivo()?->id === $docente->id ? ' (CLIL)'.($l->clil_sostituto_id ? ' (per '.$l->cattedra->docenteClil?->cognome.')' : '') : '').($l->docenteEffettivo()->id === $docente->id && $l->docente_sostituto_id ? ' (per '.$l->cattedra->docente->cognome.')' : '').($l->docenteClilEffettivo() && $l->docenteClilEffettivo()->id !== $docente->id ? "\n+ ".$this->nomeClil($l).' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
                 'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
                 'senzaOra' => $this->senzaOra($docente->cattedre()->with('disciplina', 'classe')->get(), true),
@@ -125,7 +125,7 @@ class OrarioPdfExporter
                 'titolo' => $this->conSede("Orario aula {$aula->nomeConPiano()}"),
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys())->max('ordine')),
                 'lezioni' => $sue,
-                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$l->cattedra->docente->nomeCompleto().($l->con_clil && $l->cattedra->docenteClil ? "\n+ ".$l->cattedra->docenteClil->nomeCompleto().' (CLIL)' : ''),
+                'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$this->nomeDocente($l).($l->docenteClilEffettivo() ? "\n+ ".$this->nomeClil($l).' (CLIL)' : ''),
                 'sostegni' => [],
                 'laboratori' => app(Laboratori::class)->elenco(null, $aula->id),
             ];
@@ -139,6 +139,17 @@ class OrarioPdfExporter
     private function origine(Orario $orario): string
     {
         return "Orario #{$orario->id} · seed {$orario->seed}";
+    }
+
+    /** Il docente della lezione; se è un sostituto, «Verdi (per Rossi)». */
+    private function nomeDocente(Lezione $l): string
+    {
+        return $l->docenteEffettivo()->nomeCompleto().($l->docente_sostituto_id ? ' (per '.$l->cattedra->docente->cognome.')' : '');
+    }
+
+    private function nomeClil(Lezione $l): string
+    {
+        return $l->docenteClilEffettivo()->nomeCompleto().($l->clil_sostituto_id && $l->cattedra->docenteClil ? ' (per '.$l->cattedra->docenteClil->cognome.')' : '');
     }
 
     private function conSede(string $titolo): string
@@ -220,8 +231,8 @@ class OrarioPdfExporter
         $mensa = \App\Models\Disciplina::query()->where('senza_slot', true)->whereNotNull('pausa_dopo_ora')->get()->filter(fn ($d) => $pause->has($d->pausa_dopo_ora));
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
         $colonnePausa = $per === 'classe' ? $mensa->pluck('pausa_dopo_ora')->merge($pauseMensa->keys())->unique()->sort()->values()->all() : [];
-        $larghezzaColonna = 2150 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
-        $fontPx = max(9, min(16, (int) floor(($larghezzaColonna - 3) / 3.6)));
+        $larghezzaColonna = 3050 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
+        $fontPx = max(10, min(22, (int) floor(($larghezzaColonna - 3) / 3.6)));
         $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
@@ -289,7 +300,7 @@ class OrarioPdfExporter
             }
         }
 
-        // Celle più alte per leggere meglio: lo spazio verticale dell'A2 (circa 1400px) si divide tra le righe (quasi tutte con 4-5 righe di testo per cella).
+        // Celle più alte per leggere meglio: lo spazio verticale dell'A1 (circa 2000px) si divide tra le righe (quasi tutte con 4-5 righe di testo per cella).
         // Righe di testo della cella più piena (materia, docente, aula, CLIL, un rigo per docente di sostegno): l'altezza delle righe della tabella
         // la decide lei, quindi si riduce il carattere finché tutte le righe stanno nel foglio.
         $righeDiTesto = $celle->map(function ($gruppo, $chiave) use ($per, $cambi, $compresenze) {
@@ -297,15 +308,15 @@ class OrarioPdfExporter
                 return $gruppo->count() * 3;
             }
 
-            return $gruppo->sum(fn (Lezione $l) => 2 + ((SpostamentiAula::aulaEffettiva($l) || isset($cambi[$l->id])) ? 1 : 0) + ($l->con_clil && $l->cattedra->docenteClil ? 1 : 0))
+            return $gruppo->sum(fn (Lezione $l) => 2 + ((SpostamentiAula::aulaEffettiva($l) || isset($cambi[$l->id])) ? 1 : 0) + ($l->docenteClilEffettivo() ? 1 : 0))
                 + $compresenze->where('slot_id', $gruppo->first()->slot_id)->where('classe_id', $gruppo->first()->cattedra->classe_id)->unique('docente_id')->count();
         })->max() ?: 3;
-        $altezzaRiga = 1100 / max(1, $righe->count());
+        $altezzaRiga = 1560 / max(1, $righe->count());
         while ($fontPx > 8 && $righeDiTesto * $fontPx * 1.3 + 6 > $altezzaRiga) {
             $fontPx--;
         }
         $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
-        $paddingPx = (int) max(1, min(14, floor(($altezzaRiga - $righeDiTesto * $fontPx * 1.3) / 2)));
+        $paddingPx = (int) max(1, min(20, floor(($altezzaRiga - $righeDiTesto * $fontPx * 1.3) / 2)));
 
         return Pdf::loadView('orari.pdf.tabellone', [
             'origine' => $this->origine($orario),
@@ -328,6 +339,6 @@ class OrarioPdfExporter
             'limite' => $limite,
             'fontPx' => $fontPx,
             'legendaOre' => $legendaOre,
-        ])->setPaper('a2', 'landscape');
+        ])->setPaper('a1', 'landscape');
     }
 }

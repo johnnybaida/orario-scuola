@@ -75,7 +75,7 @@
                                             @if ($modificabile)@include('orari._pulsante-modifica')@endif
                                             <a href="{{ route('orari.classe', [$orario, $lezione->cattedra->classe]) }}" class="block font-medium underline-offset-2 hover:underline">{{ $lezione->cattedra->classe->nomeCompleto() }}</a>
                                             <div class="text-gray-600">{{ $lezione->cattedra->disciplina->nome }}</div>
-                                            <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
+                                            <div class="text-gray-500">{{ $lezione->docenteEffettivo()->cognome }}</div>
                                         </div>
                                     @empty
                                         <div class="text-[10px] text-gray-300 text-center">libera</div>

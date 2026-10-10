@@ -14,6 +14,7 @@ use App\Models\Slot;
 use App\Services\Editor\ControlloOrario;
 use App\Services\Editor\EditorLezione;
 use App\Services\Editor\SpostamentiAula;
+use App\Services\Substitution\SostituzioneOrario;
 use App\Support\ColoriDiscipline;
 use App\Support\StatiOrario;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,7 @@ class OrarioController extends Controller
 {
     public function index(ControlloOrario $controllo): View
     {
-        $orari = Orario::query()->with('periodo', 'creatoDa')->orderByDesc('id')->get();
+        $orari = Orario::query()->with('periodo', 'creatoDa', 'origine')->orderByDesc('id')->get();
 
         return view('orari.index', [
             'orari' => $orari,
@@ -298,6 +299,18 @@ class OrarioController extends Controller
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
     }
 
+    /** Imposta o toglie il sostituto del titolare (`ruolo` = titolare) o del docente CLIL (`ruolo` = clil) di quell'ora. */
+    public function cambiaSostitutoLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+        $dati = $request->validate(['ruolo' => ['required', 'in:titolare,clil'], 'docente_id' => ['nullable', 'integer', app(\App\Services\SedeCorrente::class)->esiste('docenti')]]);
+
+        $risultato = $servizio->cambiaSostituto($lezione, $dati['ruolo'], $dati['docente_id'] ?? null, $request->user()->id, $request->boolean('provvisorio'));
+
+        return response()->json($risultato, $risultato['ok'] ? 200 : 422);
+    }
+
     public function bloccaLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
     {
         $this->soloBozza($orario);
@@ -366,46 +379,88 @@ class OrarioController extends Controller
         return redirect()->route('orari.index')->with('successo', 'Nome dell\'orario aggiornato.');
     }
 
-    public function duplica(Request $request, Orario $orario): RedirectResponse
+    public function duplica(Request $request, Orario $orario, SostituzioneOrario $servizio): RedirectResponse
     {
         $request->validate(['nome' => ['nullable', 'string', 'max:120']]);
 
-        $copia = DB::transaction(function () use ($request, $orario) {
-            $copia = Orario::query()->create([
-                'periodo_id' => $orario->periodo_id,
-                'versione' => (Orario::query()->where('periodo_id', $orario->periodo_id)->max('versione') ?? 0) + 1,
-                'nome' => $request->input('nome') ?: $orario->etichetta().' (copia)',
-                'stato' => 'bozza',
-                'seed' => $orario->seed,
-                'punteggio' => $orario->punteggio,
-                'creato_da' => $request->user()->id,
-            ]);
-
-            $adesso = now();
-            foreach ($orario->lezioni()->get()->chunk(200) as $gruppo) {
-                Lezione::query()->insert($gruppo->map(fn (Lezione $l) => [
-                    'orario_id' => $copia->id, 'cattedra_id' => $l->cattedra_id, 'slot_id' => $l->slot_id,
-                    'durata_slot' => $l->durata_slot, 'aula_id' => $l->aula_id, 'bloccata' => $l->bloccata, 'con_clil' => $l->con_clil,
-                    'created_at' => $adesso, 'updated_at' => $adesso,
-                ])->all());
-            }
-            foreach ($orario->compresenzeSostegno()->get()->chunk(200) as $gruppo) {
-                CompresenzaSostegno::query()->insert($gruppo->map(fn (CompresenzaSostegno $c) => [
-                    'orario_id' => $copia->id, 'docente_id' => $c->docente_id, 'classe_id' => $c->classe_id,
-                    'slot_id' => $c->slot_id, 'codice_anonimo' => $c->codice_anonimo,
-                    'created_at' => $adesso, 'updated_at' => $adesso,
-                ])->all());
-            }
-
-            AuditLog::query()->create([
-                'user_id' => $request->user()->id, 'entita' => 'Orario', 'entita_id' => $copia->id, 'azione' => 'duplicazione',
-                'dati_prima' => ['orario_origine' => $orario->id], 'dati_dopo' => $copia->only(['periodo_id', 'versione', 'stato']),
-            ]);
-
-            return $copia;
-        });
+        $copia = $servizio->duplica($orario, (string) $request->input('nome'), $request->user()->id);
 
         return redirect()->route('orari.index')->with('successo', "Orario duplicato: «{$copia->nome}» in bozza.");
+    }
+
+    /** Finestra «Sostituisci un docente»: copia dell'orario (consigliato) o applicazione alla bozza corrente. */
+    public function sostituzioneForm(Orario $orario, SostituzioneOrario $servizio): View
+    {
+        return view('orari.sostituzione', [
+            'orario' => $orario,
+            'docenti' => $servizio->docentiSostituibili($orario),
+            'tuttiIDocenti' => Docente::query()->orderBy('cognome')->orderBy('nome')->get(),
+            'giorni' => Slot::query()->select('giorno')->distinct()->orderBy('giorno')->pluck('giorno'),
+        ]);
+    }
+
+    public function sostituzione(Request $request, Orario $orario, SostituzioneOrario $servizio): RedirectResponse
+    {
+        $dati = $request->validate([
+            'assente_id' => ['required', 'integer', app(\App\Services\SedeCorrente::class)->esiste('docenti')],
+            'supplente_id' => ['required', 'integer', 'different:assente_id', app(\App\Services\SedeCorrente::class)->esiste('docenti')],
+            'modo' => ['required', 'in:copia,bozza'],
+            'nome' => ['nullable', 'string', 'max:120'],
+            'giorni' => ['nullable', 'array'],
+            'giorni.*' => ['integer', 'between:1,7'],
+            'titolare' => ['nullable', 'boolean'],
+            'clil' => ['nullable', 'boolean'],
+            'sostegno' => ['nullable', 'boolean'],
+        ]);
+        abort_if($dati['modo'] === 'bozza' && ! $orario->modificabile(), 422, "L'orario non è in bozza: crea una copia.");
+
+        $assente = Docente::query()->findOrFail($dati['assente_id']);
+        $supplente = Docente::query()->findOrFail($dati['supplente_id']);
+        $destinazione = $dati['modo'] === 'copia'
+            ? $servizio->duplica($orario, ($dati['nome'] ?? '') ?: "{$orario->etichetta()} – {$supplente->cognome} per {$assente->cognome}", $request->user()->id)
+            : $orario;
+
+        $esito = $servizio->sostituisci($destinazione, $assente, $supplente, [
+            'titolare' => $request->boolean('titolare'), 'clil' => $request->boolean('clil'), 'sostegno' => $request->boolean('sostegno'), 'giorni' => $dati['giorni'] ?? [],
+        ], $request->user()->id);
+
+        $messaggio = "{$esito['sostituite']} ore passate da {$assente->nomeCompleto()} a {$supplente->nomeCompleto()}"
+            .($esito['non_sostituite'] ? ", {$this->quante(count($esito['non_sostituite']))} non sostituibili (il supplente non è libero): sono nel registro in alto, si sistemano ora per ora con ✎" : '').'.';
+
+        return redirect()->route('orari.tabellone', $destinazione)->with($esito['non_sostituite'] ? 'avviso' : 'successo', $messaggio);
+    }
+
+    private function quante(int $n): string
+    {
+        return $n === 1 ? '1 ora' : "{$n} ore";
+    }
+
+    /**
+     * Rientro del docente: l'orario originale torna pubblicato e questa copia viene archiviata (o eliminata, se richiesto).
+     * Solo per le copie con un originale ancora esistente; spetta a chi approva gli orari.
+     */
+    public function rientro(Request $request, Orario $orario): RedirectResponse
+    {
+        abort_unless($request->user()->can('approva-orari'), 403);
+        $originale = $orario->origine;
+        abort_unless($originale && in_array($originale->stato, ['archiviato', 'approvato', 'pubblicato'], true), 422, "L'orario originale non è disponibile.");
+
+        DB::transaction(function () use ($request, $orario, $originale) {
+            Orario::query()->where('periodo_id', $orario->periodo_id)->where('stato', 'pubblicato')->where('id', '!=', $originale->id)
+                ->get()->each(fn (Orario $altro) => $this->registraStato($request, $altro, 'archiviato'));
+            if ($originale->stato !== 'pubblicato') {
+                $this->registraStato($request, $originale, 'pubblicato');
+            }
+            if ($request->boolean('elimina_copia')) {
+                AuditLog::query()->create([
+                    'user_id' => $request->user()->id, 'entita' => 'Orario', 'entita_id' => $orario->id, 'azione' => 'eliminazione',
+                    'dati_prima' => $orario->only(['periodo_id', 'versione', 'stato', 'seed', 'punteggio']), 'dati_dopo' => null,
+                ]);
+                $orario->delete();
+            }
+        });
+
+        return redirect()->route('orari.index')->with('successo', "Rientro: «{$originale->etichetta()}» è di nuovo pubblicato".($request->boolean('elimina_copia') ? ', la copia è stata eliminata.' : ', la copia è in archivio.'));
     }
 
     public function cambiaStato(Request $request, Orario $orario): RedirectResponse

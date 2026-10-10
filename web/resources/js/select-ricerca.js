@@ -95,7 +95,8 @@ function apri(select, bottone, aggiornaEtichetta) {
         }
     });
 
-    document.body.append(pannello);
+    // Dentro una finestra modale (<dialog> aperta con showModal) il pannello deve stare nella finestra: un elemento nel body resta sotto, nello strato superiore c'è solo la dialog.
+    (select.closest('dialog[open]') ?? document.body).append(pannello);
     const r = bottone.getBoundingClientRect();
     pannello.style.width = `${Math.max(r.width, 240)}px`;
     pannello.style.left = `${Math.min(r.left, window.innerWidth - Math.max(r.width, 240) - 8)}px`;

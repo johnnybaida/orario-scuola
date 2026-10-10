@@ -87,8 +87,8 @@ class ControlloOrario
     /** Una riga per lezione e per docente presente (il titolare e, in compresenza CLIL, il docente CLIL). */
     private function presenze(Collection $lezioni): Collection
     {
-        return $lezioni->flatMap(fn (Lezione $l) => array_map(
-            fn (int $id) => ['docente' => $id === $l->cattedra->docente_id ? $l->cattedra->docente : $l->cattedra->docenteClil, 'lezione' => $l], $l->docentiIds()));
+        return $lezioni->flatMap(fn (Lezione $l) => collect([$l->docenteEffettivo(), $l->docenteClilEffettivo()])->filter()
+            ->map(fn ($docente) => ['docente' => $docente, 'lezione' => $l]));
     }
 
     private function docentiInDuePosti(Collection $lezioni): array
@@ -171,9 +171,9 @@ class ControlloOrario
                 continue;
             }
             $classe = $gruppo->first()->cattedra->classe;
-            $quali = $gruppo->map(fn (Lezione $l) => $l->cattedra->disciplina->nome.' ('.$l->cattedra->docente->nomeCompleto().')')->implode(' e ');
+            $quali = $gruppo->map(fn (Lezione $l) => $l->cattedra->disciplina->nome.' ('.$l->docenteEffettivo()->nomeCompleto().')')->implode(' e ');
             $problemi[] = $this->p('errore', "{$classe->nomeCompleto()}, {$gruppo->first()->slot->descrizione()}: due lezioni nello stesso momento, {$quali}.",
-                $gruppo->pluck('id'), [$classe->id], $gruppo->map(fn (Lezione $l) => $l->cattedra->docente_id));
+                $gruppo->pluck('id'), [$classe->id], $gruppo->map(fn (Lezione $l) => $l->docenteEffettivo()->id));
         }
 
         return $problemi;

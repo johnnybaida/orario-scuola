@@ -34,7 +34,7 @@ class StatiOrario
         'in_revisione' => ['approvato', 'bozza'],
         'approvato' => ['pubblicato', 'bozza'],
         'pubblicato' => ['archiviato'],
-        'archiviato' => [],
+        'archiviato' => ['pubblicato'],   // «Ripubblica»: per tornare a un orario (es. al rientro di un docente sostituito)
     ];
 
     /** Stati in cui un orario si può eliminare. */

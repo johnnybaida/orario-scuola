@@ -34,6 +34,21 @@ async function apri(base, lezioneId) {
     form.append(etichetta('Docente', selCattedra, el('span', 'block text-xs font-normal text-gray-500',
         dati.bloccata ? 'La lezione è bloccata: sbloccala per cambiare il docente.' : (dati.cattedre.length < 2 ? 'Nessun\'altra cattedra per questa classe e disciplina.' : 'Le cattedre della stessa classe e disciplina.'))));
 
+    // Sostituto: un altro docente fa questa ora al posto del titolare (o del docente CLIL), senza toccare la cattedra.
+    const costruisciSostituto = (titolo, info) => {
+        if (!info) return null;
+        const s = el('select', CAMPO);
+        s.append(opzione('', `— nessuno: resta ${info.originale} —`, !info.attuale));
+        info.candidati.forEach((c) => {
+            const occupato = !c.libero && c.id !== info.attuale;
+            s.append(opzione(c.id, occupato ? `${c.nome} — ${c.motivi.join(', ')}` : c.nome, c.id === info.attuale, occupato && !provvisorio()));
+        });
+        form.append(etichetta(titolo, s));
+        return s;
+    };
+    const selSostTitolare = costruisciSostituto(`Sostituto di ${dati.sostituzione.titolare.originale}`, dati.sostituzione.titolare);
+    const selSostClil = costruisciSostituto(`Sostituto del docente CLIL ${dati.sostituzione.clil?.originale ?? ''}`, dati.sostituzione.clil);
+
     let selAula = null;
     if (dati.aule.length) {
         selAula = el('select', CAMPO);
@@ -90,6 +105,11 @@ async function apri(base, lezioneId) {
         if (cattedraCambiata) passi.push(() => chiamaApi(url('cattedra'), 'PATCH', { ...corpo, cattedra_id: selCattedra.value }));
         if (selAula && Number(selAula.value) !== dati.aula_id && !cattedraCambiata) passi.push(() => chiamaApi(url('aula'), 'PATCH', { ...corpo, aula_id: selAula.value }));
         // cambiare cattedra azzera il CLIL (appartiene alla cattedra di prima): in quel caso si lascia com'è.
+        // il sostituto dipende dalla cattedra: cambiando cattedra viene azzerato, quindi in quel caso non si tocca
+        const sost = (select, info, ruolo) => select && !cattedraCambiata && Number(select.value || 0) !== Number(info.attuale || 0)
+            && passi.push(() => chiamaApi(url('sostituto'), 'PATCH', { ...corpo, ruolo, docente_id: select.value || null }));
+        sost(selSostTitolare, dati.sostituzione.titolare, 'titolare');
+        sost(selSostClil, dati.sostituzione.clil, 'clil');
         if (casellaClil && casellaClil.checked !== dati.clil.attivo && !cattedraCambiata) passi.push(() => chiamaApi(url('clil'), 'PATCH', { ...corpo, attivo: casellaClil.checked }));
         if (JSON.stringify(scelti.map(Number).sort()) !== JSON.stringify([...dati.sostegno].sort())) passi.push(() => chiamaApi(url('sostegno'), 'PUT', { ...corpo, docenti: scelti.map(Number) }));
 

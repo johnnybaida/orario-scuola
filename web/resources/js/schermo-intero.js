@@ -8,7 +8,8 @@ function aggiorna() {
     const pieno = Boolean(document.fullscreenElement);
     p.querySelector('[data-icona-espandi]').hidden = pieno;
     p.querySelector('[data-icona-riduci]').hidden = !pieno;
-    const testo = pieno ? 'Esci dallo schermo intero' : 'Schermo intero';
+    // Il browser esce da solo dallo schermo intero «dell'app» a ogni cambio di pagina (limite delle pagine web): per restarci navigando serve quello del browser.
+    const testo = pieno ? 'Esci dallo schermo intero' : 'Schermo intero (cambiando pagina si esce: per restarci usa F11, su Mac Ctrl+Cmd+F)';
     p.title = testo;
     p.setAttribute('aria-label', testo);
 }
