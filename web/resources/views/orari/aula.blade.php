@@ -10,7 +10,7 @@
             <x-stato-orario :orario="$orario" class="align-middle ml-2" />
         </h1>
         <div class="flex items-center gap-3">
-            <a href="{{ route('orari.export.aula', [$orario, $aula]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
+            <a href="{{ route('orari.export.aula', [$orario, $aula]) }}" target="_blank" rel="noopener" class="text-sm underline text-gray-600">Esporta PDF</a>
             @if ($modificabile)
                 @include('orari._barra-modifica')
             @endif

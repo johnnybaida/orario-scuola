@@ -52,4 +52,15 @@ class MenuProfiloTest extends TestCase
         $this->assertStringNotContainsString('Impostazioni', $docente);                      // il ruolo docente non ha accesso
         $this->assertStringContainsString('Esci', $docente);
     }
+
+    public function test_a_sinistra_di_aiuto_c_e_il_pulsante_schermo_intero(): void
+    {
+        $html = $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']))->get('/dashboard')->assertOk()->getContent();
+
+        $schermo = strpos($html, 'data-schermo-intero');
+        $aiuto = strpos($html, 'data-apri-guida');
+        $this->assertNotFalse($schermo);
+        $this->assertLessThan($aiuto, $schermo);   // prima nel documento = a sinistra
+        $this->assertStringContainsString('aria-label="Schermo intero"', $html);
+    }
 }

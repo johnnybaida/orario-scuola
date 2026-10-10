@@ -21,7 +21,7 @@
                 @include('orari._barra-modifica')
             @endif
             <a href="{{ route('orari.controllo', $orario) }}" class="text-sm underline text-gray-600">Controllo</a>
-            <a href="{{ route('orari.export.generale', [$orario, 'per' => $per]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
+            <a href="{{ route('orari.export.generale', [$orario, 'per' => $per]) }}" target="_blank" rel="noopener" class="text-sm underline text-gray-600">Esporta PDF</a>
         </div>
     </div>
 

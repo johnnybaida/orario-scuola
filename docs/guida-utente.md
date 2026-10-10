@@ -37,6 +37,8 @@ La **Dashboard** ti dice a che punto sei:
 
 **Eliminare.** Nelle liste si spuntano le righe e si usa *Elimina selezionati*. Se l'eliminazione porta via anche altri dati (per esempio eliminando un docente spariscono le sue cattedre e le sue lezioni negli orari, eliminando una sede tutto ciò che contiene), l'avviso **te lo elenca con i numeri** e ti chiede una **seconda conferma**. Quello che resta ma perde un collegamento (per esempio le classi di un'aula eliminata) è indicato a parte. Non si può annullare.
 
+Accanto ad **Aiuto**, a sinistra, c'è il pulsante **Schermo intero**: mette tutta la pagina a schermo intero (utile per le griglie e i tabelloni larghi); lo stesso pulsante, o **Esc**, ripristina la finestra. Se il browser non lo permette il pulsante non compare.
+
 In alto a destra, sotto l'icona con le tue **iniziali**, c'è il **menu del profilo**: mostra il tuo nome e ruolo, le **Impostazioni** (per chi può consultare), le voci di amministrazione (*Utenze* e *Dati* per l'amministratore, *Registro attività* per amministratore e dirigente scolastico) e **Esci**.
 
 Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsanti che non vedi dipendono dal tuo ruolo (vedi *Utenze e ruoli*).
@@ -778,6 +780,8 @@ In ogni vista trovi in alto gli stessi strumenti: **Conflitti provvisori**, **An
 I conflitti provvisori non permettono mai di spostare una lezione bloccata o in un'ora che non fa parte della classe. Un orario con errori nel Controllo non va mandato in revisione.
 
 ### Esportare in PDF
+
+I pulsanti dei PDF si aprono in una **nuova scheda** del browser, così non perdi la pagina dell'orario.
 
 - **Per classe** e **per docente**: dal pulsante "Esporta PDF" della griglia. Un foglio **A3** orizzontale con il titolo al centro e tutta la settimana; le righe delle ore dopo l'ultima usata non compaiono.
 - **Tutte le classi** (pulsante **Tutte le classi** nella pagina *Orari*, "Classi PDF" nella dashboard): un solo PDF A3 orizzontale con **un foglio per classe**, ciascuno con il titolo centrale della classe, tutta la settimana e i docenti di sostegno in compresenza ("S Cognome"). Comodo per stampare gli orari da affiggere nelle aule.

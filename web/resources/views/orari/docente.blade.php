@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 class="text-xl font-semibold">Orario {{ $docente->nomeCompleto() }}</h1>
         <div class="flex items-center gap-3">
-            <a href="{{ route('orari.export.docente', [$orario, $docente]) }}" class="text-sm underline text-gray-600">Esporta PDF</a>
+            <a href="{{ route('orari.export.docente', [$orario, $docente]) }}" target="_blank" rel="noopener" class="text-sm underline text-gray-600">Esporta PDF</a>
             @if ($modificabile)
                 @include('orari._barra-modifica')
             @endif

@@ -91,11 +91,11 @@
                         <section aria-label="Esporta">
                             <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Esporta in PDF</h3>
                             <div class="flex flex-wrap gap-2">
-                                <a href="{{ route('orari.export.generale', $orario) }}" class="{{ $pulsante }}">Tabellone</a>
-                                <a href="{{ route('orari.export.generale', [$orario, 'per' => 'aula']) }}" class="{{ $pulsante }}">Tabellone per aula</a>
-                                <a href="{{ route('orari.export.classi', $orario) }}" class="{{ $pulsante }}">Tutte le classi</a>
-                                <a href="{{ route('orari.export.docenti', $orario) }}" class="{{ $pulsante }}">Tutti i docenti</a>
-                                <a href="{{ route('orari.export.aule', $orario) }}" class="{{ $pulsante }}">Tutte le aule</a>
+                                <a href="{{ route('orari.export.generale', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tabellone</a>
+                                <a href="{{ route('orari.export.generale', [$orario, 'per' => 'aula']) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tabellone per aula</a>
+                                <a href="{{ route('orari.export.classi', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutte le classi</a>
+                                <a href="{{ route('orari.export.docenti', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutti i docenti</a>
+                                <a href="{{ route('orari.export.aule', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutte le aule</a>
                             </div>
                         </section>
 

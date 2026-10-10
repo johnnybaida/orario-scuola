@@ -259,4 +259,19 @@ class ExportPdfTest extends TestCase
         // il martedì la classe non ha ore dopo la pausa: la cella della mensa è vuota (una sola cella con la disciplina)
         $this->assertSame(1, substr_count($html, '<div class="materia">PRA</div>'));
     }
+
+    public function test_i_pulsanti_dei_pdf_si_aprono_in_una_nuova_scheda(): void
+    {
+        $orario = Orario::factory()->create();
+        $classe = Classe::factory()->create();
+        $slot = Slot::factory()->create();
+        $classe->slotAttivi()->attach($slot->id);
+        $utente = $this->actingAs(User::factory()->create(['ruolo' => 'ds']));
+
+        $elenco = $utente->get('/orari')->assertOk()->getContent();
+        $this->assertGreaterThanOrEqual(5, preg_match_all('/href="[^"]*\/export\/[^"]*"\s+target="_blank"\s+rel="noopener"/', $elenco));   // tabelloni, classi, docenti, aule
+        $this->assertSame(0, preg_match_all('/href="[^"]*\/export\/[^"]*"\s+class=/', $elenco));                                            // nessun link PDF senza _blank
+
+        $this->get("/orari/{$orario->id}/classe/{$classe->id}")->assertOk()->assertSee('target="_blank" rel="noopener" class="text-sm underline text-gray-600">Esporta PDF', false);
+    }
 }
