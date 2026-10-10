@@ -267,6 +267,37 @@ class OrarioController extends Controller
         return response()->json($risultato, $risultato['ok'] ? 200 : 422);
     }
 
+    /** Dati del pannello «modifica quest'ora» (cattedre alternative, aule, CLIL, sostegno). */
+    public function dettaglioLezione(Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+
+        return response()->json($servizio->dettaglio($lezione));
+    }
+
+    public function cambiaClilLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+        $dati = $request->validate(['attivo' => ['required', 'boolean']]);
+
+        $risultato = $servizio->cambiaClil($lezione, (bool) $dati['attivo'], $request->user()->id, $request->boolean('provvisorio'));
+
+        return response()->json($risultato, $risultato['ok'] ? 200 : 422);
+    }
+
+    public function cambiaSostegnoLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
+    {
+        $this->soloBozza($orario);
+        abort_if($lezione->orario_id !== $orario->id, 404);
+        $dati = $request->validate(['docenti' => ['present', 'array', 'max:3'], 'docenti.*' => ['integer', app(\App\Services\SedeCorrente::class)->esiste('docenti')]]);
+
+        $risultato = $servizio->cambiaSostegno($lezione, $dati['docenti'], $request->user()->id, $request->boolean('provvisorio'));
+
+        return response()->json($risultato, $risultato['ok'] ? 200 : 422);
+    }
+
     public function bloccaLezione(Request $request, Orario $orario, Lezione $lezione, EditorLezione $servizio): JsonResponse
     {
         $this->soloBozza($orario);

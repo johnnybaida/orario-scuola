@@ -776,6 +776,13 @@ Ogni riga dice classe, giorno e ora e, quando il problema coinvolge altre classi
 | **Tabellone per classe** | una lezione su un'altra ora **lungo la riga della sua classe** (rilasciarla in un'altra riga non fa nulla) |
 | **Tabellone per aula** | su un'altra aula nella stessa ora (cambio di aula) o su un'altra ora (spostamento) |
 
+**Modifica di quest'ora (✎).** Su ogni riquadro, in tutte le viste, c'è il pulsante **✎**: apre una finestra con tutto ciò che riguarda quell'ora della classe.
+- **Docente**: le cattedre della stessa classe e disciplina (per esempio un supplente). Non si può scegliere un docente qualsiasi: avrebbe un monte ore diverso da quello previsto dal quadro.
+- **Aula**, per le discipline che richiedono un'aula speciale.
+- **Compresenza CLIL**: attiva o toglie il docente CLIL della cattedra per quell'ora.
+- **Sostegno 1, 2, 3**: fino a tre docenti di sostegno presenti in quell'ora nella classe; scegli «nessuno» per toglierli. Nell'elenco i docenti già occupati (in lezione, in un'altra classe o indisponibili) sono grigi con il motivo; si possono scegliere solo con **Conflitti provvisori** attivi, e restano segnalati nel **Controllo**.
+Il salvataggio vale come le altre modifiche: finisce nel registro, si può **annullare e ripetere**. Se le ore di sostegno o CLIL non coincidono più con quelle assegnate, compare un avviso (non un blocco). Il **trascinamento** resta il modo più rapido per spostare o scambiare le lezioni.
+
 In ogni vista trovi in alto gli stessi strumenti: **Conflitti provvisori**, **Annulla** e **Ripeti** (e le scorciatoie Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z), che valgono per tutte le modifiche, comunque fatte; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima a ogni vista. Quando due lezioni della stessa classe si trovano a scambiarsi di posto, lo scambio è un'unica modifica.
 
 1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **ambra** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.

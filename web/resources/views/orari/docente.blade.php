@@ -58,6 +58,7 @@
                                              draggable="{{ $modificabile && ! $lezione->bloccata ? 'true' : 'false' }}"
                                              @if ($conflitti) title="{{ implode(' — ', $conflitti) }}" aria-invalid="true" @endif
                                              class="rounded px-2 py-1 text-xs {{ $conflitti ? 'bg-red-50 border-2 border-red-400' : ($lezione->bloccata ? 'bg-amber-100 border border-amber-300' : 'bg-blue-50 border border-blue-200') }} {{ $modificabile && ! $lezione->bloccata ? 'cursor-grab' : '' }}">
+                                            @if ($modificabile)@include('orari._pulsante-modifica')@endif
                                             <div class="font-medium">{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             @if ($aulaLezione = $lezione->aulaDaMostrare())

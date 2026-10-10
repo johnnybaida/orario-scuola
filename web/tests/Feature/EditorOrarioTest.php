@@ -674,4 +674,101 @@ class EditorOrarioTest extends TestCase
             ->assertStatus(422)->assertJson(['ok' => false]);
         $this->assertSame($slot1->id, $lezioneA->fresh()->slot_id);
     }
+
+    /** Un'ora con una lezione e due docenti di sostegno, più un docente CLIL sulla cattedra. */
+    private function oraConSostegno(): array
+    {
+        [$classe, $slot1, $slot2] = $this->classeConDueSlot();
+        $orario = Orario::factory()->create();
+        $clil = Docente::factory()->create(['cognome' => 'Clili']);
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+        [$s1, $s2, $s3] = Docente::factory()->count(3)->create(['tipo_posto' => 'sostegno'])->all();
+
+        return [$orario, $lezione, $classe, $slot1, $slot2, $clil, $s1, $s2, $s3];
+    }
+
+    public function test_il_pannello_imposta_i_docenti_di_sostegno_e_si_annulla(): void
+    {
+        [$orario, $lezione, $classe, $slot1, , , $s1, $s2] = $this->oraConSostegno();
+        $referente = $this->actingAs($this->referente());
+
+        $referente->putJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sostegno", ['docenti' => [$s1->id, $s2->id]])->assertOk()->assertJson(['ok' => true]);
+        $this->assertDatabaseCount('compresenze_sostegno', 2);
+        $this->assertDatabaseHas('compresenze_sostegno', ['orario_id' => $orario->id, 'classe_id' => $classe->id, 'slot_id' => $slot1->id, 'docente_id' => $s2->id]);
+
+        // il pannello mostra i due docenti già presenti
+        $referente->getJson("/orari/{$orario->id}/lezioni/{$lezione->id}/dettaglio")->assertOk()->assertJsonPath('sostegno', [$s1->id, $s2->id]);
+
+        // se ne toglie uno
+        $referente->putJson("/orari/{$orario->id}/lezioni/{$lezione->id}/sostegno", ['docenti' => [$s1->id]])->assertOk();
+        $this->assertDatabaseCount('compresenze_sostegno', 1);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'cambio_sostegno']);
+
+        // annulla riporta il docente tolto, annulla ancora li toglie entrambi; ripeti li rimette
+        $referente->post("/orari/{$orario->id}/annulla-ultima");
+        $this->assertDatabaseCount('compresenze_sostegno', 2);
+        $referente->post("/orari/{$orario->id}/annulla-ultima");
+        $this->assertDatabaseCount('compresenze_sostegno', 0);
+        $referente->post("/orari/{$orario->id}/ripeti");
+        $this->assertDatabaseCount('compresenze_sostegno', 2);
+    }
+
+    public function test_il_sostegno_rifiuta_un_docente_occupato_o_non_di_sostegno_salvo_provvisorio(): void
+    {
+        [$orario, $lezione, , $slot1, , , $s1] = $this->oraConSostegno();
+        $altra = Classe::factory()->create();
+        $altra->slotAttivi()->sync([$slot1->id]);
+        $referente = $this->actingAs($this->referente());
+        $url = "/orari/{$orario->id}/lezioni/{$lezione->id}/sostegno";
+
+        // s1 è già in lezione nello stesso slot in un'altra classe
+        $occupante = Lezione::factory()->create(['orario_id' => $orario->id, 'slot_id' => $slot1->id, 'cattedra_id' => Cattedra::factory()->create(['classe_id' => $altra->id, 'docente_id' => $s1->id])->id]);
+        $referente->putJson($url, ['docenti' => [$s1->id]])->assertStatus(422)->assertJsonPath('ok', false);
+        $this->assertDatabaseCount('compresenze_sostegno', 0);
+        $this->assertDatabaseHas('avvisi_orario', ['orario_id' => $orario->id, 'tipo' => 'errore']);
+
+        // con i conflitti provvisori si accetta, e il Controllo lo segnala
+        $referente->putJson($url, ['docenti' => [$s1->id], 'provvisorio' => true])->assertOk();
+        $this->assertDatabaseCount('compresenze_sostegno', 1);
+        $this->assertTrue(collect((new \App\Services\Editor\ControlloOrario)->problemi($orario))->contains(fn ($p) => $p['gravita'] === 'errore' && str_contains($p['testo'], 'è in due posti') && str_contains($p['testo'], 'sostegno')));
+
+        // un docente che non è di sostegno non si accetta nemmeno in provvisorio
+        $comune = Docente::factory()->create(['tipo_posto' => 'comune']);
+        $referente->putJson($url, ['docenti' => [$s1->id, $comune->id], 'provvisorio' => true])->assertStatus(422);
+        $this->assertDatabaseCount('compresenze_sostegno', 1);
+    }
+
+    public function test_il_clil_si_attiva_e_si_toglie_dal_pannello_solo_con_un_docente_clil_sulla_cattedra(): void
+    {
+        [$orario, $lezione, $classe, , $slot2] = $this->oraConSostegno();
+        $referente = $this->actingAs($this->referente());
+        $url = "/orari/{$orario->id}/lezioni/{$lezione->id}/clil";
+
+        $referente->patchJson($url, ['attivo' => true])->assertOk();
+        $this->assertTrue($lezione->fresh()->con_clil);
+        $referente->getJson("/orari/{$orario->id}/lezioni/{$lezione->id}/dettaglio")->assertJsonPath('clil.attivo', true)->assertJsonPath('clil.docente', fn ($n) => str_contains($n, 'Clili'));
+
+        $referente->patchJson($url, ['attivo' => false])->assertOk();
+        $this->assertFalse($lezione->fresh()->con_clil);
+        $referente->post("/orari/{$orario->id}/annulla-ultima");
+        $this->assertTrue($lezione->fresh()->con_clil);
+
+        // senza docente CLIL sulla cattedra: errore
+        $senza = Lezione::factory()->create(['orario_id' => $orario->id, 'slot_id' => $slot2->id, 'cattedra_id' => Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_clil_id' => null, 'ore_clil' => 0])->id]);
+        $referente->patchJson("/orari/{$orario->id}/lezioni/{$senza->id}/clil", ['attivo' => true])->assertStatus(422);
+    }
+
+    public function test_il_pannello_si_apre_solo_in_bozza_e_il_pulsante_compare_nelle_viste_modificabili(): void
+    {
+        [$orario, $lezione, $classe] = $this->oraConSostegno();
+        $referente = $this->actingAs($this->referente());
+
+        $referente->get("/orari/{$orario->id}/classe/{$classe->id}")->assertOk()->assertSee('js-modifica-lezione', false);
+        $referente->get("/orari/{$orario->id}/tabellone")->assertOk()->assertSee('js-modifica-lezione', false);
+
+        $orario->update(['stato' => 'approvato']);
+        $referente->getJson("/orari/{$orario->id}/lezioni/{$lezione->id}/dettaglio")->assertStatus(422);
+        $referente->get("/orari/{$orario->id}/tabellone")->assertOk()->assertDontSee('js-modifica-lezione', false);
+    }
 }

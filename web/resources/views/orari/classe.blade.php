@@ -68,6 +68,7 @@
                                              @if ($conflitti) title="{{ implode(' — ', $conflitti) }}" @endif
                                              data-lezione-id="{{ $lezione->id }}"
                                              draggable="{{ $modificabile && ! $lezione->bloccata ? 'true' : 'false' }}">
+                                            @if ($modificabile)@include('orari._pulsante-modifica')@endif
                                             <div class="font-medium">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>
                                             {{-- L'aula si mostra se non è quella della classe, oppure se è cambiata rispetto all'ora precedente (freccia →). --}}

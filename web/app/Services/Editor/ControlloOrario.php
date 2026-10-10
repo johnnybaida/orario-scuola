@@ -2,7 +2,9 @@
 
 namespace App\Services\Editor;
 
+use App\Models\AssegnazioneSostegno;
 use App\Models\Cattedra;
+use App\Models\CompresenzaSostegno;
 use App\Models\Lezione;
 use App\Models\Orario;
 use App\Models\Slot;
@@ -32,6 +34,7 @@ class ControlloOrario
             ...$this->oreDiverseDalQuadro($lezioni),
             ...$this->oreSenzaLezione($lezioni),
             ...$this->laboratori($lezioni),
+            ...$this->sostegno($orario, $lezioni),
         ];
 
         usort($problemi, fn ($a, $b) => [$a['gravita'] === 'errore' ? 0 : 1] <=> [$b['gravita'] === 'errore' ? 0 : 1]);
@@ -102,6 +105,49 @@ class ControlloOrario
             $dove = $gruppo->map(fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' ('.$l->cattedra->disciplina->nome.')')->implode(' e in ');
             $problemi[] = $this->p('errore', "{$docente->nomeCompleto()}, {$gruppo->first()->slot->descrizione()}: è in due posti, in {$dove}.",
                 $gruppo->pluck('id'), $gruppo->map(fn (Lezione $l) => $l->cattedra->classe_id), [$docente->id]);
+        }
+
+        return $problemi;
+    }
+
+    /**
+     * Sostegno: docente in due posti (in lezione o in sostegno in un'altra classe), indisponibile, oppure con ore in orario diverse
+     * da quelle assegnate nella classe (avviso).
+     */
+    private function sostegno(Orario $orario, Collection $lezioni): array
+    {
+        $compresenze = CompresenzaSostegno::query()->where('orario_id', $orario->id)->with('docente.indisponibilita', 'classe', 'slot')->get();
+        if ($compresenze->isEmpty()) {
+            return [];
+        }
+        $perDocenteSlot = $this->presenze($lezioni)->groupBy(fn (array $p) => $p['docente']->id.'-'.$p['lezione']->slot_id);
+        $lezioniDellaClasse = fn (CompresenzaSostegno $c) => $lezioni->filter(fn (Lezione $l) => $l->cattedra->classe_id === $c->classe_id && $l->slot_id === $c->slot_id)->pluck('id');
+        $problemi = [];
+
+        foreach ($compresenze as $c) {
+            $prefisso = "{$c->classe->nomeCompleto()}, {$c->slot->descrizione()}: sostegno {$c->docente->nomeCompleto()}";
+            if ($c->docente->indisponibilita->contains('id', $c->slot_id)) {
+                $problemi[] = $this->p('errore', "{$prefisso} non è disponibile in quell'ora.", $lezioniDellaClasse($c), [$c->classe_id], [$c->docente_id]);
+            }
+            foreach ($perDocenteSlot->get($c->docente_id.'-'.$c->slot_id, collect()) as $p) {
+                $problemi[] = $this->p('errore', "{$prefisso} è in due posti: è anche in lezione in {$p['lezione']->cattedra->classe->nomeCompleto()} ({$p['lezione']->cattedra->disciplina->nome}).",
+                    [...$lezioniDellaClasse($c), $p['lezione']->id], [$c->classe_id, $p['lezione']->cattedra->classe_id], [$c->docente_id]);
+            }
+        }
+        foreach ($compresenze->groupBy(fn ($c) => $c->docente_id.'-'.$c->slot_id)->filter(fn ($g) => $g->pluck('classe_id')->unique()->count() > 1) as $gruppo) {
+            $primo = $gruppo->first();
+            $problemi[] = $this->p('errore', "{$primo->docente->nomeCompleto()}, {$primo->slot->descrizione()}: sostegno in due classi insieme ({$gruppo->map(fn ($c) => $c->classe->nomeCompleto())->implode(' e ')}).",
+                $gruppo->flatMap($lezioniDellaClasse), $gruppo->pluck('classe_id'), [$primo->docente_id]);
+        }
+
+        $assegnate = AssegnazioneSostegno::query()->get()->keyBy(fn ($a) => $a->docente_id.'-'.$a->classe_id);
+        foreach ($compresenze->groupBy(fn ($c) => $c->docente_id.'-'.$c->classe_id) as $chiave => $gruppo) {
+            $primo = $gruppo->first();
+            $ore = $gruppo->count();
+            $previste = $assegnate->get($chiave)?->ore;
+            if ($previste !== null && $ore !== (int) $previste) {
+                $problemi[] = $this->p('avviso', "{$primo->classe->nomeCompleto()}: sostegno {$primo->docente->nomeCompleto()} ha {$ore} ore in orario invece delle {$previste} assegnate.", [], [$primo->classe_id], [$primo->docente_id]);
+            }
         }
 
         return $problemi;

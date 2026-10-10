@@ -6,6 +6,8 @@ use App\Models\AuditLog;
 use App\Models\Aula;
 use App\Models\AvvisoOrario;
 use App\Models\Cattedra;
+use App\Models\CompresenzaSostegno;
+use App\Models\Docente;
 use App\Models\Lezione;
 use App\Models\ModificaOrario;
 use App\Models\Orario;
@@ -290,6 +292,192 @@ class EditorLezione
         return $this->persisti($orarioId, ['ok' => true, 'errori' => [], 'avvisi' => $avvisi], $lezione->id);
     }
 
+    /** Dati del pannello di modifica di un'ora: cattedre alternative, aule, CLIL e docenti di sostegno (con chi è libero e chi no). */
+    public function dettaglio(Lezione $lezione): array
+    {
+        $lezione->load('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'slot');
+        $c = $lezione->cattedra;
+        $sostegno = $this->compresenzeDi($lezione)->with('docente')->get();
+
+        $candidati = Docente::query()->where('tipo_posto', 'sostegno')->with('indisponibilita')->orderBy('cognome')->orderBy('nome')->get()
+            ->map(function (Docente $d) use ($lezione, $sostegno) {
+                $motivi = $sostegno->contains('docente_id', $d->id) ? [] : $this->conflittiPresenza($lezione->orario_id, $d, $lezione->slot_id, $lezione->cattedra->classe_id);
+
+                return ['id' => $d->id, 'nome' => $d->nomeCompleto(), 'libero' => $motivi === [], 'motivi' => $motivi];
+            })->values()->all();
+
+        $clil = null;
+        if ($c->docenteClil) {
+            $c->docenteClil->load('indisponibilita');
+            $motivi = $lezione->con_clil ? [] : $this->conflittiPresenza($lezione->orario_id, $c->docenteClil, $lezione->slot_id, null, [$lezione->id]);
+            $clil = ['docente' => $c->docenteClil->nomeCompleto(), 'attivo' => (bool) $lezione->con_clil, 'libero' => $motivi === [], 'motivi' => $motivi];
+        }
+
+        $aule = [];
+        if ($c->disciplina->tipo_aula_richiesto) {
+            $aule = Aula::query()->whereIn('tipo', $c->disciplina->tipiAmmessi())->orderBy('nome')->get()->map(fn (Aula $a) => ['id' => $a->id, 'nome' => $a->nome])->all();
+        }
+
+        return [
+            'titolo' => $this->descriviLezione($lezione),
+            'bloccata' => (bool) $lezione->bloccata,
+            'cattedra_id' => $c->id,
+            'cattedre' => Cattedra::query()->where('classe_id', $c->classe_id)->where('disciplina_id', $c->disciplina_id)->with('docente')->get()
+                ->map(fn (Cattedra $x) => ['id' => $x->id, 'nome' => $x->docente->nomeCompleto()])->all(),
+            'aula_id' => $lezione->aula_id,
+            'aule' => $aule,
+            'clil' => $clil,
+            'sostegno' => $sostegno->pluck('docente_id')->all(),
+            'candidati_sostegno' => $candidati,
+        ];
+    }
+
+    /** Le compresenze di sostegno della classe della lezione nello slot della lezione. */
+    private function compresenzeDi(Lezione $lezione)
+    {
+        return CompresenzaSostegno::query()->where('orario_id', $lezione->orario_id)->where('slot_id', $lezione->slot_id)->where('classe_id', $lezione->cattedra->classe_id);
+    }
+
+    /**
+     * Perché un docente non può essere presente (come sostegno o CLIL) in quell'ora: indisponibile, già in una lezione o già
+     * in sostegno in un'altra classe. $classeId = classe in cui lo si mette (il sostegno nella stessa classe non è un conflitto).
+     *
+     * @return string[]
+     */
+    private function conflittiPresenza(int $orarioId, Docente $docente, int $slotId, ?int $classeId, array $lezioniEscluse = []): array
+    {
+        $docente->loadMissing('indisponibilita');
+        $motivi = [];
+        if ($docente->indisponibilita->contains('id', $slotId)) {
+            $motivi[] = 'non è disponibile in quell\'ora';
+        }
+        $lezione = Lezione::query()->where('orario_id', $orarioId)->where('slot_id', $slotId)->whereNotIn('id', $lezioniEscluse)->delDocente($docente->id)
+            ->with('cattedra.classe', 'cattedra.disciplina')->first();
+        if ($lezione) {
+            $motivi[] = "è già in lezione in {$lezione->cattedra->classe->nomeCompleto()} ({$lezione->cattedra->disciplina->nome})";
+        }
+        $altra = CompresenzaSostegno::query()->where('orario_id', $orarioId)->where('slot_id', $slotId)->where('docente_id', $docente->id)
+            ->when($classeId, fn ($q) => $q->where('classe_id', '!=', $classeId))->with('classe')->first();
+        if ($altra) {
+            $motivi[] = "è già in sostegno in {$altra->classe->nomeCompleto()}";
+        }
+
+        return $motivi;
+    }
+
+    /** Attiva o toglie la compresenza CLIL in quell'ora (la cattedra deve avere un docente CLIL). */
+    public function cambiaClil(Lezione $lezione, bool $attivo, int $utenteId, bool $provvisorio = false): array
+    {
+        $lezione->load('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'slot');
+        $dove = $this->descriviLezione($lezione);
+        $errore = fn (string $m) => $this->persisti($lezione->orario_id, ['ok' => false, 'errori' => ["{$dove}: {$m}"], 'avvisi' => []], $lezione->id);
+
+        if (! $lezione->cattedra->docenteClil) {
+            return $errore('la cattedra non ha un docente CLIL.');
+        }
+        if ((bool) $lezione->con_clil === $attivo) {
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];
+        }
+        $conflitti = [];
+        if ($attivo) {
+            $d = $lezione->cattedra->docenteClil;
+            $conflitti = array_map(fn ($m) => "{$d->nomeCompleto()} {$m}.", $this->conflittiPresenza($lezione->orario_id, $d, $lezione->slot_id, null, [$lezione->id]));
+        }
+        if ($conflitti && ! $provvisorio) {
+            return $this->persisti($lezione->orario_id, ['ok' => false, 'errori' => array_map(fn ($c) => "{$dove}: {$c}", $conflitti), 'avvisi' => []], $lezione->id);
+        }
+
+        $lezione->update(['con_clil' => $attivo]);
+        AuditLog::query()->create([
+            'user_id' => $utenteId, 'entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'cambio_clil',
+            'dati_prima' => ['con_clil' => ! $attivo], 'dati_dopo' => ['con_clil' => $attivo],
+        ]);
+        $this->registra($lezione->orario_id, 'cambio_clil', $lezione->id, ['con_clil' => ! $attivo], ['con_clil' => $attivo], $utenteId);
+
+        $avvisi = array_map(fn ($c) => "{$dove}: {$c}", $conflitti);
+        $ore = Lezione::query()->where('orario_id', $lezione->orario_id)->where('cattedra_id', $lezione->cattedra_id)->where('con_clil', true)->count();
+        if ($lezione->cattedra->ore_clil && $ore !== (int) $lezione->cattedra->ore_clil) {
+            $avvisi[] = "{$dove}: ore CLIL in orario {$ore} invece delle {$lezione->cattedra->ore_clil} previste.";
+        }
+
+        return $this->persisti($lezione->orario_id, ['ok' => true, 'errori' => [], 'avvisi' => $this->comeProvvisori($avvisi)], $lezione->id);
+    }
+
+    /**
+     * Imposta i docenti di sostegno presenti in quell'ora nella classe della lezione (l'elenco completo: chi manca viene tolto,
+     * chi è nuovo viene aggiunto). Ogni docente aggiunto deve essere libero (salvo provvisorio). Le ore diverse da quelle assegnate
+     * al docente nella classe sono un avviso, non un blocco.
+     *
+     * @param  int[]  $docentiIds
+     */
+    public function cambiaSostegno(Lezione $lezione, array $docentiIds, int $utenteId, bool $provvisorio = false): array
+    {
+        $lezione->load('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'slot');
+        $dove = $this->descriviLezione($lezione);
+        $nuovi = array_values(array_unique(array_map('intval', $docentiIds)));
+        $attuali = $this->compresenzeDi($lezione)->get();
+        $prima = $attuali->map(fn ($c) => ['docente_id' => $c->docente_id, 'codice' => $c->codice_anonimo])->values()->all();
+
+        $aggiunti = array_values(array_diff($nuovi, $attuali->pluck('docente_id')->all()));
+        $tolti = array_values(array_diff($attuali->pluck('docente_id')->all(), $nuovi));
+        if (! $aggiunti && ! $tolti) {
+            return ['ok' => true, 'errori' => [], 'avvisi' => []];
+        }
+
+        $errori = [];
+        $conflitti = [];
+        foreach (Docente::query()->whereIn('id', $aggiunti)->with('indisponibilita')->get() as $d) {
+            if ($d->tipo_posto !== 'sostegno') {
+                $errori[] = "{$d->nomeCompleto()} non è un docente di sostegno.";
+            }
+            foreach ($this->conflittiPresenza($lezione->orario_id, $d, $lezione->slot_id, $lezione->cattedra->classe_id) as $m) {
+                $conflitti[] = "{$d->nomeCompleto()} {$m}.";
+            }
+        }
+        if ($errori || ($conflitti && ! $provvisorio)) {
+            return $this->persisti($lezione->orario_id, ['ok' => false, 'errori' => array_map(fn ($m) => "{$dove}: {$m}", [...$errori, ...$conflitti]), 'avvisi' => []], $lezione->id);
+        }
+
+        $this->scriviSostegno($lezione, $nuovi, $attuali);
+        $dopo = $this->compresenzeDi($lezione)->get()->map(fn ($c) => ['docente_id' => $c->docente_id, 'codice' => $c->codice_anonimo])->values()->all();
+        AuditLog::query()->create([
+            'user_id' => $utenteId, 'entita' => 'Lezione', 'entita_id' => $lezione->id, 'azione' => 'cambio_sostegno',
+            'dati_prima' => ['docenti' => $prima], 'dati_dopo' => ['docenti' => $dopo],
+        ]);
+        $this->registra($lezione->orario_id, 'cambio_sostegno', $lezione->id, ['docenti' => $prima], ['docenti' => $dopo], $utenteId);
+
+        $avvisi = array_map(fn ($m) => "{$dove}: {$m}", $conflitti);
+        foreach (Docente::query()->whereIn('id', [...$aggiunti, ...$tolti])->get() as $d) {
+            $ore = CompresenzaSostegno::query()->where('orario_id', $lezione->orario_id)->where('docente_id', $d->id)->where('classe_id', $lezione->cattedra->classe_id)->count();
+            $assegnate = $d->assegnazioniSostegno()->where('classe_id', $lezione->cattedra->classe_id)->value('ore');
+            if ($assegnate === null && $ore > 0) {
+                $avvisi[] = "{$d->nomeCompleto()} ha {$ore} ore di sostegno in {$lezione->cattedra->classe->nomeCompleto()} ma non è assegnato al sostegno di quella classe.";
+            } elseif ($assegnate !== null && $ore !== (int) $assegnate) {
+                $avvisi[] = "{$d->nomeCompleto()} ha {$ore} ore di sostegno in {$lezione->cattedra->classe->nomeCompleto()} invece delle {$assegnate} assegnate.";
+            }
+        }
+
+        return $this->persisti($lezione->orario_id, ['ok' => true, 'errori' => [], 'avvisi' => $this->comeProvvisori($avvisi)], $lezione->id);
+    }
+
+    /** Porta le compresenze della classe in quell'ora all'elenco dato (il codice dell'alunno si conserva se c'è). */
+    private function scriviSostegno(Lezione $lezione, array $docentiIds, $attuali, array $codici = []): void
+    {
+        $classeId = $lezione->cattedra->classe_id;
+        foreach ($attuali as $c) {
+            if (! in_array($c->docente_id, $docentiIds, true)) {
+                $c->delete();
+            }
+        }
+        foreach ($docentiIds as $id) {
+            if (! $attuali->contains('docente_id', $id)) {
+                CompresenzaSostegno::query()->create([
+                    'orario_id' => $lezione->orario_id, 'docente_id' => $id, 'classe_id' => $classeId, 'slot_id' => $lezione->slot_id, 'codice_anonimo' => $codici[$id] ?? null,
+                ]);
+            }
+        }
+    }
+
     /** Blocca o sblocca una lezione (annullabile come le altre modifiche). */
     public function blocca(Lezione $lezione, int $utenteId): bool
     {
@@ -370,6 +558,8 @@ class EditorLezione
             ]),
             'blocco' => $lezione->update(['bloccata' => $stato['bloccata']]),
             'cambio_aula' => $lezione->update(['aula_id' => $stato['aula_id']]),
+            'cambio_clil' => $lezione->update(['con_clil' => $stato['con_clil']]),
+            'cambio_sostegno' => $this->scriviSostegno($lezione->load('cattedra'), array_column($stato['docenti'], 'docente_id'), $this->compresenzeDi($lezione)->get(), array_column($stato['docenti'], 'codice', 'docente_id')),
         };
 
         $voce->update(['annullata' => $lato === 'prima']);

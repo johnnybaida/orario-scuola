@@ -98,7 +98,8 @@
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
                                                  title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->cattedra->docente->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
-                                                 class="flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
+                                                 class="relative flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
+                                                @if ($modificabile)@include('orari._pulsante-modifica', ['posizione' => 'absolute right-0 top-0'])@endif
                                                 @if ($aulaMode)
                                                     {{-- La freccia dice che la classe arriva da un'altra aula (il nome è nel tooltip): resta su una riga. --}}
                                                     <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}@if ($cambio) <span title="Arriva da {{ $cambio['da']->nome }}">→</span>@endif</div>

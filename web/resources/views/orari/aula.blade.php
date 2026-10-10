@@ -72,6 +72,7 @@
                                         <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $slot->id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                              @if ($conflitti) title="{{ implode(' — ', $conflitti) }}" aria-invalid="true" @endif
                                              class="mb-1 rounded px-2 py-1 text-xs border {{ $troppe || $conflitti ? 'bg-red-50 border-red-300' : ($lezione->bloccata ? 'bg-amber-100 border-amber-300' : 'bg-blue-50 border-blue-200') }} {{ $trascinabile ? 'cursor-grab' : '' }}">
+                                            @if ($modificabile)@include('orari._pulsante-modifica')@endif
                                             <a href="{{ route('orari.classe', [$orario, $lezione->cattedra->classe]) }}" class="block font-medium underline-offset-2 hover:underline">{{ $lezione->cattedra->classe->nomeCompleto() }}</a>
                                             <div class="text-gray-600">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->docente->cognome }}</div>

@@ -128,6 +128,9 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::get('/orari/{orario}/lezioni/{lezione}/destinazioni', [OrarioController::class, 'destinazioniLezione'])->name('orari.lezioni.destinazioni');
         Route::patch('/orari/{orario}/lezioni/{lezione}/sposta', [OrarioController::class, 'spostaLezione'])->name('orari.lezioni.sposta');
         Route::patch('/orari/{orario}/lezioni/{lezione}/cattedra', [OrarioController::class, 'cambiaCattedraLezione'])->name('orari.lezioni.cattedra');
+        Route::get('/orari/{orario}/lezioni/{lezione}/dettaglio', [OrarioController::class, 'dettaglioLezione'])->name('orari.lezioni.dettaglio');
+        Route::patch('/orari/{orario}/lezioni/{lezione}/clil', [OrarioController::class, 'cambiaClilLezione'])->name('orari.lezioni.clil');
+        Route::put('/orari/{orario}/lezioni/{lezione}/sostegno', [OrarioController::class, 'cambiaSostegnoLezione'])->name('orari.lezioni.sostegno');
         Route::post('/orari/{orario}/lezioni/{lezione}/blocca', [OrarioController::class, 'bloccaLezione'])->name('orari.lezioni.blocca');
         Route::post('/orari/{orario}/annulla-ultima', [OrarioController::class, 'annullaUltima'])->name('orari.annulla-ultima');
         Route::post('/orari/{orario}/ripeti', [OrarioController::class, 'ripeti'])->name('orari.ripeti');

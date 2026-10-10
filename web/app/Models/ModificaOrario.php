@@ -24,6 +24,8 @@ class ModificaOrario extends Model
             'cambio_cattedra' => 'cambio di docente o materia',
             'blocco' => 'blocco o sblocco di una lezione',
             'cambio_aula' => 'cambio di aula',
+            'cambio_clil' => 'compresenza CLIL',
+            'cambio_sostegno' => 'docenti di sostegno',
             default => $this->tipo,
         };
     }

@@ -12,6 +12,7 @@ import './guida-pannello.js';
 import './toast.js';
 import './aggiornamenti.js';
 import './modifica-viste.js';
+import './pannello-lezione.js';
 import './dati.js';
 import './laboratori.js';
 import './menu-profilo.js';

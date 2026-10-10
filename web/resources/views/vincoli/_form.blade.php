@@ -179,6 +179,8 @@
     </div>
     <div class="flex items-end pb-2">
         <label class="flex items-center gap-2 text-sm text-gray-700">
+            {{-- Una casella non spuntata non viene inviata: il valore 0 nascosto permette di spegnere il vincolo. --}}
+            <input type="hidden" name="attivo" value="0">
             <input type="checkbox" name="attivo" value="1" @checked(old('attivo', $vincolo?->attivo ?? true))> Attivo
         </label>
     </div>

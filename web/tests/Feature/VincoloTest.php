@@ -249,4 +249,23 @@ class VincoloTest extends TestCase
         $this->assertSame('Al massimo 1 docente/i di sostegno insieme nella stessa classe e ora; ore di sostegno distribuite nella settimana (al massimo la media giornaliera + 1 ora/e per giorno).',
             (new \App\Constraints\Tipi\S5DistribuzioneSostegno)->descrizione(['max_insieme' => 1, 'tolleranza_giorno' => 1]));
     }
+
+    public function test_un_vincolo_si_disattiva_dal_form_e_non_arriva_piu_al_solver(): void
+    {
+        $utente = $this->actingAs($this->referente());
+        $utente->get('/vincoli/create')->assertOk()->assertSee('name="attivo" value="0"', false);
+
+        // il form invia attivo=0 (campo nascosto) quando la casella non è spuntata, attivo=1 quando lo è
+        $utente->post('/vincoli', ['tipo' => 'T2_GIORNO_LIBERO', 'ambito_livello' => 'globale', 'parametri' => ['n_giorni' => 1], 'severita' => 'rigido', 'attivo' => '0'])->assertSessionHasNoErrors();
+        $vincolo = \App\Models\Vincolo::query()->latest('id')->first();
+        $this->assertFalse($vincolo->attivo);
+        $this->assertSame([], app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli']);
+
+        $utente->put("/vincoli/{$vincolo->id}", ['tipo' => 'T2_GIORNO_LIBERO', 'ambito_livello' => 'globale', 'parametri' => ['n_giorni' => 1], 'severita' => 'rigido', 'attivo' => '1'])->assertSessionHasNoErrors();
+        $this->assertTrue($vincolo->fresh()->attivo);
+        $this->assertCount(1, app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli']);
+
+        $utente->put("/vincoli/{$vincolo->id}", ['tipo' => 'T2_GIORNO_LIBERO', 'ambito_livello' => 'globale', 'parametri' => ['n_giorni' => 1], 'severita' => 'rigido', 'attivo' => '0'])->assertSessionHasNoErrors();
+        $this->assertFalse($vincolo->fresh()->attivo);
+    }
 }
