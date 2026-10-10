@@ -344,4 +344,16 @@ class VincoloTest extends TestCase
         $globale = collect(app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli'])->firstWhere('ambito.livello', 'globale');
         $this->assertSame(1, $globale['parametri']['min_ore']);
     }
+
+    public function test_il_modulo_dei_vincoli_mostra_accanto_a_ogni_docente_le_ore_assegnate(): void
+    {
+        $rossi = \App\Models\Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        \App\Models\Cattedra::factory()->create(['docente_id' => $rossi->id, 'ore' => 12]);
+        \App\Models\Cattedra::factory()->create(['docente_id' => $rossi->id, 'ore' => 6]);
+        $libero = \App\Models\Docente::factory()->create(['cognome' => 'Zeta', 'nome' => 'Luca']);
+
+        $pagina = $this->actingAs($this->referente())->get('/vincoli/create')->assertOk();
+
+        $pagina->assertSee('Rossi Anna', false)->assertSee('(18 h)', false)->assertSee('Zeta Luca', false)->assertSee('(0 h)', false);
+    }
 }

@@ -44,7 +44,7 @@
             <label class="flex items-center gap-2 text-sm text-gray-700">
                 <input type="checkbox" name="ambito_ids[]" value="{{ $docente->id }}"
                        @checked(in_array($docente->id, old('ambito_ids', $vincolo?->ambito_ids ?? [])))>
-                {{ $docente->nomeCompleto() }}
+                {{ $docente->nomeCompleto() }} <span class="text-gray-500">({{ \App\Services\AssistenzaPause::formatta($docente->oreAssegnate($assistenza)) }} h)</span>
             </label>
         @endforeach
     </div>

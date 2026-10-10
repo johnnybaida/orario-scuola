@@ -16,6 +16,9 @@ use App\Models\Vincolo;
  */
 class ProblemBuilder
 {
+    /** Secondi concessi all'analisi dell'infattibilità (solver/diagnosi.py) dopo un esito «infattibile». */
+    public const DIAGNOSI_S = 120;
+
     /** @var array<int, int> lezione_id (input solver) => cattedra_id, popolata da costruisci(). */
     private array $mappaLezioni = [];
 
@@ -37,6 +40,7 @@ class ProblemBuilder
         return [
             'seed' => $seed,
             'time_limit_s' => $timeLimitS,
+            'diagnosi_s' => self::DIAGNOSI_S,   // se risulta infattibile, tempo massimo per spiegare quali vincoli sono in conflitto
             'slots' => $this->slots(),
             'aule' => $this->aule(),
             'docenti' => $this->docenti(),

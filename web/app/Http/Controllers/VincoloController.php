@@ -82,7 +82,9 @@ class VincoloController extends Controller
         return [
             'etichette' => Catalogo::etichette(),
             'classi' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
-            'docenti' => Docente::query()->orderBy('cognome')->get(),
+            // Le ore assegnate (cattedre, sostegno, CLIL, assistenza alle pause) accanto a ogni docente aiutano a scegliere i limiti.
+            'docenti' => Docente::query()->with('assistenzePausa')->withSum('cattedre', 'ore')->withSum('assegnazioniSostegno', 'ore')->withSum('cattedreClil', 'ore_clil')->orderBy('cognome')->orderBy('nome')->get(),
+            'assistenza' => app(\App\Services\AssistenzaPause::class),
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
             'slot' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
         ];

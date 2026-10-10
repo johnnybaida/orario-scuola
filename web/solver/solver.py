@@ -6,9 +6,11 @@ restituito nel JSON (stato: 'infattibile')."""
 
 import json
 import sys
+import time
 
 from ortools.sat.python import cp_model
 
+import diagnosi
 import sostegno as sostegno_modulo
 from contesto import Contesto
 from constraints import c5, d1, d3, d6, d12, d13, s5, t11, t2, t3, t4
@@ -68,17 +70,43 @@ def risolvi(problema: dict) -> dict:
         if vincolo['severita'] == 'preferenziale' and penalita:
             violazioni_soft.append((vincolo, penalita))
 
+    limite = problema.get('time_limit_s', 120)
+    seme = problema.get('seed', 0) % 2147483647   # random_seed è un int32 lato OR-Tools
+
+    def nuovo_solver(secondi):
+        s = cp_model.CpSolver()
+        s.parameters.max_time_in_seconds = max(1, secondi)
+        s.parameters.random_seed = seme
+        s.parameters.num_search_workers = 1
+        return s
+
+    solver = None
+    stato = None
     if penalita_totali:
-        model.Minimize(sum(penalita_totali))
-
-    solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = problema.get('time_limit_s', 120)
-    # random_seed è un int32 lato OR-Tools: riduco difensivamente qualunque
-    # valore più grande arrivi dal chiamante.
-    solver.parameters.random_seed = problema.get('seed', 0) % 2147483647
-    solver.parameters.num_search_workers = 1
-
-    stato = solver.Solve(model)
+        # Prima si cerca una soluzione qualsiasi, senza obiettivo (con molti vincoli preferenziali la ricerca con l'obiettivo può non trovarne nessuna
+        # nel tempo); poi la si migliora minimizzando le penalità, partendo da quella soluzione come suggerimento.
+        fase1 = nuovo_solver(min(limite * 0.4, 150))
+        inizio = time.monotonic()
+        stato1 = fase1.Solve(model)
+        if stato1 in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            model.ClearHints()
+            for i in range(len(model.Proto().variables)):
+                var = model.GetIntVarFromProtoIndex(i)
+                model.AddHint(var, fase1.Value(var))
+            model.Minimize(sum(penalita_totali))
+            solver = nuovo_solver(limite - (time.monotonic() - inizio))
+            stato = solver.Solve(model)
+            if stato not in (cp_model.OPTIMAL, cp_model.FEASIBLE):   # non dovrebbe succedere: si tiene la soluzione della prima fase
+                solver, stato = fase1, cp_model.FEASIBLE
+        elif stato1 in (cp_model.INFEASIBLE, cp_model.MODEL_INVALID):
+            solver, stato = fase1, stato1
+        else:
+            model.Minimize(sum(penalita_totali))   # nessuna soluzione trovata nella prima fase: si prosegue con l'obiettivo per il tempo che resta
+            solver = nuovo_solver(limite - (time.monotonic() - inizio))
+            stato = solver.Solve(model)
+    else:
+        solver = nuovo_solver(limite)
+        stato = solver.Solve(model)
 
     if stato in (cp_model.INFEASIBLE, cp_model.MODEL_INVALID):
         return {
@@ -87,7 +115,7 @@ def risolvi(problema: dict) -> dict:
             'assegnazioni': [],
             'compresenze_sostegno': [],
             'violazioni_soft': [],
-            'diagnostica': ['Nessuna soluzione soddisfa i vincoli rigidi con i dati forniti.'],
+            'diagnostica': ['Nessuna soluzione soddisfa i vincoli rigidi con i dati forniti.'] + diagnosi.spiega(problema),
         }
 
     if stato == cp_model.UNKNOWN:

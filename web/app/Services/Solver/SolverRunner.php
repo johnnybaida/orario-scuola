@@ -15,7 +15,7 @@ class SolverRunner
     public function esegui(array $problema): array
     {
         $python = base_path('solver/.venv/bin/python');
-        $timeout = ($problema['time_limit_s'] ?? 120) + 30;
+        $timeout = ($problema['time_limit_s'] ?? 120) + ($problema['diagnosi_s'] ?? 0) + 30;
 
         $risultato = Process::path(base_path('solver'))
             ->timeout($timeout)
