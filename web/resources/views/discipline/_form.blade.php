@@ -22,6 +22,9 @@
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
+{{-- «Senza ora» e «Si svolge nella pausa» sono il vecchio modo di gestire la mensa (ora ci sono le pause in Scansione oraria e la pagina Mensa): si vedono solo
+     per le discipline che già li usano, così non si creano nuove voci col metodo vecchio. --}}
+@if ($disciplina?->senza_slot || $disciplina?->pausa_dopo_ora !== null)
 <div>
     <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
         <input type="checkbox" name="senza_slot" value="1" @checked(old('senza_slot', $disciplina?->senza_slot))> Non occupa un'ora di lezione (es. mensa)
@@ -40,6 +43,7 @@
         @endforeach
     </select>
 </div>
+@endif
 
 <div>
     <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Aula richiesta</label>

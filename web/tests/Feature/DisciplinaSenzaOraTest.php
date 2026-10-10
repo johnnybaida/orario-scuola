@@ -89,4 +89,19 @@ class DisciplinaSenzaOraTest extends TestCase
         $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->get("/classi/{$classe->id}/edit")->assertOk()
             ->assertSee('Servono', false)->assertSee('<strong>2</strong> ore di lezione', false)->assertSee('1h senza ora, come la mensa', false);
     }
+
+    public function test_i_campi_del_metodo_precedente_della_mensa_si_vedono_solo_nelle_discipline_che_li_usano(): void
+    {
+        $referente = $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']));
+        $normale = Disciplina::factory()->create(['codice' => 'ITA']);
+        $mensa = Disciplina::factory()->create(['codice' => 'MEN', 'senza_slot' => true]);
+
+        $referente->get('/discipline/create')->assertOk()->assertDontSee('Non occupa un\'ora di lezione', false)->assertDontSee('Si svolge nella pausa');
+        $referente->get("/discipline/{$normale->id}/edit")->assertOk()->assertDontSee('Non occupa un\'ora di lezione', false);
+        $referente->get("/discipline/{$mensa->id}/edit")->assertOk()->assertSee('Non occupa un\'ora di lezione', false)->assertSee('Si svolge nella pausa');
+
+        // salvare una disciplina normale col campo nascosto non cambia nulla
+        $referente->put("/discipline/{$normale->id}", ['codice' => 'ITA', 'nome' => $normale->nome])->assertSessionHasNoErrors();
+        $this->assertFalse($normale->fresh()->senza_slot);
+    }
 }
