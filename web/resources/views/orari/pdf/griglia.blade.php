@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        @page { margin: 12mm; }
+        @page { margin: 6mm 8mm 9mm 8mm; }
         /* Foglio A3 orizzontale (stampabile anche in A4 «adatta alla pagina»): misure ×1,2 rispetto al vecchio A4. */
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 14px; }
-        h1 { font-size: 29px; text-align: center; margin: 0 0 20px 0; }
+        h1 { font-size: 26px; text-align: center; margin: 0 0 8px 0; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #999; padding: 5px; text-align: center; vertical-align: middle; }
-        th { background: #eee; font-size: 16px; padding: 9px; }
+        th, td { border: 1px solid #999; padding: 3px; text-align: center; vertical-align: middle; line-height: 1.15; }
+        th { background: #eee; font-size: 16px; padding: 5px; }
         .ordine { width: 78px; background: #f5f5f5; font-weight: bold; font-size: 16px; }
         .orario { font-weight: normal; font-size: 12px; color: #555; }
         .cella { white-space: pre-line; }
-        .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 13px; padding: 4px; }
+        .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 12px; padding: 2px 4px; }
+        .ricreazione .orario { font-size: 11px; }
         .sostegno { color: #047857; font-size: 13px; }
     </style>
 </head>
@@ -74,19 +75,15 @@
                     @php($pausaPrima = $primoSlotAssoluto?->pausa_prima_minuti ? $primoSlotAssoluto : null)
                     @if ($pausaPrima)
                         @php($nRicreazioni++)
-                        <tr class="ricreazione">
-                            <td class="ordine" style="font-size: 13px">{{ $pausaPrima->nomePausaPrima() }}<br><span class="orario">{{ $pausaPrima->inizioPausaPrima() }}-{{ substr($pausaPrima->inizio, 0, 5) }} ({{ $pausaPrima->pausa_prima_minuti }}')</span>@if ($pausaPrima->pausaPrimaAula)<br><span class="orario">{{ $pausaPrima->pausaPrimaAula->nomeConPiano() }}</span>@endif</td>
-                            @foreach ($slotPerGiorno as $giorno => $slotGiorno)
-                                <td>{{ implode(', ', $cellaPausa(0, $giorno)) }}</td>
-                            @endforeach
-                        </tr>
+                        @include('orari.pdf._riga-pausa', ['nome' => $pausaPrima->nomePausaPrima(), 'da' => $pausaPrima->inizioPausaPrima(), 'a' => substr($pausaPrima->inizio, 0, 5), 'minuti' => $pausaPrima->pausa_prima_minuti, 'aula' => $pausaPrima->pausaPrimaAula?->nomeConPiano(), 'ordinePausa' => 0])
                     @endif
                     {{-- Nel foglio di una classe si saltano le ore che la classe non usa mai (es. la 7ª ora liberata dalla mensa). --}}
                     @php($ordiniVisibili = collect(range(1, max(1, $maxOrdine)))->filter(fn ($o) => ! isset($foglio['slotAttiviIds']) || $slotPerGiorno->flatten()->contains(fn ($s) => $s->ordine === $o && $foglio['slotAttiviIds']->contains($s->id)))->values())
                     @foreach ($ordiniVisibili as $ordine)
                         @php($primoSlot = $slotPerGiorno->flatten()->firstWhere('ordine', $ordine))
-                        {{-- Celle alte quanto serve perché la settimana riempia il foglio A3 orizzontale (fino a 9 ore); dompdf rispetta l'altezza solo sulle celle. --}}
-                        @php($altezza = (int) floor((590 - 26 * $nRicreazioni) / max(1, $ordiniVisibili->count())))
+                        {{-- Celle alte quanto serve perché la settimana riempia il foglio A3 orizzontale (fino a 9 ore; margini stretti, pause su una riga); dompdf rispetta l'altezza solo sulle celle. --}}
+                        @php($righeExtra = collect([$foglio['laboratori'] ?? [], $foglio['senzaOra'] ?? [], $foglio['assistenze'] ?? []])->filter()->count())
+                        @php($altezza = (int) floor((680 - 19 * $nRicreazioni - 24 * $righeExtra) / max(1, $ordiniVisibili->count())))
                         <tr>
                             <td class="ordine" style="height: {{ $altezza }}pt">{{ $ordine }}ª@if ($primoSlot)<br><span class="orario">{{ substr($primoSlot->inizio, 0, 5) }}-{{ substr($primoSlot->fine, 0, 5) }}</span>@endif</td>
                             @foreach ($slotPerGiorno as $giorno => $slotGiorno)
@@ -106,12 +103,7 @@
                             @endforeach
                         </tr>
                         @if ($primoSlot?->ricreazione_minuti && $ordine < $maxOrdine)
-                            <tr class="ricreazione">
-                                <td class="ordine" style="font-size: 13px">{{ $primoSlot->nomePausa() }}<br><span class="orario">{{ substr($primoSlot->fine, 0, 5) }}-{{ $primoSlot->fineRicreazione() }} ({{ $primoSlot->ricreazione_minuti }}')</span>@if ($primoSlot->ricreazioneAula)<br><span class="orario">{{ $primoSlot->ricreazioneAula->nomeConPiano() }}</span>@endif</td>
-                                @foreach ($slotPerGiorno as $giorno => $slotGiorno)
-                                    <td>{{ implode(', ', $cellaPausa($ordine, $giorno)) }}</td>
-                                @endforeach
-                            </tr>
+                            @include('orari.pdf._riga-pausa', ['nome' => $primoSlot->nomePausa(), 'da' => substr($primoSlot->fine, 0, 5), 'a' => $primoSlot->fineRicreazione(), 'minuti' => $primoSlot->ricreazione_minuti, 'aula' => $primoSlot->ricreazioneAula?->nomeConPiano(), 'ordinePausa' => $ordine])
                         @endif
                     @endforeach
                 </tbody>

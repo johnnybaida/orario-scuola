@@ -87,7 +87,7 @@ class PausaPrimaTest extends TestCase
         $esporta = app(OrarioPdfExporter::class);
 
         $griglia = $esporta->classe($orario, $cattedra->classe)->getDomPDF()->outputHtml();
-        $this->assertStringContainsString('Accoglienza<br><span class="orario">07:50-08:00 (10\')</span>', $griglia);
+        $this->assertStringContainsString('<strong>Accoglienza</strong> &nbsp;07:50-08:00 (10\')', $griglia);
         $tabellone = $esporta->generale($orario)->getDomPDF()->outputHtml();
         $this->assertStringContainsString('accoglienza</strong> 07:50-08:00 (10\')', $tabellone);
 

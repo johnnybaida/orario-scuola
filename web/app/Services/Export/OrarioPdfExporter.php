@@ -231,9 +231,6 @@ class OrarioPdfExporter
         $mensa = \App\Models\Disciplina::query()->where('senza_slot', true)->whereNotNull('pausa_dopo_ora')->get()->filter(fn ($d) => $pause->has($d->pausa_dopo_ora));
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
         $colonnePausa = $per === 'classe' ? $mensa->pluck('pausa_dopo_ora')->merge($pauseMensa->keys())->unique()->sort()->values()->all() : [];
-        $larghezzaColonna = 3050 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
-        $fontPx = max(10, min(22, (int) floor(($larghezzaColonna - 3) / 3.6)));
-        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
         $tuttiGliSlot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
@@ -300,27 +297,71 @@ class OrarioPdfExporter
             }
         }
 
+        // Colonne di ogni giorno: solo le ore con almeno una lezione (o un sostegno) quel giorno e le pause con qualcuno da mostrare (mensa,
+        // sorveglianza): le colonne vuote non si stampano e lo spazio va alle altre, che crescono insieme al carattere.
+        $oreUsate = $usati->groupBy('giorno')->map(fn ($slot) => $slot->pluck('ordine')->unique()->all());
+        $pausePiene = collect(array_merge(array_keys($celleMensa), array_keys($celleSorveglianza)))
+            ->mapWithKeys(function (string $chiave) {
+                [, $giorno, $ora] = explode('-', $chiave);
+
+                return [(int) $giorno.'-'.(int) $ora => true];
+            });
+        $colonnePerGiorno = $giorni->mapWithKeys(function ($giorno) use ($oreMax, $oreUsate, $colonnePausa, $pausePiene) {
+            $colonne = in_array(0, $colonnePausa) && $pausePiene->has("{$giorno}-0") ? [['pausa', 0]] : [];
+            foreach (range(1, max(1, $oreMax)) as $ora) {
+                if (in_array($ora, $oreUsate[$giorno] ?? [], true)) {
+                    $colonne[] = ['ora', $ora];
+                }
+                if (in_array($ora, $colonnePausa) && $pausePiene->has("{$giorno}-{$ora}")) {
+                    $colonne[] = ['pausa', $ora];
+                }
+            }
+
+            return [$giorno => $colonne];
+        });
+        $larghezzaColonna = 3050 / max(1, $colonnePerGiorno->sum(fn ($c) => count($c)));
+        $fontPx = max(10, min(22, (int) floor(($larghezzaColonna - 3) / 3.6)));
+        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
+
         // Celle più alte per leggere meglio: lo spazio verticale dell'A1 (circa 2000px) si divide tra le righe (quasi tutte con 4-5 righe di testo per cella).
         // Righe di testo della cella più piena (materia, docente, aula, CLIL, un rigo per docente di sostegno): l'altezza delle righe della tabella
         // la decide lei, quindi si riduce il carattere finché tutte le righe stanno nel foglio.
         $righeDiTesto = $celle->map(function ($gruppo, $chiave) use ($per, $cambi, $compresenze) {
             if ($per === 'aula') {
-                return $gruppo->count() * 3;
+                return $gruppo->sum(fn (Lezione $l) => 3 + ($l->docenteClilEffettivo() ? 1 : 0) + $compresenze->where('slot_id', $l->slot_id)->where('classe_id', $l->cattedra->classe_id)->unique('docente_id')->count());
             }
 
             return $gruppo->sum(fn (Lezione $l) => 2 + ((SpostamentiAula::aulaEffettiva($l) || isset($cambi[$l->id])) ? 1 : 0) + ($l->docenteClilEffettivo() ? 1 : 0))
                 + $compresenze->where('slot_id', $gruppo->first()->slot_id)->where('classe_id', $gruppo->first()->cattedra->classe_id)->unique('docente_id')->count();
         })->max() ?: 3;
-        $altezzaRiga = 1560 / max(1, $righe->count());
-        while ($fontPx > 8 && $righeDiTesto * $fontPx * 1.3 + 6 > $altezzaRiga) {
+        $altezzaRiga = 1700 / max(1, $righe->count());
+        while ($fontPx > 8 && $righeDiTesto * $fontPx * 1.25 + 6 > $altezzaRiga) {
             $fontPx--;
         }
         $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
-        $paddingPx = (int) max(1, min(20, floor(($altezzaRiga - $righeDiTesto * $fontPx * 1.3) / 2)));
+
+        // Ogni riga di una cella occupa tutta la larghezza e, se il testo non entra, si accorcia con «…»: la misura è quella reale del carattere del PDF.
+        $metriche = app('dompdf.wrapper')->getDomPDF()->getFontMetrics();
+        $adatta = function (string $testo, string $prefisso = '', string $suffisso = '', bool $grassetto = false, ?int $px = null) use ($metriche, $larghezzaColonna, $fontPx) {
+            $carattere = $metriche->getFont('sans-serif', $grassetto ? 'bold' : 'normal');
+            $massimo = ($larghezzaColonna - 8) * 0.75;   // pt: la colonna meno bordi e margini interni
+            $misura = fn (string $t) => $metriche->getTextWidth($prefisso.$t.$suffisso, $carattere, ($px ?? $fontPx) * 0.75);
+            if ($misura($testo) <= $massimo) {
+                return $prefisso.$testo.$suffisso;
+            }
+            while (mb_strlen($testo) > 1 && $misura($testo.'…') > $massimo) {
+                $testo = mb_substr($testo, 0, -1);
+            }
+
+            return $prefisso.$testo.'…'.$suffisso;
+        };
+        $paddingPx = (int) max(1, min(20, floor(($altezzaRiga - $righeDiTesto * $fontPx * 1.25) / 2)));
 
         return Pdf::loadView('orari.pdf.tabellone', [
             'origine' => $this->origine($orario),
             'cambi' => $cambi,
+            'adatta' => $adatta,
+            'altezzaCella' => (int) floor(1500 / max(1, $righe->count())),
             'paddingPx' => $paddingPx,
             'titolo' => $this->conSede($per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario'),
             'per' => $per,
@@ -328,6 +369,7 @@ class OrarioPdfExporter
             'colori' => ColoriDiscipline::mappa(),
             'giorni' => $giorni,
             'ore' => $oreMax ? range(1, $oreMax) : [],
+            'colonnePerGiorno' => $colonnePerGiorno->all(),
             'slot' => $tuttiGliSlot->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),
             'celle' => $celle,
             'sostegni' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->classe_id),

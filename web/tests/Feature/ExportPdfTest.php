@@ -151,7 +151,7 @@ class ExportPdfTest extends TestCase
 
         $griglia = $esporta->classe($orario, $classe)->getDomPDF()->outputHtml();
         $this->assertStringContainsString('09:40-10:30', $griglia);
-        $this->assertStringContainsString('Ricreazione<br><span class="orario">10:30-10:40 (10\')</span>', $griglia);   // riga della pausa: etichetta, orario e durata
+        $this->assertStringContainsString('<strong>Ricreazione</strong> &nbsp;10:30-10:40 (10\')', $griglia);   // riga della pausa su una sola cella: etichetta, orario e durata
 
         $tabellone = $esporta->generale($orario)->getDomPDF()->outputHtml();
         $this->assertStringContainsString('1&ordf; 09:40-10:30', $tabellone);
@@ -253,10 +253,10 @@ class ExportPdfTest extends TestCase
 
         $html = app(\App\Services\Export\OrarioPdfExporter::class)->generale($orario)->getDomPDF()->outputHtml();
 
-        $this->assertSame(2, preg_match_all('/<th class="[^"]*pausa">Mensa<\/th>/', $html));   // la colonna della pausa compare nei due giorni
+        $this->assertSame(1, preg_match_all('/<th class="[^"]*pausa">Mensa<\/th>/', $html));   // la colonna della pausa c'è solo il lunedì: il martedì nessuno è in mensa e la colonna vuota non si stampa
         $this->assertStringContainsString('PRA', $html);
         $this->assertStringContainsString('Rossi', $html);
-        // il martedì la classe non ha ore dopo la pausa: la cella della mensa è vuota (una sola cella con la disciplina)
+        // il martedì la classe non ha ore dopo la pausa: nessuna cella della mensa (una sola cella con la disciplina)
         $this->assertSame(1, substr_count($html, '<div class="materia">PRA</div>'));
     }
 
@@ -273,5 +273,32 @@ class ExportPdfTest extends TestCase
         $this->assertSame(0, preg_match_all('/href="[^"]*\/export\/[^"]*"\s+class=/', $elenco));                                            // nessun link PDF senza _blank
 
         $this->get("/orari/{$orario->id}/classe/{$classe->id}")->assertOk()->assertSee('target="_blank" rel="noopener" class="text-sm underline text-gray-600">Esporta PDF', false);
+    }
+
+    public function test_il_tabellone_non_stampa_le_colonne_delle_ore_vuote(): void
+    {
+        foreach ([1, 2] as $giorno) {
+            foreach ([1, 2, 3] as $ordine) {
+                Slot::query()->create(['giorno' => $giorno, 'ordine' => $ordine, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+            }
+        }
+        $classe = Classe::factory()->create();
+        $classe->slotAttivi()->sync(Slot::query()->pluck('id'));
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        // lunedì lezioni alla 1ª e alla 3ª ora, martedì solo alla 1ª: la 2ª ora è vuota ovunque, la 3ª solo il martedì
+        foreach ([[1, 1], [1, 3], [2, 1]] as [$giorno, $ordine]) {
+            Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => Slot::query()->where('giorno', $giorno)->where('ordine', $ordine)->first()->id]);
+        }
+        $esporta = app(\App\Services\Export\OrarioPdfExporter::class);
+
+        foreach (['classe', 'aula'] as $per) {
+            $html = $esporta->generale($orario, $per)->getDomPDF()->outputHtml();
+
+            $ora = fn (int $n) => preg_match_all('/<th[^>]*>'.$n.'(?:ª|&ordf;)<\/th>/u', $html);
+            $this->assertSame(0, $ora(2), "{$per}: la 2ª ora è vuota ovunque, niente colonna");
+            $this->assertSame(2, $ora(1), "{$per}: la 1ª ora c'è in entrambi i giorni");
+            $this->assertSame(1, $ora(3), "{$per}: la 3ª solo il lunedì");
+        }
     }
 }
