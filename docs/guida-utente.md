@@ -412,10 +412,10 @@ I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema s
 - **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale. Non tutti gli ambiti valgono per ogni tipo: **D1, D3 e D6** si applicano a *Globale* o *Classe*; **T2 e T3** a *Globale* o *Docente*.
 - **Severità**: *Rigido* va rispettato sempre (se non è possibile l'orario risulta infattibile); *Preferenziale* viene rispettato quando possibile.
 - **Peso** (1–100): solo per i preferenziali. Più è alto, più il generatore cerca di evitare di violarlo. Si attiva solo con Severità = Preferenziale.
-- **Attivo**: se tolto, il vincolo resta salvato ma non viene considerato.
+- **Attivo**: se tolto (e salvato), il vincolo resta in elenco ma **non viene considerato** nelle generazioni: comodo per provare un orario senza una regola e riattivarla dopo. La colonna **Attivo** dell'elenco dice «Sì» o «No».
 - **Nota**: promemoria libero.
 
-**Più discipline in una regola.** I vincoli D1, D3, D6 e D12 si applicano a **una o più discipline**: spunta quelle che ti servono (con **Tutte** / **Nessuna** per fare in fretta) e la regola vale per **ciascuna**, come tante regole uguali. Così «Arte, Musica, Geografia e Storia: un blocco da 2 ore» è una regola sola invece di quattro. I parametri (ore, blocchi, giorni, severità, peso) sono gli stessi per tutte le discipline scelte: se due discipline hanno bisogno di valori diversi (per esempio Italiano 3 blocchi e Matematica 2) servono due regole.
+**Più discipline in una regola.** I vincoli D1, D3, D6, D12 e D13 si applicano a **una o più discipline**: spunta quelle che ti servono (con **Tutte** / **Nessuna** per fare in fretta) e la regola vale per **ciascuna**, come tante regole uguali. Così «Arte, Musica, Geografia e Storia: un blocco da 2 ore» è una regola sola invece di quattro. I parametri (ore, blocchi, giorni, severità, peso) sono gli stessi per tutte le discipline scelte: se due discipline hanno bisogno di valori diversi (per esempio Italiano 3 blocchi e Matematica 2) servono due regole.
 
 Nell'elenco dei vincoli la colonna **Disciplina** mostra le discipline scelte (D1, D3, D6, D12), «Tutte» se il vincolo vale per ogni disciplina (D1 e D12 con Ambito Docente e nessuna disciplina scelta) e «—» per i tipi che non ne hanno.
 
@@ -509,6 +509,73 @@ Le ore di Matematica di una classe cadono in giorni diversi o separate da almeno
 | Peso | 40 |
 
 Il generatore cerca di non dare a quei docenti più di quattro ore di fila; se non ci riesce paga una penalità per ogni fila più lunga.
+
+**Ore minime/massime al giorno (T4)**
+
+*Tutti i docenti vengono tutti i giorni (dove possono).*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore minime/massime al giorno (T4) |
+| Ambito | Globale |
+| Ore minime al giorno | 1 |
+| Severità | Preferenziale |
+| Peso | 40 |
+
+Il generatore distribuisce le ore di ogni docente sul maggior numero di giorni possibile. I giorni in cui un docente è indisponibile non contano, e un docente con meno ore dei giorni a disposizione non rende impossibile nulla (con la severità Preferenziale).
+
+**Ore minime in una fascia (T11)**
+
+*Il prof. Rossi fa almeno un'ora il mercoledì mattina.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore minime in una fascia (T11) |
+| Ambito | Docente |
+| Docenti | Rossi |
+| Ore minime negli slot | 1 |
+| Slot | mercoledì 1ª–3ª (con «Tutte» spunti l'intero giorno) |
+| Severità | Rigido |
+
+**Disciplina seguita da un'altra (D13)**
+
+*Mai Geografia senza CLIL e Geografia con CLIL di seguito, in nessun ordine.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Disciplina seguita da un'altra (D13) |
+| Ambito | Globale |
+| Regola | NON deve essere seguita da |
+| Disciplina di partenza | Geografia, «Solo le lezioni senza CLIL» |
+| Disciplina che segue | Geografia, «Solo le lezioni con CLIL» |
+| Vale anche nell'ordine inverso | spuntato |
+| Severità | Preferenziale |
+| Peso | 50 |
+
+*Dopo Italiano, almeno due volte la settimana, Storia.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Disciplina seguita da un'altra (D13) |
+| Regola | Deve essere seguita da |
+| Disciplina di partenza / che segue | Italiano / Storia |
+| Almeno quante coppie nella settimana | 2 |
+| Severità | Preferenziale |
+
+**Distribuzione del sostegno (S5)**
+
+*Mai due docenti di sostegno insieme nella stessa classe e ore distribuite nella settimana.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Distribuzione del sostegno (S5) |
+| Ambito | Globale |
+| Max docenti di sostegno insieme | 1 |
+| Tolleranza giornaliera | 1 |
+| Severità | Preferenziale |
+| Peso | 40 |
+
+Se in una classe le ore di sostegno assegnate superano le ore della settimana, le sovrapposizioni restano inevitabili: il vincolo le riduce al minimo.
 
 **Max ore/giorno per disciplina (D3)**
 
@@ -810,6 +877,7 @@ Nei PDF di classe, docente e aula la **pausa** (per esempio la mensa) ha una **r
 I PDF di classe, docente e aula sono su fogli **A3**, così anche gli orari con molte ore (tempo prolungato con rientri e pause) stanno su **una pagina per elemento**; per stamparli in **A4** scegli «Adatta alla pagina» nella finestra di stampa: i caratteri restano leggibili.
 - **Docente CLIL nei PDF**: compare in tutti, nelle ore in cui è in compresenza. Nei fogli di classe, di docente (anche nel foglio del titolare, sotto la sua lezione) e di aula come «+ Nome Cognome (CLIL)»; nel tabellone come «C Cognome» in blu, con la legenda in fondo.
 - **Origine dell'orario**: in tutti i PDF, in basso a sinistra e in piccolo, c'è la nota «Orario #n · seed …»: l'identificativo dell'orario e il seed con cui è stato generato, per risalire da dove viene (e rigenerarlo uguale).
+- **Celle del tabellone**: il carattere e l'altezza delle righe si adattano al numero di classi, così i nomi sono più leggibili. Nel tabellone per classe ogni cella mostra anche l'**aula** (nome abbreviato e piano: PT = piano terra, P1 = 1° piano…), in **grassetto** quando la classe cambia aula rispetto all'ora prima; nel tabellone per aula ogni cella ha classe, disciplina e **docente**. I nomi più lunghi restano abbreviati con «…».
 - **Tabellone generale**: un solo foglio A2, una riga per classe e le colonne divise per giorno, tutte della stessa larghezza. Mostra la sigla della materia e il cognome del docente (troncati con "…" se lunghi); i docenti di **sostegno** in compresenza compaiono come "S Cognome". In fondo c'è la legenda delle sigle.
 
 ## Ruoli e permessi

@@ -220,9 +220,9 @@ class OrarioPdfExporter
         $mensa = \App\Models\Disciplina::query()->where('senza_slot', true)->whereNotNull('pausa_dopo_ora')->get()->filter(fn ($d) => $pause->has($d->pausa_dopo_ora));
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
         $colonnePausa = $per === 'classe' ? $mensa->pluck('pausa_dopo_ora')->merge($pauseMensa->keys())->unique()->sort()->values()->all() : [];
-        $larghezzaColonna = 1480 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
-        $fontPx = max(8, min(14, (int) floor(($larghezzaColonna - 3) / 3.6)));
-        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.4 * $fontPx)));
+        $larghezzaColonna = 2150 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
+        $fontPx = max(9, min(16, (int) floor(($larghezzaColonna - 3) / 3.6)));
+        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
         $tuttiGliSlot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
@@ -237,6 +237,14 @@ class OrarioPdfExporter
                     ? ['fine' => $ora->fineRicreazione(), 'minuti' => $ora->ricreazione_minuti, 'nome' => mb_strtolower($ora->nomePausa()), 'aula' => $ora->ricreazioneAula?->nomeConPiano()] : null,
             ] : null;
         })->filter()->values()->all();
+
+        // Cambi d'aula (nella vista per classe si scrive l'aula con la freccia dove la classe si sposta).
+        $cambi = [];
+        if ($per === 'classe') {
+            foreach ($lezioni->groupBy(fn (Lezione $l) => $l->cattedra->classe_id) as $dellaClasse) {
+                $cambi += app(SpostamentiAula::class)->cambi($dellaClasse->load('slot'));
+            }
+        }
 
         if ($per === 'aula') {
             $usate = $lezioni->map(fn (Lezione $l) => SpostamentiAula::aulaEffettiva($l)?->id)->filter()->unique();
@@ -281,8 +289,28 @@ class OrarioPdfExporter
             }
         }
 
+        // Celle più alte per leggere meglio: lo spazio verticale dell'A2 (circa 1400px) si divide tra le righe (quasi tutte con 4-5 righe di testo per cella).
+        // Righe di testo della cella più piena (materia, docente, aula, CLIL, un rigo per docente di sostegno): l'altezza delle righe della tabella
+        // la decide lei, quindi si riduce il carattere finché tutte le righe stanno nel foglio.
+        $righeDiTesto = $celle->map(function ($gruppo, $chiave) use ($per, $cambi, $compresenze) {
+            if ($per === 'aula') {
+                return $gruppo->count() * 3;
+            }
+
+            return $gruppo->sum(fn (Lezione $l) => 2 + ((SpostamentiAula::aulaEffettiva($l) || isset($cambi[$l->id])) ? 1 : 0) + ($l->con_clil && $l->cattedra->docenteClil ? 1 : 0))
+                + $compresenze->where('slot_id', $gruppo->first()->slot_id)->where('classe_id', $gruppo->first()->cattedra->classe_id)->unique('docente_id')->count();
+        })->max() ?: 3;
+        $altezzaRiga = 1100 / max(1, $righe->count());
+        while ($fontPx > 8 && $righeDiTesto * $fontPx * 1.3 + 6 > $altezzaRiga) {
+            $fontPx--;
+        }
+        $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.5 * $fontPx)));
+        $paddingPx = (int) max(1, min(14, floor(($altezzaRiga - $righeDiTesto * $fontPx * 1.3) / 2)));
+
         return Pdf::loadView('orari.pdf.tabellone', [
             'origine' => $this->origine($orario),
+            'cambi' => $cambi,
+            'paddingPx' => $paddingPx,
             'titolo' => $this->conSede($per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario'),
             'per' => $per,
             'righe' => $righe,
