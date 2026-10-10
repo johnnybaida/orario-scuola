@@ -41,6 +41,9 @@
                     {{-- Chi c'è nella pausa dopo l'ora $ordine (0 = prima della prima ora) in un giorno: i sorveglianti (assistenza alle pause) e, nel foglio
                          di una classe, nei giorni di rientro i docenti delle cattedre «senza ora» (mensa). --}}
                     @php($cellaPausa = function ($ordine, $giorno) use ($foglio, $slotPerGiorno, $sorveglianti, $pauseMensa) {
+                        if ($foglio['senzaDocentiInPausa'] ?? false) {
+                            return [];
+                        }
                         $voci = collect($sorveglianti[$ordine][$giorno] ?? []);
                         $mensa = in_array($ordine, $pauseMensa, true);
                         // Giorno di rientro: la classe ha ore dopo la pausa (solo per la mensa; le ricreazioni valgono per tutti).

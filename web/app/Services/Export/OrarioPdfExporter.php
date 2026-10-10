@@ -127,6 +127,7 @@ class OrarioPdfExporter
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome."\n".$this->nomeDocente($l).($l->docenteClilEffettivo() ? "\n+ ".$this->nomeClil($l).' (CLIL)' : ''),
                 'sostegni' => [],
+                'senzaDocentiInPausa' => true,   // il foglio è per l'aula: la pausa (anche la mensa) è una riga come le altre, senza i docenti
                 'laboratori' => app(Laboratori::class)->elenco(null, $aula->id),
             ];
         })->all();

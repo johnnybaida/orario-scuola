@@ -301,4 +301,29 @@ class ExportPdfTest extends TestCase
             $this->assertSame(1, $ora(3), "{$per}: la 3ª solo il lunedì");
         }
     }
+
+    public function test_nel_pdf_delle_aule_la_pausa_e_una_riga_come_le_altre_senza_docenti(): void
+    {
+        foreach ([1, 2] as $ordine) {
+            Slot::query()->create(['giorno' => 1, 'ordine' => $ordine, 'inizio' => $ordine === 1 ? '08:00:00' : '09:30:00', 'fine' => $ordine === 1 ? '08:50:00' : '10:20:00',
+                'intervallo_dopo' => $ordine === 1, 'ricreazione_minuti' => $ordine === 1 ? 40 : null, 'ricreazione_nome' => $ordine === 1 ? 'Mensa' : null]);
+        }
+        $aula = \App\Models\Aula::factory()->create();
+        $classe = Classe::factory()->create(['aula_base_id' => $aula->id]);
+        $classe->slotAttivi()->sync(Slot::query()->pluck('id'));
+        $orario = Orario::factory()->create();
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => Slot::query()->where('ordine', 1)->first()->id, 'aula_id' => $aula->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => Slot::query()->where('ordine', 2)->first()->id, 'aula_id' => $aula->id]);
+        $sorvegliante = Docente::factory()->create(['cognome' => 'Sorvegliantissimo']);
+        $sorvegliante->assistenzePausa()->create(['giorno' => 1, 'ordine' => 1]);
+
+        $esporta = app(\App\Services\Export\OrarioPdfExporter::class);
+
+        // nel foglio di un docente (e di una classe) la pausa mostra chi la sorveglia; in quello dell'aula è una riga sola, senza docenti
+        $this->assertStringContainsString('Sorvegliantissimo', $esporta->docenti($orario, collect([$sorvegliante]))->getDomPDF()->outputHtml());
+        $html = $esporta->aule($orario)->getDomPDF()->outputHtml();
+        $this->assertStringNotContainsString('Sorvegliantissimo', $html);
+        $this->assertStringContainsString('<strong>Mensa</strong>', $html);   // riga unica «Mensa hh:mm-hh:mm (n')»
+    }
 }
