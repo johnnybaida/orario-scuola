@@ -30,6 +30,6 @@ class D3MaxOreGiorno implements VincoloTipoInterface
     {
         $disciplina = DisciplineVincolo::nomi($parametri, '?');
 
-        return "{$disciplina}: massimo {$parametri['max']} ora/e al giorno.";
+        return "{$disciplina}: massimo {$parametri['max']} ora/e al giorno in ciascuna classe.";
     }
 }

@@ -93,7 +93,7 @@
 </div>
 
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
-    @include('vincoli._discipline', ['info' => 'Il limite vale per ciascuna disciplina scelta.'])
+    @include('vincoli._discipline', ['info' => 'Il limite vale per ciascuna disciplina scelta e per ciascuna classe: non limita le ore di un docente su più classi (per quello usa «Ore minime/massime al giorno (T4)» o «Blocco consecutivo massimo (D12)» con Ambito Docente).'])
     <label class="block text-sm font-medium text-gray-700 mt-2">Max ore/giorno</label>
     <input type="number" name="parametri[max]" required min="1" max="6" value="{{ $parametri['max'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
