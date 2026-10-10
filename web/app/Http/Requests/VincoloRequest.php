@@ -13,6 +13,15 @@ class VincoloRequest extends FormRequest
         return true;
     }
 
+    /** Chi manda ancora il singolo `disciplina_id` (API, vecchi moduli) ottiene lo stesso vincolo con l'elenco di una disciplina. */
+    protected function prepareForValidation(): void
+    {
+        $parametri = $this->input('parametri');
+        if (is_array($parametri) && array_key_exists('disciplina_id', $parametri)) {
+            $this->merge(['parametri' => \App\Constraints\DisciplineVincolo::normalizza($parametri)]);
+        }
+    }
+
     public function rules(): array
     {
         $ambitiConsentiti = ['globale', 'classe', 'docente', 'disciplina', 'aula'];

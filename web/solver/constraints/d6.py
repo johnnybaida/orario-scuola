@@ -11,8 +11,16 @@ def _classi_target(ctx, vincolo):
 
 
 def applica(ctx, vincolo):
+    from constraints.util import discipline_del_vincolo
+
+    penalita = []
+    for disciplina in discipline_del_vincolo(vincolo['parametri']):   # la regola vale per ciascuna disciplina
+        penalita += _applica_a(ctx, vincolo, disciplina)
+    return penalita
+
+
+def _applica_a(ctx, vincolo, disciplina):
     parametri = vincolo['parametri']
-    disciplina = parametri['disciplina']
     tipo = parametri['tipo']
     slot_ids = set(parametri['slot_ids'])
 

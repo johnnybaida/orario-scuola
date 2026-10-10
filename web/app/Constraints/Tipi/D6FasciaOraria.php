@@ -3,7 +3,7 @@
 namespace App\Constraints\Tipi;
 
 use App\Constraints\VincoloTipoInterface;
-use App\Models\Disciplina;
+use App\Constraints\DisciplineVincolo;
 
 class D6FasciaOraria implements VincoloTipoInterface
 {
@@ -20,7 +20,8 @@ class D6FasciaOraria implements VincoloTipoInterface
     public function regoleParametri(): array
     {
         return [
-            'disciplina_id' => ['required', 'exists:discipline,id'],
+            'disciplina_ids' => ['required', 'array', 'min:1'],
+            'disciplina_ids.*' => ['integer', 'exists:discipline,id'],
             'tipo' => ['required', 'in:vietata,preferita'],
             'slot_ids' => ['required', 'array', 'min:1'],
             'slot_ids.*' => ['integer', 'exists:slot,id'],
@@ -29,7 +30,7 @@ class D6FasciaOraria implements VincoloTipoInterface
 
     public function descrizione(array $parametri): string
     {
-        $disciplina = Disciplina::query()->find($parametri['disciplina_id'])?->nome ?? '?';
+        $disciplina = DisciplineVincolo::nomi($parametri, '?');
         $n = count($parametri['slot_ids']);
 
         return $parametri['tipo'] === 'vietata'

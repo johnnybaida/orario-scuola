@@ -254,7 +254,8 @@ class PromptOrario
     /** Il vincolo spiegato a parole (i nomi dei parametri del programma non dicono niente a chi legge). */
     private function regolaVincolo(string $tipo, array $p, bool $rigido): string
     {
-        $disciplina = ! empty($p['disciplina_id']) ? (Disciplina::query()->find($p['disciplina_id'])?->nome ?? '?') : null;
+        $nomiDiscipline = \App\Constraints\DisciplineVincolo::nomi($p, '');
+        $disciplina = $nomiDiscipline !== '' ? (count(\App\Constraints\DisciplineVincolo::ids($p)) > 1 ? "ciascuna tra [{$nomiDiscipline}]" : $nomiDiscipline) : null;
         $ore = fn (array $ids) => $this->oreCompatte(Slot::query()->whereIn('id', $ids)->get());
         $giorni = fn (array $g) => collect($g)->map(fn ($n) => Slot::GIORNI[$n] ?? $n)->implode(', ');
 
@@ -291,8 +292,8 @@ class PromptOrario
     {
         $out = [];
         foreach ($parametri as $chiave => $valore) {
-            if ($chiave === 'disciplina_id') {
-                $out[] = $valore ? 'disciplina: '.(Disciplina::query()->find($valore)?->nome ?? '?') : 'tutte le lezioni (nessuna disciplina in particolare)';
+            if ($chiave === 'disciplina_ids' || $chiave === 'disciplina_id') {
+                $out[] = \App\Constraints\DisciplineVincolo::ids($parametri) ? 'discipline: '.\App\Constraints\DisciplineVincolo::nomi($parametri) : 'tutte le lezioni (nessuna disciplina in particolare)';
             } elseif ($chiave === 'slot_ids') {
                 $out[] = 'ore: '.$this->oreCompatte(Slot::query()->whereIn('id', $valore)->get());
             } elseif (is_array($valore)) {

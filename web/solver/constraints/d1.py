@@ -10,7 +10,7 @@ Caso raro, sufficiente per l'MVP; se serve il conteggio esatto, va introdotta
 una variabile per blocco invece che per giorno.
 """
 
-from constraints.util import reify_and, reify_or, slack_deficit
+from constraints.util import discipline_del_vincolo, reify_and, reify_or, slack_deficit
 
 
 def _classi_target(ctx, vincolo):
@@ -55,8 +55,21 @@ def _penalita_blocchi(ctx, vincolo, occ, min_consecutive, n_blocchi_min):
 
 
 def applica(ctx, vincolo):
+    elenco = discipline_del_vincolo(vincolo['parametri'])
+    penalita = []
+    if vincolo['ambito']['livello'] == 'docente':
+        # Senza discipline contano tutte le lezioni del docente.
+        for disciplina in elenco or [None]:
+            penalita += _applica_a(ctx, vincolo, disciplina)
+        return penalita
+
+    for disciplina in elenco:   # per classi e globale la disciplina è obbligatoria (la valida il PHP); la regola vale per ciascuna
+        penalita += _applica_a(ctx, vincolo, disciplina)
+    return penalita
+
+
+def _applica_a(ctx, vincolo, disciplina):
     parametri = vincolo['parametri']
-    disciplina = parametri.get('disciplina')
     min_consecutive = parametri['min_consecutive']
     n_blocchi_min = parametri.get('n_blocchi_min', 1)
 
@@ -68,8 +81,6 @@ def applica(ctx, vincolo):
                 penalita += _penalita_blocchi(ctx, vincolo, occ, min_consecutive, n_blocchi_min)
         return penalita
 
-    if disciplina is None:
-        return []   # per classi e globale la disciplina è obbligatoria (la valida il PHP)
     for classe_id in _classi_target(ctx, vincolo):
         occ = ctx.disc_occ.get((classe_id, disciplina))
         if occ:

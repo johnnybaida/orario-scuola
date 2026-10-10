@@ -213,23 +213,21 @@ class PreValidator
         $problemi = [];
 
         foreach (Vincolo::attivi()->where('tipo', 'D1_BLOCCO_MIN_CONSECUTIVO')->get() as $vincolo) {
-            $disciplina = Disciplina::query()->find($vincolo->parametri['disciplina_id'] ?? null);
-            if (! $disciplina) {
-                continue;
-            }
-
             $classeIds = $vincolo->ambito_livello === 'classe'
                 ? $vincolo->ambito_ids
                 : Classe::query()->pluck('id')->all();
 
-            foreach ($classeIds as $classeId) {
-                $ore = Cattedra::query()->where('classe_id', $classeId)->where('disciplina_id', $disciplina->id)->sum('ore');
-                $minRichiesto = $vincolo->parametri['min_consecutive'] * ($vincolo->parametri['n_blocchi_min'] ?? 1);
+            // Il vincolo vale per ciascuna disciplina scelta.
+            foreach (Disciplina::query()->whereIn('id', \App\Constraints\DisciplineVincolo::ids($vincolo->parametri ?? []))->get() as $disciplina) {
+                foreach ($classeIds as $classeId) {
+                    $ore = Cattedra::query()->where('classe_id', $classeId)->where('disciplina_id', $disciplina->id)->sum('ore');
+                    $minRichiesto = $vincolo->parametri['min_consecutive'] * ($vincolo->parametri['n_blocchi_min'] ?? 1);
 
-                if ($ore > 0 && $ore < $minRichiesto) {
-                    $classe = Classe::find($classeId);
-                    $problemi[] = $this->p("Vincolo D1 su {$disciplina->nome} per {$classe?->nomeCompleto()}: richiede "
-                        ."{$minRichiesto}h ma la cattedra ne assegna solo {$ore}.", route('vincoli.index'));
+                    if ($ore > 0 && $ore < $minRichiesto) {
+                        $classe = Classe::find($classeId);
+                        $problemi[] = $this->p("Vincolo D1 su {$disciplina->nome} per {$classe?->nomeCompleto()}: richiede "
+                            ."{$minRichiesto}h ma la cattedra ne assegna solo {$ore}.", route('vincoli.index'));
+                    }
                 }
             }
         }

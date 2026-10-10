@@ -42,3 +42,11 @@ def slack_deficit(model: cp_model.CpModel, espressione, soglia: int) -> cp_model
     deficit = model.NewIntVar(0, 1000, f'deficit_{next(_contatore)}')
     model.Add(deficit >= soglia - espressione)
     return deficit
+
+
+def discipline_del_vincolo(parametri):
+    """Codici delle discipline del vincolo: `discipline` (elenco) o, nei problemi vecchi, `disciplina`. Vuoto = qualsiasi (solo ambito docente).
+    Il vincolo vale per ciascuna, come tante regole uguali."""
+    if 'discipline' in parametri:
+        return list(parametri['discipline'])
+    return [parametri['disciplina']] if parametri.get('disciplina') else []

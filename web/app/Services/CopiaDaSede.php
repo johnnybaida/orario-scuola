@@ -159,14 +159,15 @@ class CopiaDaSede
 
                 continue;
             }
-            if (! empty($parametri['disciplina_id'])) {
-                $id = $disciplineQui[$disciplineOrigine[$parametri['disciplina_id']] ?? null] ?? null;
-                if (! $id) {
-                    $note[] = "{$etichetta}: salto, la disciplina non c'è in questa sede.";
+            if ($idsOrigine = \App\Constraints\DisciplineVincolo::ids($parametri)) {
+                $nuovi = array_map(fn ($id) => $disciplineQui[$disciplineOrigine[$id] ?? null] ?? null, $idsOrigine);
+                if (in_array(null, $nuovi, true)) {
+                    $note[] = "{$etichetta}: salto, una disciplina non c'è in questa sede.";
 
                     continue;
                 }
-                $parametri['disciplina_id'] = $id;
+                $parametri = \App\Constraints\DisciplineVincolo::normalizza($parametri);
+                $parametri['disciplina_ids'] = $nuovi;
             }
             if (! empty($parametri['slot_ids'])) {
                 $nuovi = collect($parametri['slot_ids'])->map(fn ($id) => isset($slotOrigine[$id]) ? ($slotQui[$slotOrigine[$id]->giorno.'-'.$slotOrigine[$id]->ordine] ?? null) : null);

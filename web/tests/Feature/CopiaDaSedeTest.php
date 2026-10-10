@@ -129,7 +129,7 @@ class CopiaDaSedeTest extends TestCase
 
         $this->in($this->b);
         $v = Vincolo::query()->firstOrFail();   // il vincolo sui docenti di un'altra sede non c'è
-        $this->assertSame(Disciplina::query()->where('codice', 'MAT')->value('id'), $v->parametri['disciplina_id']);
+        $this->assertSame([Disciplina::query()->where('codice', 'MAT')->value('id')], $v->parametri['disciplina_ids']);   // l'elenco rimappato sulle discipline della sede
         $this->assertSame([Slot::query()->where('giorno', 1)->where('ordine', 1)->value('id')], $v->parametri['slot_ids']);
         $this->assertSame(1, Vincolo::query()->count());
     }

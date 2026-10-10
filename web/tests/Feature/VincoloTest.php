@@ -45,8 +45,8 @@ class VincoloTest extends TestCase
         $this->actingAs($d1)->post('/vincoli', $base + ['ambito_livello' => 'docente', 'ambito_ids' => $docenti->pluck('id')->all()])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('vincoli', ['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'ambito_livello' => 'docente']);
 
-        $this->post('/vincoli', $base + ['ambito_livello' => 'globale'])->assertSessionHasErrors('parametri.disciplina_id');
-        $this->post('/vincoli', $base + ['ambito_livello' => 'classe', 'ambito_ids' => [Classe::factory()->create()->id]])->assertSessionHasErrors('parametri.disciplina_id');
+        $this->post('/vincoli', $base + ['ambito_livello' => 'globale'])->assertSessionHasErrors('parametri.disciplina_ids');
+        $this->post('/vincoli', $base + ['ambito_livello' => 'classe', 'ambito_ids' => [Classe::factory()->create()->id]])->assertSessionHasErrors('parametri.disciplina_ids');
     }
 
     public function test_l_elenco_mostra_la_disciplina_del_vincolo(): void
@@ -181,12 +181,56 @@ class VincoloTest extends TestCase
         $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id],
             'parametri' => ['max_consecutive' => 4], 'severita' => 'preferenziale', 'peso' => 30])->assertSessionHasNoErrors();
         $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'globale',
-            'parametri' => ['max_consecutive' => 2], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.disciplina_id');
+            'parametri' => ['max_consecutive' => 2], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.disciplina_ids');
         $utente->post('/vincoli', ['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id],
             'parametri' => ['disciplina_id' => $disciplina->id, 'max_consecutive' => 0], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.max_consecutive');
 
         $this->assertSame('Tutte le lezioni: al massimo 4 ore consecutive nello stesso giorno.',
             (new \App\Constraints\Tipi\D12BloccoMaxConsecutivo)->descrizione(['max_consecutive' => 4]));
         $this->assertSame('Tutte le lezioni: mai due ore consecutive nello stesso giorno.', (new \App\Constraints\Tipi\D12BloccoMaxConsecutivo)->descrizione(['max_consecutive' => 1]));
+    }
+
+    public function test_una_regola_vale_per_piu_discipline_e_il_vecchio_singolo_id_si_converte(): void
+    {
+        $classe = Classe::factory()->create();
+        [$ita, $mat, $art] = Disciplina::factory()->count(3)->create();
+        $utente = $this->actingAs($this->referente());
+
+        $utente->post('/vincoli', ['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'globale', 'severita' => 'rigido',
+            'parametri' => ['disciplina_ids' => [$ita->id, $mat->id], 'max' => 2]])->assertSessionHasNoErrors();
+        $vincolo = \App\Models\Vincolo::query()->latest('id')->first();
+        $this->assertSame([$ita->id, $mat->id], array_map('intval', $vincolo->parametri['disciplina_ids']));
+
+        // chi manda ancora il singolo disciplina_id ottiene l'elenco di una disciplina
+        $utente->post('/vincoli', ['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'globale', 'severita' => 'rigido', 'parametri' => ['disciplina_id' => $art->id, 'max' => 1]])->assertSessionHasNoErrors();
+        $vecchio = \App\Models\Vincolo::query()->latest('id')->first();
+        $this->assertSame([$art->id], array_map('intval', $vecchio->parametri['disciplina_ids']));
+        $this->assertArrayNotHasKey('disciplina_id', $vecchio->parametri);
+
+        // D3 e D6 vogliono almeno una disciplina
+        $utente->post('/vincoli', ['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'globale', 'severita' => 'rigido', 'parametri' => ['max' => 2]])->assertSessionHasErrors('parametri.disciplina_ids');
+
+        // l'elenco, la descrizione e il problema per il solver (codici, un elenco)
+        $utente->get('/vincoli')->assertOk()->assertSee($ita->nome.', '.$mat->nome, false);
+        $this->assertStringContainsString($ita->nome, (new \App\Constraints\Tipi\D3MaxOreGiorno)->descrizione($vincolo->parametri));
+        $problema = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10);
+        $this->assertEqualsCanonicalizing([$ita->codice, $mat->codice], $problema['vincoli'][0]['parametri']['discipline']);
+        $this->assertArrayNotHasKey('disciplina', $problema['vincoli'][0]['parametri']);
+    }
+
+    public function test_la_migrazione_converte_i_vincoli_esistenti_all_elenco_di_discipline_ed_e_reversibile(): void
+    {
+        $disciplina = Disciplina::factory()->create();
+        $vincolo = \App\Models\Vincolo::factory()->create(['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'globale', 'parametri' => ['disciplina_id' => (string) $disciplina->id, 'max' => '2']]);
+        $docente = \App\Models\Vincolo::factory()->create(['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'ambito_livello' => 'docente', 'parametri' => ['disciplina_id' => '', 'min_consecutive' => '2']]);
+        $migrazione = require database_path('migrations/2026_10_10_090000_vincoli_disciplina_ids.php');
+
+        $migrazione->up();
+        $this->assertSame([$disciplina->id], $vincolo->fresh()->parametri['disciplina_ids']);
+        $this->assertArrayNotHasKey('disciplina_id', $vincolo->fresh()->parametri);
+        $this->assertSame([], \App\Constraints\DisciplineVincolo::ids($docente->fresh()->parametri));   // nessuna = qualsiasi (docente)
+
+        $migrazione->down();
+        $this->assertSame((string) $disciplina->id, (string) $vincolo->fresh()->parametri['disciplina_id']);
     }
 }

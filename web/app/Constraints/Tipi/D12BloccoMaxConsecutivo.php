@@ -3,7 +3,7 @@
 namespace App\Constraints\Tipi;
 
 use App\Constraints\VincoloTipoInterface;
-use App\Models\Disciplina;
+use App\Constraints\DisciplineVincolo;
 
 class D12BloccoMaxConsecutivo implements VincoloTipoInterface
 {
@@ -21,7 +21,8 @@ class D12BloccoMaxConsecutivo implements VincoloTipoInterface
     {
         return [
             // Facoltativa solo con ambito Docente (vedi erroriAmbito): senza disciplina contano tutte le lezioni del docente.
-            'disciplina_id' => ['nullable', 'exists:discipline,id'],
+            'disciplina_ids' => ['nullable', 'array'],
+            'disciplina_ids.*' => ['integer', 'exists:discipline,id'],
             'max_consecutive' => ['required', 'integer', 'min:1', 'max:8'],
         ];
     }
@@ -29,13 +30,13 @@ class D12BloccoMaxConsecutivo implements VincoloTipoInterface
     /** @return array<string, string> campo => messaggio */
     public function erroriAmbito(string $ambito, array $parametri): array
     {
-        return $ambito !== 'docente' && empty($parametri['disciplina_id'])
-            ? ['parametri.disciplina_id' => 'La disciplina è obbligatoria, tranne con Ambito = Docente.'] : [];
+        return $ambito !== 'docente' && ! DisciplineVincolo::ids($parametri)
+            ? ['parametri.disciplina_ids' => 'Scegli almeno una disciplina (facoltativo solo con Ambito = Docente).'] : [];
     }
 
     public function descrizione(array $parametri): string
     {
-        $disciplina = empty($parametri['disciplina_id']) ? 'Tutte le lezioni' : (Disciplina::query()->find($parametri['disciplina_id'])?->nome ?? '?');
+        $disciplina = DisciplineVincolo::nomi($parametri);
         $max = (int) $parametri['max_consecutive'];
 
         return $max === 1 ? "{$disciplina}: mai due ore consecutive nello stesso giorno." : "{$disciplina}: al massimo {$max} ore consecutive nello stesso giorno.";

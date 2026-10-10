@@ -153,9 +153,10 @@ class ProblemBuilder
             // I form salvano i numeri come stringhe (anche negli elenchi: ids dell'ambito, slot_ids): il solver li confronta con id interi,
             // quindi un id rimasto stringa farebbe ignorare il vincolo senza alcun errore.
             $parametri = $this->interi($v->parametri ?? []);
-            if (array_key_exists('disciplina_id', $parametri)) {
-                $parametri['disciplina'] = $parametri['disciplina_id'] ? Disciplina::query()->find($parametri['disciplina_id'])?->codice : null;
-                unset($parametri['disciplina_id']);
+            // Le discipline come codici (il vincolo vale per ciascuna; elenco vuoto = qualsiasi, solo ambito docente).
+            if (array_key_exists('disciplina_id', $parametri) || array_key_exists('disciplina_ids', $parametri)) {
+                $parametri['discipline'] = Disciplina::query()->whereIn('id', \App\Constraints\DisciplineVincolo::ids($parametri))->orderBy('id')->pluck('codice')->all();
+                unset($parametri['disciplina_id'], $parametri['disciplina_ids']);
             }
 
             return [

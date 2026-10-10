@@ -372,7 +372,7 @@ class AnagraficheTest extends TestCase
             ->assertSee('name="ore_dovute" id="ore_dovute" min="1" max="24" value="18" required', false)
             ->assertSee('campo obbligatorio'); // legenda nella barra di salvataggio
         $utente->get('/vincoli/create')->assertOk()
-            ->assertSee('name="parametri[disciplina_id]" required', false)
+            ->assertSee('name="parametri[max]" required', false)
             ->assertSee('data-attiva-se="#severita=preferenziale" data-richiesto', false);
     }
 
@@ -393,7 +393,7 @@ class AnagraficheTest extends TestCase
         Slot::factory()->create(['giorno' => 2, 'ordine' => 3]);
 
         $this->actingAs($this->referente())->get('/vincoli/create')
-            ->assertOk()->assertSee('MAR-3ª')->assertDontSee('G2-3ª');
+            ->assertOk()->assertSee('Martedì')->assertSee('3ª')->assertDontSee('G2-3ª');   // una riga per giorno, con le ore
     }
 
     public function test_le_classi_di_concorso_del_docente_mostrano_le_discipline_collegate(): void

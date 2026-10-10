@@ -119,9 +119,9 @@ class GenerazioneCompletaTest extends TestCase
         $vincolo = fn (array $dati) => Vincolo::factory()->create($dati + ['ambito_livello' => 'globale', 'ambito_ids' => null, 'attivo' => true]);
         $vincolo(['tipo' => 'D6_FASCIA_ORARIA', 'severita' => 'rigido', 'peso' => null,
             'parametri' => ['disciplina_id' => (string) $this->disc['MAT']->id, 'tipo' => 'vietata', 'slot_ids' => [(string) $this->slot(1, 1)->id]]]);
-        $vincolo(['tipo' => 'D3_MAX_ORE_GIORNO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_id' => (string) $this->disc['ITA']->id, 'max' => '2']]);
+        $vincolo(['tipo' => 'D3_MAX_ORE_GIORNO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_ids' => [(string) $this->disc['ITA']->id, (string) $this->disc['ING']->id], 'max' => '2']]);   // una regola per più discipline
         $vincolo(['tipo' => 'D1_BLOCCO_MIN_CONSECUTIVO', 'severita' => 'rigido', 'peso' => null, 'ambito_livello' => 'classe', 'ambito_ids' => [(string) $this->classeA->id],
-            'parametri' => ['disciplina_id' => (string) $this->disc['ITA']->id, 'min_consecutive' => '2', 'n_blocchi_min' => '1']]);
+            'parametri' => ['disciplina_ids' => [(string) $this->disc['ITA']->id], 'min_consecutive' => '2', 'n_blocchi_min' => '1']]);
         // Matematica mai due ore di fila (D12), come la salva il form
         $vincolo(['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_id' => (string) $this->disc['MAT']->id, 'max_consecutive' => '1']]);
         $vincolo(['tipo' => 'T3_MAX_ORE_BUCHE', 'severita' => 'preferenziale', 'peso' => 50, 'parametri' => ['max_per_giorno' => 1]]);

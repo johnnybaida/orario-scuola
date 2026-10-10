@@ -1,7 +1,7 @@
 """D3_MAX_ORE_GIORNO — al massimo `max` ore della disciplina per giorno,
 per le classi indicate."""
 
-from constraints.util import slack_eccesso
+from constraints.util import discipline_del_vincolo, slack_eccesso
 
 
 def _classi_target(ctx, vincolo):
@@ -12,9 +12,14 @@ def _classi_target(ctx, vincolo):
 
 
 def applica(ctx, vincolo):
-    parametri = vincolo['parametri']
-    disciplina = parametri['disciplina']
-    massimo = parametri['max']
+    penalita = []
+    for disciplina in discipline_del_vincolo(vincolo['parametri']):   # la regola vale per ciascuna disciplina
+        penalita += _applica_a(ctx, vincolo, disciplina)
+    return penalita
+
+
+def _applica_a(ctx, vincolo, disciplina):
+    massimo = vincolo['parametri']['max']
 
     penalita = []
     for classe_id in _classi_target(ctx, vincolo):

@@ -15,3 +15,19 @@ document.addEventListener('modale:caricata', aggiornaCampiParametri);
 document.addEventListener('change', (e) => {
     if (e.target.matches('#tipo')) aggiornaCampiParametri();
 });
+
+// Discipline: «Tutte» / «Nessuna»; slot di D6: «Tutte» spunta (o toglie) l'intero giorno.
+document.addEventListener('click', (e) => {
+    const sel = e.target.closest('[data-seleziona]');
+    if (sel) {
+        const sceglie = sel.dataset.seleziona === 'tutte';
+        sel.closest('[data-discipline-vincolo]').querySelectorAll('input[type="checkbox"]').forEach((c) => { c.checked = sceglie; });
+        return;
+    }
+    const giorno = e.target.closest('[data-giorno-tutto]');
+    if (giorno) {
+        const caselle = [...giorno.closest('div').querySelectorAll('input[type="checkbox"]')];
+        const tutte = caselle.every((c) => c.checked);
+        caselle.forEach((c) => { c.checked = !tutte; });
+    }
+});

@@ -54,15 +54,7 @@
 
 {{-- D1_BLOCCO_MIN_CONSECUTIVO / D3_MAX_ORE_GIORNO: disciplina comune --}}
 <div data-parametri-per="D1_BLOCCO_MIN_CONSECUTIVO">
-    <label class="block text-sm font-medium text-gray-700">Disciplina
-        <x-info testo="Con Ambito = Docente puoi lasciare «Qualsiasi disciplina»: il blocco conta sulle lezioni del docente, in qualunque classe e materia. Con gli altri ambiti la disciplina è obbligatoria." />
-    </label>
-    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-        <option value="">— Qualsiasi disciplina (solo Ambito Docente) —</option>
-        @foreach ($discipline as $disciplina)
-            <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
-        @endforeach
-    </select>
+    @include('vincoli._discipline', ['info' => "Il vincolo vale per ciascuna disciplina scelta. Con Ambito = Docente puoi non sceglierne nessuna: il blocco conta sulle lezioni del docente, in qualunque classe e materia. Con gli altri ambiti serve almeno una disciplina."])
     <div class="grid sm:grid-cols-2 gap-4 mt-2">
         <div>
             <label class="block text-sm font-medium text-gray-700">Min ore consecutive</label>
@@ -78,15 +70,7 @@
 </div>
 
 <div data-parametri-per="D12_BLOCCO_MAX_CONSECUTIVO">
-    <label class="block text-sm font-medium text-gray-700">Disciplina
-        <x-info testo="Con Ambito = Docente puoi lasciare «Qualsiasi disciplina»: il limite conta sulle lezioni del docente, in qualunque classe e materia (è il «massimo di ore consecutive» di un docente). Con gli altri ambiti la disciplina è obbligatoria." />
-    </label>
-    <select name="parametri[disciplina_id]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-        <option value="">— Qualsiasi disciplina (solo Ambito Docente) —</option>
-        @foreach ($discipline as $disciplina)
-            <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
-        @endforeach
-    </select>
+    @include('vincoli._discipline', ['info' => "Il limite vale per ciascuna disciplina scelta. Con Ambito = Docente puoi non sceglierne nessuna: conta sulle lezioni del docente, in qualunque classe e materia (è il «massimo di ore consecutive» di un docente). Con gli altri ambiti serve almeno una disciplina."])
     <label class="block text-sm font-medium text-gray-700 mt-2">Max ore consecutive
         <x-info testo="Quante ore di fila, nello stesso giorno, al massimo (le pause non interrompono la fila). 1 = mai due ore di seguito." />
     </label>
@@ -95,39 +79,33 @@
 </div>
 
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
-    <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-        @foreach ($discipline as $disciplina)
-            <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
-        @endforeach
-    </select>
+    @include('vincoli._discipline', ['info' => 'Il limite vale per ciascuna disciplina scelta.'])
     <label class="block text-sm font-medium text-gray-700 mt-2">Max ore/giorno</label>
     <input type="number" name="parametri[max]" required min="1" max="6" value="{{ $parametri['max'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
 <div data-parametri-per="D6_FASCIA_ORARIA">
-    <label class="block text-sm font-medium text-gray-700">Disciplina</label>
-    <select name="parametri[disciplina_id]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-        @foreach ($discipline as $disciplina)
-            <option value="{{ $disciplina->id }}" @selected(($parametri['disciplina_id'] ?? null) == $disciplina->id)>{{ $disciplina->nome }}</option>
-        @endforeach
-    </select>
+    @include('vincoli._discipline', ['info' => 'La fascia vale per ciascuna disciplina scelta.'])
     <label class="block text-sm font-medium text-gray-700 mt-2">Tipo fascia</label>
     <select name="parametri[tipo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="vietata" @selected(($parametri['tipo'] ?? null) === 'vietata')>Vietata</option>
         <option value="preferita" @selected(($parametri['tipo'] ?? null) === 'preferita')>Preferita</option>
     </select>
     <label class="block text-sm font-medium text-gray-700 mt-2">Slot <span class="text-destructive" aria-hidden="true">*</span></label>
-    <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded p-2">
+    {{-- Una riga per giorno: il nome del giorno e le sue ore; «Tutte» spunta l'intero giorno. --}}
+    <div class="space-y-1 rounded border border-gray-200 p-2" data-slot-giorni>
         @foreach ($slot as $giorno => $slotGiorno)
-            @foreach ($slotGiorno as $s)
-                <label class="text-xs flex items-center gap-1">
-                    <input type="checkbox" name="parametri[slot_ids][]" value="{{ $s->id }}"
-                           @checked(in_array($s->id, $parametri['slot_ids'] ?? []))>
-                    {{ \App\Models\Slot::GIORNI_BREVI[$giorno] ?? "G{$giorno}" }}-{{ $s->ordine }}ª
-                </label>
-            @endforeach
+            <div class="flex items-center gap-3 text-xs">
+                <span class="w-20 shrink-0 font-medium text-gray-700">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</span>
+                @foreach ($slotGiorno as $s)
+                    <label class="flex items-center gap-1">
+                        <input type="checkbox" name="parametri[slot_ids][]" value="{{ $s->id }}" @checked(in_array($s->id, $parametri['slot_ids'] ?? []))>
+                        {{ $s->ordine }}ª
+                    </label>
+                @endforeach
+                <button type="button" data-giorno-tutto class="ml-auto text-gray-500 underline cursor-pointer">Tutte</button>
+            </div>
         @endforeach
     </div>
 </div>

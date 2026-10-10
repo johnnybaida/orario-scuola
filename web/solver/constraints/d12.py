@@ -8,7 +8,7 @@ costa `peso` (un blocco più lungo costa di più).
 """
 
 from constraints.d1 import _classi_target, _occupazione_docente
-from constraints.util import reify_and
+from constraints.util import discipline_del_vincolo, reify_and
 
 
 def _finestre_piene(ctx, vincolo, occ, massimo):
@@ -29,9 +29,20 @@ def _finestre_piene(ctx, vincolo, occ, massimo):
 
 
 def applica(ctx, vincolo):
-    parametri = vincolo['parametri']
-    disciplina = parametri.get('disciplina')
-    massimo = parametri['max_consecutive']
+    elenco = discipline_del_vincolo(vincolo['parametri'])
+    penalita = []
+    if vincolo['ambito']['livello'] == 'docente':
+        for disciplina in elenco or [None]:   # senza discipline contano tutte le lezioni del docente
+            penalita += _applica_a(ctx, vincolo, disciplina)
+        return penalita
+
+    for disciplina in elenco:   # per classi e globale la disciplina è obbligatoria (la valida il PHP); la regola vale per ciascuna
+        penalita += _applica_a(ctx, vincolo, disciplina)
+    return penalita
+
+
+def _applica_a(ctx, vincolo, disciplina):
+    massimo = vincolo['parametri']['max_consecutive']
 
     penalita = []
     if vincolo['ambito']['livello'] == 'docente':
@@ -41,8 +52,6 @@ def applica(ctx, vincolo):
                 penalita += _finestre_piene(ctx, vincolo, occ, massimo)
         return penalita
 
-    if disciplina is None:
-        return []   # per classi e globale la disciplina è obbligatoria (la valida il PHP)
     for classe_id in _classi_target(ctx, vincolo):
         occ = ctx.disc_occ.get((classe_id, disciplina))
         if occ:
