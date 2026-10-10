@@ -29,4 +29,15 @@ class CattedraRequest extends FormRequest
             'ore_clil' => ['nullable', 'integer', 'min:0', 'max:20'],
         ];
     }
+
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $validator->after(function ($v) {
+            if ($v->errors()->isEmpty()) {
+                foreach (\App\Models\Cattedra::erroriClil($this->all()) as $campo => $messaggio) {
+                    $v->errors()->add($campo, $messaggio);
+                }
+            }
+        });
+    }
 }

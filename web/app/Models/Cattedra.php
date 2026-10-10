@@ -50,6 +50,33 @@ class Cattedra extends Model
         return $this->hasMany(Lezione::class);
     }
 
+    /**
+     * Incongruenze della compresenza CLIL: docente senza ore, ore senza docente, ore oltre quelle della cattedra, CLIL = titolare.
+     *
+     * @return array<string, string> campo ('docente_clil_id' | 'ore_clil') => messaggio
+     */
+    public static function erroriClil(array $dati): array
+    {
+        $clil = (int) ($dati['docente_clil_id'] ?? 0);
+        $oreClil = (int) ($dati['ore_clil'] ?? 0);
+        $ore = (int) ($dati['ore'] ?? 0);
+
+        if ($clil && (int) ($dati['docente_id'] ?? 0) === $clil) {
+            return ['docente_clil_id' => 'Il docente CLIL deve essere diverso dal titolare della cattedra.'];
+        }
+        if ($clil && $oreClil < 1) {
+            return ['ore_clil' => 'Hai scelto un docente CLIL: indica quante ore (almeno 1) di questa cattedra svolge in compresenza.'];
+        }
+        if (! $clil && $oreClil > 0) {
+            return ['docente_clil_id' => 'Hai indicato delle ore CLIL ma nessun docente CLIL: scegli il docente oppure azzera le ore.'];
+        }
+        if ($oreClil > $ore) {
+            return ['ore_clil' => "Le ore CLIL ({$oreClil}) non possono superare le ore della cattedra ({$ore})."];
+        }
+
+        return [];
+    }
+
     /** Dati del form con la compresenza CLIL ripulita: senza docente (o uguale al titolare) niente ore, e mai più ore della cattedra. */
     public static function normalizzaClil(array $dati): array
     {

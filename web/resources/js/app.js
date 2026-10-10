@@ -5,6 +5,7 @@ import './editor-griglia.js';
 import './modale.js';
 import './selezione-multipla.js';
 import './form-modifica.js';
+import './clil-cattedra.js';
 import './select-ricerca.js';
 import './condizioni.js';
 import './scansione-oraria.js';

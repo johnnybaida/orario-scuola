@@ -109,6 +109,21 @@
     @include('vincoli._slot')
 </div>
 
+<div data-parametri-per="D13_DISCIPLINA_SEGUITA">
+    <label class="block text-sm font-medium text-gray-700">Regola</label>
+    <select name="parametri[modo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        <option value="segue" @selected(($parametri['modo'] ?? 'segue') === 'segue')>Deve essere seguita da</option>
+        <option value="non_segue" @selected(($parametri['modo'] ?? null) === 'non_segue')>NON deve essere seguita da</option>
+    </select>
+    @include('vincoli._discipline', ['titolo' => 'Disciplina di partenza', 'info' => 'La lezione di queste discipline è quella «prima». Se ne scegli più d\'una, vale per ciascuna.'])
+    @include('vincoli._discipline', ['campo' => 'seguite_ids', 'titolo' => 'Disciplina che segue', 'info' => 'L\'ora subito dopo (nello stesso giorno; le pause non interrompono) deve essere (o non deve essere) di una di queste.'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Almeno quante coppie nella settimana (facoltativo)
+        <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (può essere infattibile se le ore della prima sono più di quelle della seconda: meglio allora il tipo Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
+    </label>
+    <input type="number" name="parametri[min_coppie]" min="1" max="30" value="{{ $parametri['min_coppie'] ?? '' }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <div data-parametri-per="T11_ORE_IN_FASCIA">
     <p class="text-sm text-gray-500">Ambito <strong>Docente</strong>: scegli i docenti. Ciascuno deve avere almeno questo numero di ore (lezioni o sostegno) tra gli slot selezionati.</p>
     <label class="block text-sm font-medium text-gray-700 mt-2">Ore minime negli slot

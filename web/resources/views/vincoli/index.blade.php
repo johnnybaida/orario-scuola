@@ -53,7 +53,7 @@
                         <td class="px-4 py-2">{{ $etichette[$vincolo->tipo] ?? $vincolo->tipo }}</td>
                         <td class="px-4 py-2">{{ $vincolo->ambito_livello }}</td>
                         <td class="px-4 py-2">
-                            @if (! in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO'], true))
+                            @if (! in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'], true))
                                 <span class="text-gray-400">—</span>
                             @else
                                 {{ collect(\App\Constraints\DisciplineVincolo::ids($vincolo->parametri ?? []))->map(fn ($id) => $discipline[$id] ?? '?')->implode(', ') ?: 'Tutte' }}

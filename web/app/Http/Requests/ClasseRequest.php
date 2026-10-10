@@ -60,6 +60,19 @@ class ClasseRequest extends FormRequest
      */
     public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
     {
+        // Compresenza CLIL coerente in ogni cattedra della classe (docente ⇔ ore).
+        $validator->after(function ($v) {
+            if ($v->errors()->isNotEmpty()) {
+                return;
+            }
+            foreach ((array) $this->input('cattedre', []) as $i => $riga) {
+                foreach (\App\Models\Cattedra::erroriClil($riga) as $campo => $messaggio) {
+                    $disciplina = \App\Models\Disciplina::query()->find($riga['disciplina_id'] ?? 0)?->nome ?? 'cattedra '.($i + 1);
+                    $v->errors()->add("cattedre.{$i}.{$campo}", "Cattedra «{$disciplina}»: {$messaggio}");
+                }
+            }
+        });
+
         $validator->after(function ($v) {
             $classe = $this->route('classe');
             if (! $classe || $v->errors()->isNotEmpty() || ! $this->boolean('sezioni_extra')) {

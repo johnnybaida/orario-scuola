@@ -289,4 +289,27 @@ class VincoloTest extends TestCase
         $this->assertSame(1, $problema['parametri']['min_ore']);
         $this->assertSame('Almeno 2 ore tra gli slot selezionati (3).', (new \App\Constraints\Tipi\T11OreInFascia)->descrizione(['min_ore' => 2, 'slot_ids' => [1, 2, 3]]));
     }
+
+    public function test_d13_disciplina_seguita_da_un_altra_con_modo_e_coppie_e_arriva_al_solver_coi_codici(): void
+    {
+        [$ita, $sto] = Disciplina::factory()->count(2)->create();
+        $utente = $this->actingAs($this->referente());
+        $base = ['tipo' => 'D13_DISCIPLINA_SEGUITA', 'ambito_livello' => 'globale', 'severita' => 'preferenziale', 'peso' => 30];
+
+        $utente->get('/vincoli/create')->assertOk()->assertSee('parametri[seguite_ids][]', false)->assertSee('Disciplina che segue', false);
+        $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue', 'min_coppie' => '2']])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'modo' => 'segue']])->assertSessionHasErrors('parametri.seguite_ids');
+        $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'boh']])->assertSessionHasErrors('parametri.modo');
+        $utente->post('/vincoli', array_replace($base, ['ambito_livello' => 'docente', 'ambito_ids' => [1]]) + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue']])->assertSessionHasErrors('ambito_livello');
+
+        $problema = app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['vincoli'][0]['parametri'];
+        $this->assertSame([$ita->codice], $problema['discipline']);
+        $this->assertSame([$sto->codice], $problema['discipline_seguite']);
+        $this->assertSame(2, $problema['min_coppie']);
+        $this->assertArrayNotHasKey('seguite_ids', $problema);
+
+        $d = new \App\Constraints\Tipi\D13DisciplinaSeguita;
+        $this->assertStringContainsString('almeno 2 volte', $d->descrizione(['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue', 'min_coppie' => 2]));
+        $this->assertStringContainsString('mai seguita', $d->descrizione(['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'non_segue']));
+    }
 }

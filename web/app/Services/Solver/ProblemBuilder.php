@@ -160,6 +160,11 @@ class ProblemBuilder
                 unset($parametri['disciplina_id'], $parametri['disciplina_ids']);
             }
 
+            if (array_key_exists('seguite_ids', $parametri)) {
+                $parametri['discipline_seguite'] = Disciplina::query()->whereIn('id', $parametri['seguite_ids'])->orderBy('id')->pluck('codice')->all();
+                unset($parametri['seguite_ids']);
+            }
+
             return [
                 'id' => $v->id,
                 'tipo' => $v->tipo,

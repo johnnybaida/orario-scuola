@@ -177,4 +177,30 @@ class SostegnoTest extends TestCase
         // se cambiano le ore, il controllo scatta
         $this->put("/classi/{$classe->id}", array_replace($this->modifica($classe), ['fabbisogni' => [$fabbisogno], 'assegnazioni' => [['docente_id' => $a->id, 'ore' => 12]]]))->assertSessionHasErrors('assegnazioni');
     }
+
+    public function test_la_compresenza_clil_deve_avere_docente_e_ore_insieme(): void
+    {
+        $classe = Classe::factory()->create();
+        [$titolare, $clil] = Docente::factory()->count(2)->create();
+        $disciplina = \App\Models\Disciplina::factory()->create();
+        $riga = ['docente_id' => $titolare->id, 'disciplina_id' => $disciplina->id, 'ore' => 3];
+        $salva = fn (array $extra) => $this->actingAs($this->referente())->put("/classi/{$classe->id}", $this->modifica($classe, ['cattedre_inviate' => 1, 'cattedre' => [$riga + $extra]]));
+
+        $salva(['docente_clil_id' => $clil->id, 'ore_clil' => 0])->assertSessionHasErrors('cattedre.0.ore_clil');
+        $salva(['docente_clil_id' => '', 'ore_clil' => 1])->assertSessionHasErrors('cattedre.0.docente_clil_id');
+        $salva(['docente_clil_id' => $clil->id, 'ore_clil' => 5])->assertSessionHasErrors('cattedre.0.ore_clil');
+        $salva(['docente_clil_id' => $titolare->id, 'ore_clil' => 1])->assertSessionHasErrors('cattedre.0.docente_clil_id');
+        $this->assertStringContainsString($disciplina->nome, session('errors')->first('cattedre.0.docente_clil_id'));
+        $this->assertDatabaseCount('cattedre', 0);
+
+        $salva(['docente_clil_id' => $clil->id, 'ore_clil' => 2, 'compresenza' => 1])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('cattedre', ['classe_id' => $classe->id, 'docente_clil_id' => $clil->id, 'ore_clil' => 2]);
+        $salva(['docente_clil_id' => '', 'ore_clil' => 0])->assertSessionHasNoErrors();   // nessun CLIL: coerente
+
+        // stessa regola nel form della singola cattedra
+        $cattedra = ['docente_id' => $titolare->id, 'classe_id' => $classe->id, 'disciplina_id' => \App\Models\Disciplina::factory()->create()->id, 'ore' => 2];
+        $this->post('/cattedre', $cattedra + ['docente_clil_id' => $clil->id, 'ore_clil' => 0])->assertSessionHasErrors('ore_clil');
+        $this->post('/cattedre', $cattedra + ['ore_clil' => 1])->assertSessionHasErrors('docente_clil_id');
+        $this->post('/cattedre', $cattedra + ['docente_clil_id' => $clil->id, 'ore_clil' => 1])->assertSessionHasNoErrors();
+    }
 }
