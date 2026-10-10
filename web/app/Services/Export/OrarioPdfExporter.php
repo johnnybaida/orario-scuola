@@ -207,15 +207,15 @@ class OrarioPdfExporter
         $giorni = $usati->pluck('giorno')->unique()->sort()->values();
         $oreMax = (int) $usati->max('ordine');
 
-        // Carattere il più grande possibile (6-10px) perché ~9 caratteri stiano in una colonna dell'A3 orizzontale;
+        // Carattere il più grande possibile (8-14px) perché ~9 caratteri stiano in una colonna dell'A2 orizzontale;
         // materie e cognomi più lunghi vengono comunque troncati con "…".
         // Colonne extra per le pause in cui si svolge una disciplina «senza ora» (mensa), solo nella vista per classe.
         $pause = app(AssistenzaPause::class)->pause();
         $mensa = \App\Models\Disciplina::query()->where('senza_slot', true)->whereNotNull('pausa_dopo_ora')->get()->filter(fn ($d) => $pause->has($d->pausa_dopo_ora));
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
         $colonnePausa = $per === 'classe' ? $mensa->pluck('pausa_dopo_ora')->merge($pauseMensa->keys())->unique()->sort()->values()->all() : [];
-        $larghezzaColonna = 1050 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
-        $fontPx = max(6, min(10, (int) floor(($larghezzaColonna - 3) / 3.6)));
+        $larghezzaColonna = 1480 / max(1, $giorni->count() * ($oreMax + count($colonnePausa)));
+        $fontPx = max(8, min(14, (int) floor(($larghezzaColonna - 3) / 3.6)));
         $limite = max(4, (int) floor(($larghezzaColonna - 3) / (0.4 * $fontPx)));
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
@@ -293,6 +293,6 @@ class OrarioPdfExporter
             'limite' => $limite,
             'fontPx' => $fontPx,
             'legendaOre' => $legendaOre,
-        ])->setPaper('a3', 'landscape');
+        ])->setPaper('a2', 'landscape');
     }
 }

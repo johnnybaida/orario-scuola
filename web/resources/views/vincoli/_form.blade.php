@@ -78,6 +78,20 @@
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
+<div data-parametri-per="S5_DISTRIBUZIONE_SOSTEGNO">
+    <p class="text-sm text-gray-500">Vale per i docenti di sostegno assegnati alle classi. Compila uno o entrambi i limiti.</p>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Max docenti di sostegno insieme
+        <x-info testo="Quanti docenti di sostegno al massimo possono essere presenti nella stessa classe nella stessa ora (di solito 1). Vuoto = nessun limite." />
+    </label>
+    <input type="number" name="parametri[max_insieme]" min="1" max="6" value="{{ $parametri['max_insieme'] ?? 1 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+    <label class="block text-sm font-medium text-gray-700 mt-2">Tolleranza giornaliera (ore)
+        <x-info testo="Distribuisce le ore di sostegno della classe nella settimana: ogni giorno può averne al massimo la media (ore totali / giorni in cui un docente può esserci) più questa tolleranza. Le indisponibilità dei docenti sono già escluse. 0 = distribuzione il più uniforme possibile. Vuoto = nessun limite." />
+    </label>
+    <input type="number" name="parametri[tolleranza_giorno]" min="0" max="6" value="{{ $parametri['tolleranza_giorno'] ?? 1 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
     @include('vincoli._discipline', ['info' => 'Il limite vale per ciascuna disciplina scelta.'])
     <label class="block text-sm font-medium text-gray-700 mt-2">Max ore/giorno</label>

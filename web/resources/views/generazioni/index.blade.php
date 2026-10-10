@@ -38,10 +38,13 @@
         </x-slot:azioni>
     </x-barra-tabella>
 
+    @if ($puoEliminare)<x-barra-selezione tabella="generazioni" />@endif
+
     <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 text-left">
                 <tr>
+                    @if ($puoEliminare)<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutte le generazioni eliminabili"></th>@endif
                     <th class="px-4 py-2">#</th>
                     <th class="px-4 py-2">Stato</th>
                     <th class="px-4 py-2">Progresso</th>
@@ -54,6 +57,13 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($generazioni as $g)
                     <tr>
+                        @if ($puoEliminare)
+                            <td class="px-4 py-2">
+                                @if (in_array($g->stato, \App\Models\Generazione::ELIMINABILI, true) && ! $g->orario_id)
+                                    <input type="checkbox" class="js-sel" value="{{ route('generazioni.destroy', $g) }}" aria-label="Seleziona la generazione {{ $g->id }}">
+                                @endif
+                            </td>
+                        @endif
                         <td class="px-4 py-2">{{ $g->id }}</td>
                         <td class="px-4 py-2">{{ $g->stato }}</td>
                         <td class="px-4 py-2">{{ $g->progresso }}%</td>

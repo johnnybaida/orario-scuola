@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 class ConseguenzeEliminazione
 {
     /** Liste da cui si elimina => tabella. */
-    public const TABELLE = ['docenti', 'classi', 'discipline', 'quadri_orari', 'aule', 'sedi', 'cattedre', 'vincoli', 'laboratori', 'orari', 'users'];
+    public const TABELLE = ['docenti', 'classi', 'discipline', 'quadri_orari', 'aule', 'sedi', 'cattedre', 'vincoli', 'laboratori', 'orari', 'generazioni', 'users'];
 
     /** tabella => [singolare, plurale]; le tabelle senza etichetta (collegamenti tecnici) non si elencano. */
     private const ETICHETTE = [

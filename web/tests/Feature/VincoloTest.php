@@ -233,4 +233,20 @@ class VincoloTest extends TestCase
         $migrazione->down();
         $this->assertSame((string) $disciplina->id, (string) $vincolo->fresh()->parametri['disciplina_id']);
     }
+
+    public function test_s5_distribuzione_del_sostegno_chiede_almeno_un_limite_e_vale_per_globale_o_classe(): void
+    {
+        $classe = Classe::factory()->create();
+        $docente = \App\Models\Docente::factory()->create();
+        $utente = $this->actingAs($this->referente());
+
+        $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'globale', 'parametri' => ['max_insieme' => 1, 'tolleranza_giorno' => 1], 'severita' => 'preferenziale', 'peso' => 40])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id], 'parametri' => ['tolleranza_giorno' => 0], 'severita' => 'rigido'])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'globale', 'parametri' => ['max_insieme' => '', 'tolleranza_giorno' => ''], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.max_insieme');
+        $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id], 'parametri' => ['max_insieme' => 1], 'severita' => 'rigido'])->assertSessionHasErrors('ambito_livello');
+        $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'globale', 'parametri' => ['max_insieme' => 0], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.max_insieme');
+
+        $this->assertSame('Al massimo 1 docente/i di sostegno insieme nella stessa classe e ora; ore di sostegno distribuite nella settimana (al massimo la media giornaliera + 1 ora/e per giorno).',
+            (new \App\Constraints\Tipi\S5DistribuzioneSostegno)->descrizione(['max_insieme' => 1, 'tolleranza_giorno' => 1]));
+    }
 }

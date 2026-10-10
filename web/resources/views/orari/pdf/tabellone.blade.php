@@ -9,7 +9,7 @@
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { border: 1px solid #999; padding: {{ (int) round($fontPx / 2.5) }}px 1px; text-align: center; vertical-align: middle; overflow: hidden; }
         th { background: #eee; }
-        .classe { width: {{ $per === 'aula' ? 62 : 34 }}px; background: #f5f5f5; font-weight: bold; }
+        .classe { width: {{ $per === 'aula' ? 88 : 48 }}px; background: #f5f5f5; font-weight: bold; }
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }

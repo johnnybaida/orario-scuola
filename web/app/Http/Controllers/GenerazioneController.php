@@ -17,10 +17,20 @@ class GenerazioneController extends Controller
     public function index(): View
     {
         return view('generazioni.index', [
+            'puoEliminare' => auth()->user()->can('gestisci-anagrafica'),
             'generazioni' => Generazione::query()->with('orario')->orderByDesc('id')->get(),
             'workerAttivo' => app(\App\Services\QueueWorker::class)->attivo(),
             'workerInArresto' => app(\App\Services\QueueWorker::class)->inArresto(),
         ]);
+    }
+
+    public function destroy(Generazione $generazione): RedirectResponse
+    {
+        abort_unless(in_array($generazione->stato, Generazione::ELIMINABILI, true) && ! $generazione->orario_id, 422, 'Si eliminano solo le generazioni infattibili o fallite.');
+
+        $generazione->delete();
+
+        return redirect()->route('generazioni.index')->with('successo', 'Generazione eliminata.');
     }
 
     public function create(): View

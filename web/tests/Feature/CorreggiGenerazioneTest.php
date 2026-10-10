@@ -68,4 +68,25 @@ class CorreggiGenerazioneTest extends TestCase
         ], array_column($righe, 'url'));
         $this->assertSame('Un messaggio sconosciuto.', $righe[5]['testo']);
     }
+
+    public function test_si_eliminano_solo_le_generazioni_infattibili_o_fallite_senza_orario(): void
+    {
+        $nuova = fn (string $stato, array $extra = []) => \App\Models\Generazione::query()->create(['periodo_id' => \App\Models\Periodo::factory()->create()->id, 'seed' => 1, 'time_limit_s' => 10, 'stato' => $stato] + $extra);
+        $infattibile = $nuova('infattibile');
+        $fallita = $nuova('fallita');
+        $completata = $nuova('completata', ['orario_id' => \App\Models\Orario::factory()->create()->id]);
+        $referente = $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']));
+
+        $referente->get('/generazioni')->assertOk()->assertSee('js-sel" value="'.route('generazioni.destroy', $infattibile), false)->assertDontSee('js-sel" value="'.route('generazioni.destroy', $completata), false);
+        $referente->delete(route('generazioni.destroy', $completata))->assertStatus(422);
+        $referente->delete(route('generazioni.destroy', $infattibile))->assertRedirect(route('generazioni.index'));
+        $referente->delete(route('generazioni.destroy', $fallita))->assertRedirect();
+
+        $this->assertModelMissing($infattibile);
+        $this->assertModelMissing($fallita);
+        $this->assertModelExists($completata);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Generazione', 'entita_id' => $infattibile->id, 'azione' => 'eliminazione']);
+
+        $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'ds']))->delete(route('generazioni.destroy', $nuova('infattibile')))->assertForbidden();
+    }
 }
