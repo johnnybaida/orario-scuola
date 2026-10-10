@@ -52,4 +52,36 @@ class ClasseRequest extends FormRequest
             'assegnazioni.*.ore' => ['required', 'integer', 'min:1', 'max:40'],
         ];
     }
+
+    /**
+     * Sostegno: i fabbisogni (alunni con il codice anonimo e le ore) sono facoltativi; se ci sono, le ore dei docenti assegnati devono
+     * corrispondere a quelle richieste (conteggio «per alunno»: somma dei fabbisogni; «per classe»: il più alto). Senza fabbisogni le ore
+     * dei docenti sono il bisogno. Il controllo scatta quando le assegnazioni cambiano: una classe con dati vecchi resta modificabile.
+     */
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $validator->after(function ($v) {
+            $classe = $this->route('classe');
+            if (! $classe || $v->errors()->isNotEmpty() || ! $this->boolean('sezioni_extra')) {
+                return;
+            }
+
+            $nuove = collect($this->input('assegnazioni', []))->mapWithKeys(fn ($a) => [(int) $a['docente_id'] => (int) $a['ore']])->sortKeys();
+            $fabbisogni = collect($this->input('fabbisogni', []))->pluck('ore_settimanali')->map(fn ($o) => (int) $o);
+            if ($nuove->isEmpty() || $fabbisogni->isEmpty()) {
+                return;
+            }
+            $attuali = $classe->assegnazioniSostegno()->pluck('ore', 'docente_id')->map(fn ($o) => (int) $o)->sortKeys();
+            if ($nuove->all() === $attuali->all()) {
+                return;   // assegnazioni invariate
+            }
+
+            $perClasse = ($this->input('conteggio_sostegno') ?: \App\Models\Impostazioni::correnti()->conteggio_sostegno) === 'per_classe';
+            $richieste = $perClasse ? $fabbisogni->max() : $fabbisogni->sum();
+            $assegnate = $nuove->sum();
+            if ($assegnate !== $richieste) {
+                $v->errors()->add('assegnazioni', "Le ore dei docenti di sostegno ({$assegnate}h) non corrispondono a quelle richieste dai fabbisogni ({$richieste}h, conteggio ".($perClasse ? 'per classe: il fabbisogno più alto' : 'per alunno: la somma dei fabbisogni').'): correggi le ore dei fabbisogni o quelle dei docenti, oppure togli i fabbisogni.');
+            }
+        });
+    }
 }

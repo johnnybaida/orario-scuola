@@ -14,6 +14,12 @@
     <x-barra-tabella>
         <form method="GET" class="flex items-center gap-2">
             <input type="search" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome" aria-label="Cerca docente">
+            <select name="ore" data-invia-al-cambio aria-label="Filtra per ore assegnate" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary">
+                <option value="">Tutti i docenti</option>
+                @foreach ($filtriOre as $valore => $etichetta)
+                    <option value="{{ $valore }}" @selected($filtroOre === $valore)>{{ $etichetta }}</option>
+                @endforeach
+            </select>
             <button type="submit" class="text-sm underline text-gray-600 cursor-pointer">Cerca</button>
         </form>
         <x-slot:azioni>
@@ -36,6 +42,7 @@
                     <th class="px-4 py-2">Tipo posto</th>
                     <th class="px-4 py-2">Regime</th>
                     <th class="px-4 py-2">Assegnate / dovute <x-info testo="Ore assegnate (cattedre e sostegno) su ore dovute. In giallo quando non coincidono: ore a disposizione se sono meno, ore oltre quelle dovute se sono di più." /></th>
+                    <th class="px-4 py-2">Assistenza pause <x-info testo="Sì se il docente ha almeno una assistenza alle pause (per esempio la mensa), con quante. Si imposta nella scheda del docente o, per la mensa, nella pagina Mensa." /></th>
                     <th class="px-4 py-2">Cattedre</th>
                     <th class="px-4 py-2"></th>
                 </tr>
@@ -52,8 +59,15 @@
                         <td class="px-4 py-2">{{ $docente->email }}</td>
                         <td class="px-4 py-2">{{ $docente->tipo_posto }}</td>
                         <td class="px-4 py-2">{{ $docente->regime }}</td>
-                        @php($assegnate = (int) $docente->cattedre_sum_ore + (int) $docente->assegnazioni_sostegno_sum_ore + (int) $docente->cattedre_clil_sum_ore_clil + $assistenza->ore($docente) - $assistenza->oreCattedreDaEscludere($docente))
+                        @php($assegnate = $docente->oreAssegnate($assistenza))
                         <td class="px-4 py-2 {{ abs($assegnate - $docente->ore_dovute) > 0.001 ? 'text-amber-700 font-medium' : '' }}">{{ \App\Services\AssistenzaPause::formatta($assegnate) }} / {{ $docente->ore_dovute }}</td>
+                        <td class="px-4 py-2">
+                            @if ($docente->assistenzePausa->isNotEmpty())
+                                <span class="inline-block rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800" title="{{ $docente->assistenzePausa->count() }} assistenze alle pause">Sì ({{ $docente->assistenzePausa->count() }})</span>
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-2">{{ $docente->cattedre_count }}</td>
                         <td class="px-4 py-2 text-right space-x-2">
                             <a href="{{ route('docenti.edit', $docente) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>

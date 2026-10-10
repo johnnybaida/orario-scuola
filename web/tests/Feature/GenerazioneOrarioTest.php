@@ -142,4 +142,20 @@ class GenerazioneOrarioTest extends TestCase
         $this->assertCount(2, $compresenze);
         $this->assertTrue($compresenze->every(fn ($c) => $c->docente_id === $docenteSostegno->id && $c->codice_anonimo === '1B-S1'));
     }
+
+    public function test_genera_le_compresenze_di_sostegno_dalle_sole_ore_dei_docenti_senza_fabbisogni(): void
+    {
+        $classe = $this->scuolaMinima();
+        $docenteSostegno = Docente::factory()->create(['tipo_posto' => 'sostegno']);
+        $classe->assegnazioniSostegno()->create(['docente_id' => $docenteSostegno->id, 'ore' => 2]);   // nessun fabbisogno: gli alunni non sono censiti
+
+        $this->actingAs(User::factory()->create(['ruolo' => 'referente_orario']))->post('/generazioni', ['time_limit_s' => 30, 'seed' => 7]);
+
+        $generazione = Generazione::query()->latest('id')->first();
+        $this->assertSame('completata', $generazione->stato);
+        $compresenze = $generazione->orario->compresenzeSostegno;
+        $this->assertCount(2, $compresenze);
+        $this->assertTrue($compresenze->every(fn ($c) => $c->docente_id === $docenteSostegno->id && $c->classe_id === $classe->id && $c->codice_anonimo === null));
+        $this->assertCount(2, $compresenze->pluck('slot_id')->unique());
+    }
 }

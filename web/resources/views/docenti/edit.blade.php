@@ -80,7 +80,7 @@
                             <x-info testo="Solo amministratore e referente orario possono modificare l'assistenza." />
                         @endunless
                     </h2>
-                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate. Per la **mensa** usa la pagina <a href="{{ route('mensa.index') }}" class="underline">Mensa</a>, dove assegni i docenti classe per classe.</p>
+                    <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate. Per la <strong>mensa</strong> usa la pagina <a href="{{ route('mensa.index') }}" class="underline">Mensa</a>, dove assegni i docenti classe per classe.</p>
                     <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Nessuna pausa definita: indica la durata di una ricreazione in Scansione oraria.' : null" etichetta="Aggiungi assistenza" />
                 </fieldset>
 
@@ -91,13 +91,43 @@
                         @endunless
                     </h2>
                     <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Servono almeno una classe e una disciplina: censiscile prima nelle rispettive sezioni.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
-                    @if ($oreClil = $docente->cattedreClil()->sum('ore_clil'))
-                        <p class="mt-2 text-sm text-gray-600">Ore in compresenza CLIL su cattedre di altri docenti: {{ $oreClil }}. Si sommano al totale. <input type="hidden" data-somma="cattedre" value="{{ $oreClil }}"></p>
-                    @endif
-                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + CLIL + assistenza alle pause):
+                    <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + sostegno + CLIL + assistenza alle pause):
                         <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
                     </p>
                 </fieldset>
+
+                @if ($sostegno->isNotEmpty() || $clil->isNotEmpty())
+                    {{-- Sola lettura: il sostegno si assegna nella scheda della classe (con i fabbisogni), la compresenza CLIL nella cattedra. Le ore si sommano al totale sopra. --}}
+                    <section class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
+                        <h2 class="font-medium mb-1">Sostegno e compresenze CLIL
+                            <x-info testo="Ore assegnate in altri modi: il sostegno si imposta nella scheda della classe (sezione Sostegno), la compresenza CLIL nella cattedra della classe. Qui sono in sola lettura e contano nel totale delle ore." />
+                        </h2>
+                        @if ($sostegno->isNotEmpty())
+                            <h3 class="mt-3 text-sm font-medium text-gray-700">Sostegno</h3>
+                            <ul class="mt-1 divide-y divide-gray-100 text-sm">
+                                @foreach ($sostegno as $a)
+                                    <li class="flex items-center justify-between gap-4 py-1.5">
+                                        <a href="{{ route('classi.edit', $a->classe) }}" class="text-primary underline">{{ $a->classe->nomeCompleto() }}</a>
+                                        <span class="text-gray-700">{{ $a->ore }} h</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <p class="mt-1 text-xs text-gray-500">Totale sostegno: {{ $sostegno->sum('ore') }} h <input type="hidden" data-somma="cattedre" value="{{ $sostegno->sum('ore') }}"></p>
+                        @endif
+                        @if ($clil->isNotEmpty())
+                            <h3 class="mt-3 text-sm font-medium text-gray-700">Compresenza CLIL</h3>
+                            <ul class="mt-1 divide-y divide-gray-100 text-sm">
+                                @foreach ($clil as $c)
+                                    <li class="flex items-center justify-between gap-4 py-1.5">
+                                        <span><a href="{{ route('classi.edit', $c->classe) }}" class="text-primary underline">{{ $c->classe->nomeCompleto() }}</a> · {{ $c->disciplina->nome }} <span class="text-gray-500">con {{ $c->docente->nomeCompleto() }}</span></span>
+                                        <span class="text-gray-700">{{ $c->ore_clil }} h</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <p class="mt-1 text-xs text-gray-500">Totale CLIL: {{ $clil->sum('ore_clil') }} h <input type="hidden" data-somma="cattedre" value="{{ $clil->sum('ore_clil') }}"></p>
+                        @endif
+                    </section>
+                @endif
             </div>
         </fieldset>
 

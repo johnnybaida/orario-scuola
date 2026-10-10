@@ -17,9 +17,15 @@ use Illuminate\View\View;
 
 class DocenteController extends Controller
 {
+    /** Filtri sulle ore: tutti | non_corrette (assegnate ≠ dovute) | in_piu (oltre le dovute) | mancanti (meno delle dovute). */
+    public const FILTRI_ORE = ['non_corrette' => 'Ore non corrette', 'in_piu' => 'Ore oltre le dovute', 'mancanti' => 'Ore mancanti'];
+
     public function index(Request $request): View
     {
-        $docenti = Docente::query()
+        $assistenza = app(AssistenzaPause::class);
+        $filtroOre = array_key_exists($request->string('ore')->toString(), self::FILTRI_ORE) ? $request->string('ore')->toString() : '';
+
+        $query = Docente::query()
             ->when($request->string('cerca')->toString(), function ($query, $cerca) {
                 $query->where(function ($q) use ($cerca) {
                     $q->where('nome', 'like', "%{$cerca}%")->orWhere('cognome', 'like', "%{$cerca}%");
@@ -28,11 +34,29 @@ class DocenteController extends Controller
             ->with('sospensioni', 'assistenzePausa')
             ->withCount('cattedre')->withSum('cattedre', 'ore')->withSum('cattedreClil', 'ore_clil')->withSum('assegnazioniSostegno', 'ore')
             ->withSum(['cattedre as ore_senza_ora' => fn ($q) => $q->whereHas('disciplina', fn ($d) => $d->where('senza_slot', true))], 'ore')
-            ->orderBy('cognome')
-            ->paginate(30)
-            ->withQueryString();
+            ->orderBy('cognome')->orderBy('nome');
 
-        return view('docenti.index', ['assistenza' => app(AssistenzaPause::class), 'docenti' => $docenti, 'cerca' => $request->string('cerca')->toString()]);
+        if ($filtroOre === '') {
+            $docenti = $query->paginate(30)->withQueryString();
+        } else {
+            // Le ore assegnate si calcolano per docente (assistenze comprese): si filtra sull'insieme e poi si impagina.
+            $filtrati = $query->get()->filter(function (Docente $d) use ($assistenza, $filtroOre) {
+                $differenza = round($d->oreAssegnate($assistenza) - $d->ore_dovute, 2);
+
+                return match ($filtroOre) {
+                    'in_piu' => $differenza > 0,
+                    'mancanti' => $differenza < 0,
+                    default => $differenza !== 0.0,
+                };
+            })->values();
+            $pagina = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+            $docenti = new \Illuminate\Pagination\LengthAwarePaginator($filtrati->forPage($pagina, 30)->values(), $filtrati->count(), 30, $pagina, ['path' => $request->url(), 'query' => $request->query()]);
+        }
+
+        return view('docenti.index', [
+            'assistenza' => $assistenza, 'docenti' => $docenti, 'cerca' => $request->string('cerca')->toString(),
+            'filtroOre' => $filtroOre, 'filtriOre' => self::FILTRI_ORE,
+        ]);
     }
 
     public function create(): View
@@ -70,6 +94,9 @@ class DocenteController extends Controller
             'discipline' => Disciplina::query()->orderBy('nome')->get(),
             'cattedre' => $docente->cattedre()->with('classe')->get()->sortBy(fn ($c) => $c->classe->nomeCompleto())
                 ->map(fn ($c) => $c->only(['id', 'classe_id', 'disciplina_id', 'ore', 'compresenza']))->all(),
+            // Ore assegnate in altri modi (sola lettura qui): sostegno nella scheda della classe, compresenza CLIL nella cattedra.
+            'sostegno' => $docente->assegnazioniSostegno()->with('classe')->get()->sortBy(fn ($a) => $a->classe->nomeCompleto())->values(),
+            'clil' => $docente->cattedreClil()->with('classe', 'disciplina', 'docente')->where('ore_clil', '>', 0)->get()->sortBy(fn ($c) => $c->classe->nomeCompleto())->values(),
             'slotPerGiorno' => Slot::query()->orderBy('giorno')->orderBy('ordine')->get()->groupBy('giorno'),
             'indisponibiliIds' => $docente->indisponibilita()->pluck('slot.id'),
         ]);

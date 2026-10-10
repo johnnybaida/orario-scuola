@@ -119,7 +119,8 @@ class ProblemBuilder
     private function sostegno(): array
     {
         return Classe::query()
-            ->whereHas('fabbisogniSostegno')
+            // Anche le classi con soli docenti assegnati (senza fabbisogni): le ore dei docenti sono il bisogno.
+            ->where(fn ($q) => $q->whereHas('fabbisogniSostegno')->orWhereHas('assegnazioniSostegno'))
             ->with('fabbisogniSostegno', 'assegnazioniSostegno')
             ->get()
             ->map(fn (Classe $c) => [

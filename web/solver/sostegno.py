@@ -12,6 +12,8 @@ il fabbisogno più alto tra i codici della classe (semplificazione: gli
 alunni con fabbisogno minore ricevono più assistenza del minimo richiesto,
 non meno).
 
+Senza fabbisogni (alunni non censiti) ogni docente assegnato è in compresenza per le sue ore, con codice None.
+
 Ritorna (assegnazioni, diagnostica): assegnazioni è una lista di
 (docente_id, classe_id, slot_id, codice_o_None, BoolVar) da leggere dopo il
 solve per produrre 'compresenze_sostegno'.
@@ -23,6 +25,7 @@ from constraints.util import reify_or
 def applica(ctx, sostegno_lista):
     diagnostica = []
     risultato = []
+    presenze = {}   # (docente, slot) -> presenze in compresenza nelle varie classi
 
     for entry in sostegno_lista:
         classe_id = entry['classe']
@@ -48,6 +51,10 @@ def applica(ctx, sostegno_lista):
                 continue
             ctx.model.Add(sum(vars_slot.values()) == assegnazione['ore'])
 
+        for docente_id, vars_slot in copre_classe.items():
+            for s, v in vars_slot.items():
+                presenze.setdefault((docente_id, s), []).append(v)
+
         # H2: un docente non può essere in compresenza e in una lezione curricolare
         # (o in un'altra classe in compresenza) nello stesso slot.
         for docente_id, vars_slot in copre_classe.items():
@@ -56,10 +63,25 @@ def applica(ctx, sostegno_lista):
                 if occ_curricolare is not None:
                     ctx.model.Add(v + occ_curricolare <= 1)
 
+        if not fabbisogni:
+            # Nessun fabbisogno (alunni non censiti): le ore assegnate ai docenti sono il bisogno. Ognuno è in compresenza esattamente per le
+            # sue ore (imposto sopra), senza il codice di un alunno.
+            risultato.extend(
+                (docente_id, classe_id, s, None, v)
+                for docente_id, vars_slot in copre_classe.items()
+                for s, v in vars_slot.items()
+            )
+            continue
+
         if conteggio == 'per_classe':
             risultato.extend(_applica_per_classe(ctx, classe_id, slot_attivi, copre_classe, fabbisogni))
         else:
             risultato.extend(_applica_per_alunno(ctx, classe_id, copre_classe, fabbisogni))
+
+    # H2 tra classi: lo stesso docente di sostegno non può essere in compresenza in due classi nello stesso slot.
+    for lits in presenze.values():
+        if len(lits) > 1:
+            ctx.model.Add(sum(lits) <= 1)
 
     return risultato, diagnostica
 
