@@ -16,12 +16,12 @@ document.addEventListener('change', (e) => {
     if (e.target.matches('#tipo')) aggiornaCampiParametri();
 });
 
-// Discipline: «Tutte» / «Nessuna»; slot di D6: «Tutte» spunta (o toglie) l'intero giorno.
+// Discipline e docenti: «Tutte» / «Nessuna»; slot di D6: «Tutte» spunta (o toglie) l'intero giorno.
 document.addEventListener('click', (e) => {
     const sel = e.target.closest('[data-seleziona]');
     if (sel) {
         const sceglie = sel.dataset.seleziona === 'tutte';
-        sel.closest('[data-discipline-vincolo]').querySelectorAll('input[type="checkbox"]').forEach((c) => { c.checked = sceglie; });
+        sel.closest('[data-discipline-vincolo], [data-selezione-gruppo]').querySelectorAll('input[type="checkbox"]:not(:disabled)').forEach((c) => { c.checked = sceglie; });
         return;
     }
     const giorno = e.target.closest('[data-giorno-tutto]');

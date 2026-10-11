@@ -6,6 +6,7 @@ import { mostraToast } from './toast.js';
 // Errori di validazione nella modale; dopo il salvataggio la modale si chiude e la pagina si ricarica (il flash resta in sessione).
 const intestazioni = { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' };
 let dialog;
+let scrollPrima = { x: 0, y: 0 };   // la chiusura riporta il fuoco sul link che ha aperto la modale e il browser farebbe scorrere la pagina fin lì
 
 const corpo = () => dialog.querySelector('[data-corpo]');
 const eEliminazione = (form) => form.querySelector('[name="_method"][value="DELETE"]');
@@ -25,6 +26,7 @@ function creaDialog() {
         if (e.target.closest('[data-chiudi]')) dialog.close();
         if (e.target.closest('[data-salva]')) salva();
     });
+    dialog.addEventListener('close', () => scrollTo(scrollPrima.x, scrollPrima.y));
     dialog.addEventListener('input', (e) => segnaModificato(e));
     dialog.addEventListener('change', (e) => segnaModificato(e));
     dialog.addEventListener('submit', (e) => {
@@ -49,7 +51,10 @@ async function carica(url) {
     corpo().querySelectorAll('form').forEach((form) => {
         if (!eEliminazione(form)) form.querySelectorAll('button[type="submit"]').forEach((b) => { b.hidden = true; });
     });
-    if (!dialog.open) dialog.showModal();
+    if (!dialog.open) {
+        scrollPrima = { x: scrollX, y: scrollY };
+        dialog.showModal();
+    }
     document.dispatchEvent(new CustomEvent('modale:caricata', { detail: dialog }));
 }
 

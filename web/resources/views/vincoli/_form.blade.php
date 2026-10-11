@@ -39,10 +39,14 @@
     </div>
 </div>
 
-<div data-attiva-se="#ambito_livello=docente">
-    <label class="block text-sm font-medium text-gray-700 mb-1">Docenti
-        <x-info testo="Si attiva con Ambito «Docente»." />
-    </label>
+<div data-attiva-se="#ambito_livello=docente" data-selezione-gruppo>
+    <div class="mb-1 flex items-center gap-3">
+        <label class="block text-sm font-medium text-gray-700">Docenti
+            <x-info testo="Si attiva con Ambito «Docente»." />
+        </label>
+        <button type="button" data-seleziona="tutte" class="text-xs underline text-gray-500 cursor-pointer">Seleziona tutti</button>
+        <button type="button" data-seleziona="nessuna" class="text-xs underline text-gray-500 cursor-pointer">Deseleziona tutti</button>
+    </div>
     <div class="flex flex-wrap gap-3 max-h-32 overflow-y-auto">
         @foreach ($docenti as $docente)
             <label class="flex items-center gap-2 text-sm text-gray-700">

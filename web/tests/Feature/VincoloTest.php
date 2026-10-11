@@ -101,7 +101,7 @@ class VincoloTest extends TestCase
 
         $utente = $this->actingAs($this->referente());
         $utente->get('/vincoli')->assertSee('<optgroup label="Docenti">', false);
-        $utente->get('/vincoli/create')->assertSee('<optgroup label="Discipline">', false);
+        $utente->get('/vincoli/create')->assertSee('<optgroup label="Discipline">', false)->assertSee('Seleziona tutti')->assertSee('Deseleziona tutti');
     }
 
     public function test_d1_rifiuta_min_consecutive_sotto_la_soglia(): void
