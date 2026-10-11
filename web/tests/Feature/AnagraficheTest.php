@@ -334,8 +334,8 @@ class AnagraficheTest extends TestCase
             ->assertSee('data-attiva-se="#severita=preferenziale"', false);
         $utente->get('/classi/create')->assertOk()->assertSee('data-attiva-se="#tempo_scuola=prolungato"', false);
 
-        // Nessuna disciplina censita: "aggiungi" è disabilitato e spiega perché.
-        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina censita');
+        // Nessuna disciplina inserita: "aggiungi" è disabilitato e spiega perché.
+        $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina inserita');
     }
 
     public function test_il_menu_porta_sia_alle_sedi_sia_alle_aule(): void

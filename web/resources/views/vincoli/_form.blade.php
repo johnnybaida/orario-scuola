@@ -135,7 +135,7 @@
         @endforeach
     </select>
     <label class="block text-sm font-medium text-gray-700 mt-2">Almeno quante coppie nella settimana (facoltativo)
-        <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (può essere infattibile se le ore della prima sono più di quelle della seconda: meglio allora il tipo Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
+        <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (è impossibile se le ore della prima sono più di quelle della seconda: meglio allora la severità Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
     </label>
     <input type="number" name="parametri[min_coppie]" min="1" max="30" value="{{ $parametri['min_coppie'] ?? '' }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -154,7 +154,7 @@
     <input type="number" name="parametri[min_ore]" min="1" max="9" value="{{ $parametri['min_ore'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <label class="block text-sm font-medium text-gray-700 mt-2">Ore massime al giorno
-        <x-info testo="Tetto giornaliero (vuoto = nessun tetto). Con il tipo Rigido la generazione diventa infattibile se le ore settimanali del docente superano tetto × giorni disponibili." />
+        <x-info testo="Tetto giornaliero (vuoto = nessun tetto). Con la severità Rigido la generazione è impossibile se le ore settimanali del docente superano tetto × giorni disponibili." />
     </label>
     <input type="number" name="parametri[max_ore]" min="1" max="9" value="{{ $parametri['max_ore'] ?? '' }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -174,7 +174,7 @@
     <label class="block text-sm font-medium text-gray-700">N. giorni liberi richiesti</label>
     <input type="number" name="parametri[n_giorni]" required min="1" max="3" value="{{ $parametri['n_giorni'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-    <label class="block text-sm font-medium text-gray-700 mt-2">Giorno preferito (opzionale)</label>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Giorno preferito (facoltativo)</label>
     <select name="parametri[preferenze][]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="">— Nessuna preferenza —</option>
         @foreach ([1 => 'Lunedì', 2 => 'Martedì', 3 => 'Mercoledì', 4 => 'Giovedì', 5 => 'Venerdì', 6 => 'Sabato'] as $g => $nome)

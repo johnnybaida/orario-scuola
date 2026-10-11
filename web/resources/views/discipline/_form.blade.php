@@ -31,11 +31,11 @@
             <option value="{{ $tipo }}" @selected($sel === $tipo)>{{ $etichetta }}</option>
         @endforeach
         @if ($sel && ! isset($tipiAula[$sel]))
-            <option value="{{ $sel }}" selected>{{ $sel }} (nessuna aula censita)</option>
+            <option value="{{ $sel }}" selected>{{ $sel }} (nessuna aula inserita)</option>
         @endif
     </select>
     <p class="mt-1 text-xs text-gray-500">
-        Elenco dei tipi di aula censiti in "Aule". Per DADA: crea l'aula e spunta questa disciplina, il collegamento avviene da solo;
+        Elenco dei tipi di aula inseriti in "Aule". Per DADA: crea l'aula e spunta questa disciplina, il collegamento avviene da solo;
         qui puoi comunque sceglierlo a mano.
     </p>
     @if (count($tipiAula) > 1)

@@ -8,7 +8,7 @@
 <div>
     <h2 class="font-medium mb-2">Discipline</h2>
     <x-righe-ripetibili :righe="old('righe', $righe)" partial="quadri-orari._riga" esaurito="Tutte le discipline sono già nel quadro orario." :dati="['discipline' => $discipline]"
-                        :blocca="$discipline->isEmpty() ? 'Nessuna disciplina censita: aggiungila prima nella sezione Discipline.' : null" etichetta="Aggiungi disciplina" />
+                        :blocca="$discipline->isEmpty() ? 'Nessuna disciplina inserita: aggiungila prima nella sezione Discipline.' : null" etichetta="Aggiungi disciplina" />
     <div class="mt-4 flex items-center gap-2">
         <label for="ore_mensa" class="text-sm font-medium text-gray-700">Ore di mensa</label>
         <input type="number" name="ore_mensa" id="ore_mensa" min="0" max="20" value="{{ old('ore_mensa', $quadro?->ore_mensa ?? 0) }}" data-somma="quadro" class="w-20">

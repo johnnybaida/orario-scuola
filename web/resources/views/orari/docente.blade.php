@@ -18,7 +18,7 @@
         @if ($modificabile)
             Puoi <strong>trascinare</strong> una lezione su un'altra ora: la lezione resta nella sua classe e, se in quell'ora
             la classe ha un'altra lezione, le due si scambiano. Durante il trascinamento le celle si colorano (verde: si può,
-            ambra: crea un conflitto e serve «Conflitti provvisori», rosso: non ammesso). Per cambiare docente o materia di una
+            giallo: crea un conflitto e serve «Conflitti provvisori», rosso: non ammesso). Per cambiare docente o materia di una
             lezione usa la griglia della classe.
         @else
             Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.

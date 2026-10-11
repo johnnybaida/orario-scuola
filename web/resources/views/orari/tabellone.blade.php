@@ -36,7 +36,7 @@
         @if ($modificabile)
             Puoi <strong>trascinare</strong> le lezioni. Nella vista per aula: su un'altra aula nella stessa ora per cambiarle
             aula, su un'altra ora per spostarla. Nella vista per classe: lungo la riga della classe, su un'altra ora (se c'è
-            un'altra lezione le due si scambiano). Durante il trascinamento le celle si colorano (verde: si può, ambra: crea un
+            un'altra lezione le due si scambiano). Durante il trascinamento le celle si colorano (verde: si può, giallo: crea un
             conflitto e serve «Conflitti provvisori», rosso: non ammesso).
         @endif
     </x-guida>

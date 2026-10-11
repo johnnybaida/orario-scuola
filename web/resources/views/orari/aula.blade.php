@@ -26,7 +26,7 @@
         alla porta. Le ore vuote sono quelle in cui l'aula è libera.
         @if ($modificabile)
             Puoi <strong>trascinare</strong> una lezione su un'altra ora: resta in quest'aula, se è libera, e si scambia con la
-            lezione che la classe aveva in quell'ora (durante il trascinamento le celle si colorano: verde si può, ambra crea un
+            lezione che la classe aveva in quell'ora (durante il trascinamento le celle si colorano: verde si può, giallo crea un
             conflitto e serve «Conflitti provvisori», rosso non è ammesso). Per cambiare aula a una lezione usa il tabellone per aula.
         @else
             Vista in sola lettura: per modificare apri la griglia della classe interessata (cliccando il nome della classe).
