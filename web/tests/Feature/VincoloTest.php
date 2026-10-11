@@ -290,6 +290,27 @@ class VincoloTest extends TestCase
         $this->assertSame('Almeno 2 ore tra gli slot selezionati (3).', (new \App\Constraints\Tipi\T11OreInFascia)->descrizione(['min_ore' => 2, 'slot_ids' => [1, 2, 3]]));
     }
 
+    public function test_t12_ore_attorno_alla_mensa_globale_o_docente_con_modo_e_ore_e_arriva_al_solver_con_le_assistenze(): void
+    {
+        $docente = \App\Models\Docente::factory()->create();
+        $utente = $this->actingAs($this->referente());
+        $base = ['tipo' => 'T12_ORE_ATTORNO_MENSA', 'ambito_livello' => 'globale', 'severita' => 'rigido'];
+
+        $utente->get('/vincoli/create')->assertOk()->assertSee('T12_ORE_ATTORNO_MENSA', false)->assertSee('Ore di chi sorveglia la mensa', false);
+        $utente->post('/vincoli', $base + ['parametri' => ['modo' => 'a_cavallo', 'min_ore' => 1]])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', ['ambito_livello' => 'docente', 'ambito_ids' => [$docente->id]] + $base + ['parametri' => ['modo' => 'prima', 'min_ore' => 2]])->assertSessionHasNoErrors();
+        $utente->post('/vincoli', $base + ['parametri' => ['modo' => 'boh', 'min_ore' => 1]])->assertSessionHasErrors('parametri.modo');
+        $utente->post('/vincoli', $base + ['parametri' => ['modo' => 'prima', 'min_ore' => 0]])->assertSessionHasErrors('parametri.min_ore');
+
+        // Al solver arrivano solo le assistenze alle pause marcate «mensa».
+        $slot = \App\Models\Slot::factory()->create(['giorno' => 1, 'ordine' => 3, 'ricreazione_minuti' => 30, 'ricreazione_mensa' => true]);
+        \App\Models\Slot::factory()->create(['giorno' => 1, 'ordine' => 2, 'ricreazione_minuti' => 10, 'ricreazione_mensa' => false]);
+        \App\Models\AssistenzaPausa::query()->create(['docente_id' => $docente->id, 'giorno' => 1, 'ordine' => 3]);
+        \App\Models\AssistenzaPausa::query()->create(['docente_id' => $docente->id, 'giorno' => 1, 'ordine' => 2]);
+        $this->assertSame([['docente' => $docente->id, 'giorno' => 1, 'ordine' => 3]], app(\App\Services\Solver\ProblemBuilder::class)->costruisci(1, 10)['assistenze_mensa']);
+        $this->assertSame('Nei giorni di sorveglianza della mensa il docente ha almeno 2 ore di lezione o sostegno prima della mensa.', (new \App\Constraints\Tipi\T12OreAttornoMensa)->descrizione(['modo' => 'prima', 'min_ore' => 2]));
+    }
+
     public function test_d13_disciplina_seguita_da_un_altra_con_modo_e_coppie_e_arriva_al_solver_coi_codici(): void
     {
         [$ita, $sto] = Disciplina::factory()->count(2)->create();

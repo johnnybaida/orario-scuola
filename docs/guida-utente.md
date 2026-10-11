@@ -364,7 +364,7 @@ La durata di ogni ora e i giorni della settimana non sono impostazioni: si ricav
 I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema sempre attive (un docente non può essere in due posti insieme, una classe ha una sola lezione per slot, le indisponibilità sono rispettate, ecc.).
 
 - **Tipo**: quale regola applicare (vedi sotto). I campi mostrati cambiano col tipo.
-- **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale. Non tutti gli ambiti valgono per ogni tipo: **D3, D6, D13, S5 e C5** si applicano a *Globale* o *Classe*; **D1 e D12** anche a *Docente*; **T2, T3 e T4** a *Globale* o *Docente*; **T11** solo a *Docente*. Nell'elenco dei docenti, accanto a ogni nome c'è tra parentesi il **numero di ore assegnate** (cattedre, sostegno, CLIL e assistenza alle pause), utile per scegliere i limiti (per esempio chi ha più di 20 ore non può stare in 4 ore al giorno).
+- **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale. Non tutti gli ambiti valgono per ogni tipo: **D3, D6, D13, S5 e C5** si applicano a *Globale* o *Classe*; **D1 e D12** anche a *Docente*; **T2, T3, T4 e T12** a *Globale* o *Docente*; **T11** solo a *Docente*. Nell'elenco dei docenti, accanto a ogni nome c'è tra parentesi il **numero di ore assegnate** (cattedre, sostegno, CLIL e assistenza alle pause), utile per scegliere i limiti (per esempio chi ha più di 20 ore non può stare in 4 ore al giorno).
 - **Severità**: *Rigido* va rispettato sempre (se non è possibile, la generazione non trova nessun orario e risulta *Infattibile*); *Preferenziale* viene rispettato quando possibile.
 - **Peso** (1–100): solo per i preferenziali. Più è alto, più il generatore cerca di evitare di violarlo. Si attiva solo con severità *Preferenziale*.
 - **Attivo**: se tolto (e salvato), il vincolo resta in elenco ma **non viene considerato** nelle generazioni: comodo per provare un orario senza una regola e riattivarla dopo. La colonna **Attivo** dell'elenco dice «Sì» o «No».
@@ -383,6 +383,7 @@ Tipi disponibili:
   - **Lezioni con o senza CLIL**: per distinguere, per esempio, la **Geografia con il docente CLIL** da quella **senza**, accanto a ciascuna disciplina scegli *Tutte le lezioni*, *Solo le lezioni con CLIL* o *Solo le lezioni senza CLIL*; con «Non deve essere seguita da» puoi spuntare anche **Vale anche nell'ordine inverso** (così non si hanno mai di seguito Geografia e Geografia con CLIL, in nessun ordine).
   - **Quante volte alla settimana**: con il campo vuoto la regola vale **ogni volta** che c'è una lezione della prima: se le ore della prima sono più di quelle della seconda (per esempio 5 di Italiano e 2 di Storia) è impossibile rispettarla sempre, quindi usa la severità *Preferenziale* oppure indica quante volte alla settimana almeno.
 - **Ore minime di un docente in certe ore (T11)**: i docenti scelti (Ambito *Docente*) devono fare **almeno N ore tra le ore della settimana che spunti** (una riga per giorno, con **Tutte** per l'intera giornata): per esempio «Rossi almeno 1 ora il mercoledì mattina». Contano le ore di lezione in qualunque classe e anche quelle di sostegno. Con la severità *Preferenziale* ogni ora mancante è una penalità; con la severità *Rigido* la generazione è impossibile se il docente non può esserci in quelle ore (indisponibilità).
+- **Ore di chi sorveglia la mensa (T12)**: evita che chi sorveglia la mensa venga a scuola solo per quella, o abbia ore da una parte soltanto. Vale **solo nei giorni in cui il docente ha l'assistenza** a una pausa marcata «mensa» (pagina *Mensa*). Ambito *Globale* (tutti i sorveglianti) o *Docente* (quelli scelti). Scegli **dove** devono stare le ore: *Prima o dopo la mensa (o entrambe)*, *Prima della mensa*, *Dopo la mensa*, oppure *Sia prima sia dopo* (a cavallo); e **quante ore almeno** (con «a cavallo» è il minimo per ciascuna parte). Contano lezioni e sostegno. Con la severità *Rigido* la generazione è impossibile se un sorvegliante non può avere quelle ore (per esempio per le indisponibilità); con *Preferenziale* ogni ora mancante è una penalità.
 - **Distribuzione del sostegno (S5)**: evita che il sostegno si concentri. Ambito *Globale* o *Classe*. Due limiti, da compilare uno o entrambi: **Docenti di sostegno insieme (al massimo)** (quanti docenti di sostegno al massimo nella stessa classe nella stessa ora, di solito 1) e **Tolleranza giornaliera** (le ore di sostegno della classe si distribuiscono sui giorni: ogni giorno può averne al massimo la media più questa tolleranza; i giorni in cui nessun docente può esserci per le indisponibilità non contano). Consiglio la severità *Preferenziale*: con il *Rigido* la generazione diventa infattibile se le ore di sostegno assegnate non stanno nelle ore libere dei docenti.
 - **Ore al giorno di una disciplina, al massimo (D3)**: limite di ore al giorno della stessa disciplina **in ciascuna classe** (per esempio Matematica al massimo 2 ore al giorno nella 1ª A). **Non limita le ore di un docente su più classi**: un docente che insegna la stessa materia in sei classi può comunque fare sei ore di fila, una per classe. Per limitare un **docente** usa *Ore minime/massime al giorno (T4)* (ore totali al giorno) o *Blocco consecutivo massimo (D12)* con Ambito *Docente* (ore di fila). Campi: discipline, *max ore/giorno*.
 - **Ore vietate o preferite per una disciplina (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: discipline, *Queste ore sono* (vietate/preferite) e le ore della settimana interessate: una riga per giorno con le sue ore da spuntare, e **Tutte** per scegliere l'intera giornata.
@@ -544,6 +545,30 @@ Ogni ora che manca ai 2 richiesti costa una penalità: il generatore ci arriva q
 | Prima disciplina / Disciplina dell'ora dopo | Italiano / Storia |
 | Quante volte alla settimana (almeno) | 2 |
 | Severità | Preferenziale |
+
+**Ore di chi sorveglia la mensa (T12)**
+
+*Chi sorveglia la mensa ha almeno un'ora di lezione prima o dopo, quel giorno.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore di chi sorveglia la mensa (T12) |
+| Ambito | Globale |
+| Dove devono stare le ore | Prima o dopo la mensa (o entrambe) |
+| Ore (almeno) | 1 |
+| Severità | Rigido |
+
+*La prof.ssa Bianchi, nei giorni di mensa, ha almeno un'ora sia prima sia dopo, se possibile.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore di chi sorveglia la mensa (T12) |
+| Ambito | Docente |
+| Docenti | Bianchi |
+| Dove devono stare le ore | Sia prima sia dopo la mensa |
+| Ore (almeno) | 1 |
+| Severità | Preferenziale |
+| Peso | 40 |
 
 **Distribuzione del sostegno (S5)**
 

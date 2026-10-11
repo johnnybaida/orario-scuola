@@ -46,10 +46,18 @@ class ProblemBuilder
             'docenti' => $this->docenti(),
             'classi' => $this->classi(),
             'occupazioni_fisse' => app(\App\Services\Laboratori::class)->perSolver(),
+            'assistenze_mensa' => $this->assistenzeMensa(),
             'lezioni' => $this->lezioni(),
             'sostegno' => $this->sostegno(),
             'vincoli' => $this->vincoli(),
         ];
+    }
+
+    /** Chi sorveglia una pausa marcata «mensa», per giorno (lo legge T12). */
+    private function assistenzeMensa(): array
+    {
+        return \App\Models\AssistenzaPausa::query()->whereIn('ordine', app(\App\Services\Mensa::class)->pause()->keys())->orderBy('id')->get()
+            ->map(fn ($a) => ['docente' => $a->docente_id, 'giorno' => $a->giorno, 'ordine' => $a->ordine])->all();
     }
 
     private function slots(): array

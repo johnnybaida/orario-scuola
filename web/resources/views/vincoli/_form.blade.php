@@ -172,6 +172,23 @@
     @include('vincoli._slot', ['etichettaSlot' => 'Ore della settimana in cui devono esserci'])
 </div>
 
+<div data-parametri-per="T12_ORE_ATTORNO_MENSA">
+    <p class="text-sm text-gray-500">Ambito <strong>Globale</strong> (tutti i docenti che sorvegliano la mensa) oppure <strong>Docente</strong> (quelli scelti). Vale solo nei giorni in cui il docente ha l'assistenza a una pausa marcata «mensa» (pagina Mensa).</p>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Dove devono stare le ore
+        <x-info testo="Serve a evitare che chi sorveglia la mensa venga a scuola solo per quella, o abbia lezioni da una sola parte. «Prima o dopo» basta che abbia ore da una delle due parti (o entrambe); «Sia prima sia dopo» richiede ore da entrambe le parti, cioè a cavallo della mensa." />
+    </label>
+    <select name="parametri[modo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+        @foreach (\App\Constraints\Tipi\T12OreAttornoMensa::MODI as $valore => $nome)
+            <option value="{{ $valore }}" @selected(($parametri['modo'] ?? 'prima_o_dopo') === $valore)>{{ ucfirst($nome) }}</option>
+        @endforeach
+    </select>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore (almeno)
+        <x-info testo="Quante ore di lezione o sostegno servono almeno. Con «Sia prima sia dopo» è il minimo per ciascuna parte. 1 = almeno un'ora." />
+    </label>
+    <input type="number" name="parametri[min_ore]" required min="1" max="9" value="{{ $parametri['min_ore'] ?? 1 }}"
+           class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+</div>
+
 <div data-parametri-per="T2_GIORNO_LIBERO">
     <label class="block text-sm font-medium text-gray-700">Giorni liberi</label>
     <input type="number" name="parametri[n_giorni]" required min="1" max="3" value="{{ $parametri['n_giorni'] ?? 1 }}"

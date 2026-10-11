@@ -120,6 +120,10 @@ class GenerazioneCompletaTest extends TestCase
             'parametri' => ['disciplina_ids' => [(string) $this->disc['ITA']->id], 'min_consecutive' => '2', 'n_blocchi_min' => '1']]);
         // Matematica mai due ore di fila (D12), come la salva il form
         $vincolo(['tipo' => 'D12_BLOCCO_MAX_CONSECUTIVO', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_id' => (string) $this->disc['MAT']->id, 'max_consecutive' => '1']]);
+        // Mensa dopo la 3ª ora: Italiano la sorveglia il martedì e (T12) deve avere un'ora prima e una dopo.
+        Slot::query()->where('ordine', 3)->get()->each->update(['ricreazione_minuti' => 10, 'ricreazione_mensa' => true]);
+        \App\Models\AssistenzaPausa::query()->create(['docente_id' => $this->d['ITA']->id, 'giorno' => 2, 'ordine' => 3]);
+        $vincolo(['tipo' => 'T12_ORE_ATTORNO_MENSA', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['modo' => 'a_cavallo', 'min_ore' => '1']]);
         $vincolo(['tipo' => 'T3_MAX_ORE_BUCHE', 'severita' => 'preferenziale', 'peso' => 50, 'parametri' => ['max_per_giorno' => 1]]);
     }
 
@@ -200,6 +204,10 @@ class GenerazioneCompletaTest extends TestCase
         }
         $itaA = $lezioni->filter(fn ($l) => $l->cattedra->classe_id === $this->classeA->id && $l->cattedra->disciplina->codice === 'ITA');
         $this->assertTrue($itaA->groupBy(fn ($l) => $l->slot->giorno)->contains(fn ($g) => $g->pluck('slot.ordine')->sort()->values()->pipe(fn ($o) => $o->count() >= 2 && $o->last() - $o->first() === $o->count() - 1)));
+
+        // T12: il martedì Italiano ha almeno un'ora fino alla 3ª e una dopo la mensa.
+        $ita = $lezioni->filter(fn ($l) => $l->cattedra->docente_id === $this->d['ITA']->id && $l->slot->giorno === 2);
+        $this->assertTrue($ita->contains(fn ($l) => $l->slot->ordine <= 3) && $ita->contains(fn ($l) => $l->slot->ordine > 3), 'Italiano non a cavallo della mensa');
 
         // Sostegno: 2 compresenze per la classe A, nei slot in cui la classe ha lezione (il docente di sostegno non ha altre lezioni).
         $compresenze = $orario->compresenzeSostegno()->get();

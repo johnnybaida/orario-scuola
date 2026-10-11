@@ -13,7 +13,7 @@ from ortools.sat.python import cp_model
 import diagnosi
 import sostegno as sostegno_modulo
 from contesto import Contesto
-from constraints import c5, d1, d3, d6, d12, d13, s5, t11, t2, t3, t4
+from constraints import c5, d1, d3, d6, d12, d13, s5, t11, t12, t2, t3, t4
 
 MODULI_VINCOLI = {
     'D1_BLOCCO_MIN_CONSECUTIVO': d1,
@@ -22,6 +22,7 @@ MODULI_VINCOLI = {
     'D12_BLOCCO_MAX_CONSECUTIVO': d12,
     'D13_DISCIPLINA_SEGUITA': d13,
     'T11_ORE_IN_FASCIA': t11,
+    'T12_ORE_ATTORNO_MENSA': t12,
     'T4_ORE_GIORNO': t4,
     'T2_GIORNO_LIBERO': t2,
     'T3_MAX_ORE_BUCHE': t3,

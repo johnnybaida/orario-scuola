@@ -273,6 +273,7 @@ class PromptOrario
             'T4_ORE_GIORNO' => 'ogni docente scelto: '
                 .collect([($p['min_ore'] ?? '') !== '' ? "almeno {$p['min_ore']} ora/e al giorno in ogni giorno in cui può esserci (le indisponibilità non contano)" : null, ($p['max_ore'] ?? '') !== '' ? "al massimo {$p['max_ore']} ora/e al giorno" : null])->filter()->implode('; '),
             'T11_ORE_IN_FASCIA' => "ogni docente scelto deve fare almeno {$p['min_ore']} ora/e (lezioni o sostegno, in qualunque classe) in queste ore: ".$ore($p['slot_ids'] ?? []),
+            'T12_ORE_ATTORNO_MENSA' => "i docenti che sorvegliano la mensa devono avere, nei giorni di sorveglianza, almeno {$p['min_ore']} ora/e (lezioni o sostegno) ".\App\Constraints\Tipi\T12OreAttornoMensa::MODI[$p['modo'] ?? 'prima_o_dopo'],
             'D3_MAX_ORE_GIORNO' => "{$disciplina} al massimo {$p['max']} ora/e al giorno per classe",
             'D6_FASCIA_ORARIA' => ($p['tipo'] ?? '') === 'vietata'
                 ? "{$disciplina} NON può essere collocata in queste ore: ".$ore($p['slot_ids'] ?? [])
