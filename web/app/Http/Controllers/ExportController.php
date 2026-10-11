@@ -44,8 +44,8 @@ class ExportController extends Controller
 
     public function generale(Request $request, Orario $orario, OrarioPdfExporter $exporter): Response
     {
-        $per = $request->query('per') === 'aula' ? 'aula' : 'classe';
+        $per = in_array($request->query('per'), ['aula', 'docente'], true) ? $request->query('per') : 'classe';
 
-        return $exporter->generale($orario, $per)->stream($per === 'aula' ? 'orario-generale-per-aula.pdf' : 'orario-generale.pdf');
+        return $exporter->generale($orario, $per)->stream(['aula' => 'orario-generale-per-aula.pdf', 'docente' => 'orario-generale-per-docente.pdf'][$per] ?? 'orario-generale.pdf');
     }
 }

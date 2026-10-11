@@ -138,7 +138,7 @@ class OrarioController extends Controller
         $classi = Classe::query()->with('aulaBase')->orderBy('anno_corso')->orderBy('sezione')->get();
         // Senza indicazione: «per aula» se la scuola lavora (in prevalenza) senza aule base, cioè in DADA.
         $per = $request->query('per') ?? ($classi->isNotEmpty() && $classi->whereNull('aula_base_id')->count() * 2 > $classi->count() ? 'aula' : 'classe');
-        abort_unless(in_array($per, ['classe', 'aula'], true), 404);
+        abort_unless(in_array($per, ['classe', 'aula', 'docente'], true), 404);
 
         $lezioni = Lezione::query()->where('orario_id', $orario->id)
             ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'slot', 'aula')->get();
@@ -154,9 +154,17 @@ class OrarioController extends Controller
             $cambiPerClasse[$classeId] = count($c);
         }
 
+        $sostegniDocente = collect();
         if ($per === 'classe') {
             $righe = $classi->map(fn (Classe $c) => ['id' => $c->id, 'etichetta' => $c->nomeCompleto()]);
             $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
+        } elseif ($per === 'docente') {
+            // Una riga per docente: ogni lezione compare in quella del titolare e del docente CLIL (o dei loro sostituti), il sostegno in quella del docente di sostegno.
+            $compresenze = $orario->compresenzeSostegno()->with('classe')->get();
+            $sostegniDocente = $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->docente_id);
+            $celle = $lezioni->flatMap(fn (Lezione $l) => collect($l->docentiIds())->map(fn (int $id) => [$l->slot_id.'-'.$id, $l]))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));
+            $ids = $lezioni->flatMap(fn (Lezione $l) => $l->docentiIds())->merge($compresenze->pluck('docente_id'))->unique();
+            $righe = Docente::query()->whereIn('id', $ids)->orderBy('cognome')->orderBy('nome')->get()->map(fn (Docente $d) => ['id' => $d->id, 'etichetta' => $d->nomeCompleto()]);
         } else {
             $aule = Aula::query()->orderBy('nome')->get();
             $tipiRichiesti = Cattedra::query()->with('disciplina')->get()->flatMap(fn ($c) => $c->disciplina->tipiAmmessi())->unique();
@@ -174,6 +182,7 @@ class OrarioController extends Controller
             'per' => $per,
             'righe' => $righe,
             'celle' => $celle,
+            'sostegniDocente' => $sostegniDocente,
             'giorni' => $usati->pluck('giorno')->unique()->sort()->values(),
             'ore' => $usati->isEmpty() ? [] : range(1, (int) $usati->max('ordine')),
             'slot' => Slot::query()->get()->keyBy(fn (Slot $s) => $s->giorno.'-'.$s->ordine),

@@ -191,7 +191,7 @@ class OrarioPdfExporter
             ->where('orario_id', $orario->id)
             ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')
             ->get();
-        $compresenze = $orario->compresenzeSostegno()->with('docente')->get();
+        $compresenze = $orario->compresenzeSostegno()->with('docente', 'classe')->get();
 
         // Giorni e ore realmente usati; ogni giorno ha tante colonne quante l'ora più alta usata in qualunque giorno.
         $usati = Slot::query()->whereIn('id', $lezioni->pluck('slot_id')->merge($compresenze->pluck('slot_id')))->get();
@@ -203,7 +203,7 @@ class OrarioPdfExporter
         // Colonne extra per le pause della mensa, solo nella vista per classe.
         $pause = app(AssistenzaPause::class)->pause();
         $pauseMensa = app(\App\Services\Mensa::class)->pause();
-        $colonnePausa = $per === 'classe' ? $pauseMensa->keys()->unique()->sort()->values()->all() : [];
+        $colonnePausa = in_array($per, ['classe', 'docente'], true) ? $pauseMensa->keys()->unique()->sort()->values()->all() : [];
 
         // Legenda: orario di ogni ora e ricreazioni (uguali per tutti i giorni: si leggono dal primo slot di ciascuna ora).
         $tuttiGliSlot = Slot::query()->orderBy('giorno')->orderBy('ordine')->get();
@@ -235,6 +235,11 @@ class OrarioPdfExporter
                 $righe->push(['id' => 0, 'etichetta' => 'Senza aula']);
             }
             $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.(SpostamentiAula::aulaEffettiva($l)?->id ?? 0));
+        } elseif ($per === 'docente') {
+            // Una riga per docente: la lezione compare in quella del titolare e del docente CLIL (o dei loro sostituti), il sostegno in quella del docente di sostegno.
+            $ids = $lezioni->flatMap(fn (Lezione $l) => $l->docentiIds())->merge($compresenze->pluck('docente_id'))->unique();
+            $righe = \App\Models\Docente::query()->whereIn('id', $ids)->orderBy('cognome')->orderBy('nome')->get()->map(fn ($d) => ['id' => $d->id, 'etichetta' => $d->nomeCompleto()]);
+            $celle = $lezioni->flatMap(fn (Lezione $l) => collect($l->docentiIds())->map(fn (int $id) => [$l->slot_id.'-'.$id, $l]))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));
         } else {
             $righe = $classi->map(fn (Classe $c) => ['id' => $c->id, 'etichetta' => $c->nomeCompleto()]);
             $celle = $lezioni->groupBy(fn (Lezione $l) => $l->slot_id.'-'.$l->cattedra->classe_id);
@@ -242,6 +247,25 @@ class OrarioPdfExporter
 
         // Sorveglianti della mensa per classe, giorno e pausa (assistenze alle pause): [classe-giorno-pausa => [cognomi]].
         $celleSorveglianza = [];
+        if ($per === 'docente' && $pauseMensa->isNotEmpty()) {
+            // Vista per docente: nella colonna della mensa, le classi che il docente sorveglia quel giorno (un'assistenza senza classi in mensa
+            // quel giorno si segna con «—», perché la mensa è comunque prevista).
+            $classiConSlot = Classe::query()->with('slotAttivi')->get()->keyBy('id');
+            foreach ($pauseMensa as $ordine => $pausa) {
+                foreach (app(\App\Services\Mensa::class)->assegnazioni($ordine, $classiConSlot->values()) as $giorno => $perClasse) {
+                    foreach ($perClasse as $classeId => $docenti) {
+                        foreach (array_unique($docenti) as $docenteId) {
+                            $celleSorveglianza[$docenteId.'-'.$giorno.'-'.$ordine][] = $classiConSlot[$classeId]->nomeCompleto();
+                        }
+                    }
+                }
+                foreach ($this->sorveglianti()[$ordine] ?? [] as $giorno => $voci) {
+                    foreach ($voci as $v) {
+                        $celleSorveglianza[$v['docente_id'].'-'.$giorno.'-'.$ordine] ??= ['—'];
+                    }
+                }
+            }
+        }
         if ($per === 'classe' && $pauseMensa->isNotEmpty()) {
             $classiConSlot = Classe::query()->with('slotAttivi')->get();
             $cognomi = \App\Models\Docente::query()->pluck('cognome', 'id');
@@ -284,6 +308,9 @@ class OrarioPdfExporter
         // Righe di testo della cella più piena (materia, docente, aula, CLIL, un rigo per docente di sostegno): l'altezza delle righe della tabella
         // la decide lei, quindi si riduce il carattere finché tutte le righe stanno nel foglio.
         $righeDiTesto = $celle->map(function ($gruppo, $chiave) use ($per, $cambi, $compresenze) {
+            if ($per === 'docente') {
+                return $gruppo->count() * 2;
+            }
             if ($per === 'aula') {
                 return $gruppo->sum(fn (Lezione $l) => 3 + ($l->docenteClilEffettivo() ? 1 : 0) + $compresenze->where('slot_id', $l->slot_id)->where('classe_id', $l->cattedra->classe_id)->unique('docente_id')->count());
             }
@@ -318,9 +345,10 @@ class OrarioPdfExporter
             'origine' => $this->origine($orario),
             'cambi' => $cambi,
             'adatta' => $adatta,
+            'sostegniDocente' => $compresenze->groupBy(fn ($c) => $c->slot_id.'-'.$c->docente_id),
             'altezzaCella' => (int) floor(1500 / max(1, $righe->count())),
             'paddingPx' => $paddingPx,
-            'titolo' => $this->conSede($per === 'aula' ? 'Quadro generale orario per aula' : 'Quadro generale orario'),
+            'titolo' => $this->conSede(match ($per) { 'aula' => 'Quadro generale orario per aula', 'docente' => 'Quadro generale orario per docente', default => 'Quadro generale orario' }),
             'per' => $per,
             'righe' => $righe,
             'colori' => ColoriDiscipline::mappa(),

@@ -11,7 +11,7 @@
         td div { white-space: nowrap; overflow: hidden; }
         th, td { border: 1px solid #999; padding: {{ $paddingPx }}px 2px; text-align: center; vertical-align: middle; overflow: hidden; line-height: 1.15; }
         th { background: #eee; }
-        .classe { width: {{ $per === 'aula' ? 176 : 74 }}px; background: #f5f5f5; font-weight: bold; }
+        .classe { width: {{ ['aula' => 176, 'docente' => 190][$per] ?? 74 }}px; background: #f5f5f5; font-weight: bold; }
         .inizio-giorno { border-left: 2px solid #333; }
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
@@ -32,7 +32,7 @@
     <table>
         <thead>
             <tr>
-                <th class="classe" rowspan="2">{{ $per === 'aula' ? 'Aula' : 'Classe' }}</th>
+                <th class="classe" rowspan="2">{{ ['aula' => 'Aula', 'docente' => 'Docente'][$per] ?? 'Classe' }}</th>
                 @foreach ($giorni as $giorno)
                     <th class="inizio-giorno" colspan="{{ count($colonnePerGiorno[$giorno]) }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
                 @endforeach
@@ -74,7 +74,11 @@
                             @php($conAula = $per === 'classe' && $gruppo->contains(fn ($l) => $l->aulaDaMostrare() ?? isset($cambi[$l->id])))
                             <td @class(['inizio-giorno' => $loop->first]) @if ($primo) style="{{ \App\Support\ColoriDiscipline::stile($colori[$primo->cattedra->disciplina_id] ?? ['#ffffff', '#000000']) }}{{ $conAula ? ' padding-bottom: '.($fontPx - 1).'px;' : '' }}" @endif>
                                 @foreach ($gruppo as $lezione)
-                                    @if ($per === 'aula')
+                                    @if ($per === 'docente')
+                                        {{-- Vista per docente: la classe (con «C.» se in quest'ora il docente è in compresenza CLIL) e la materia. --}}
+                                        <div class="materia">{{ $adatta($lezione->cattedra->classe->nomeCompleto(), $lezione->docenteClilEffettivo()?->id === $riga['id'] ? 'C. ' : '', '', true) }}</div>
+                                        <div>{{ $adatta($lezione->cattedra->disciplina->nome) }}</div>
+                                    @elseif ($per === 'aula')
                                         {{-- Vista per aula: classe, materia e tutti i docenti presenti in quell'ora (titolare, CLIL, sostegno), una riga ciascuno. --}}
                                         <div class="materia">{{ $adatta($lezione->cattedra->classe->nomeCompleto(), '', '', true) }}</div>
                                         <div>{{ $adatta($lezione->cattedra->disciplina->nome) }}</div>
@@ -87,8 +91,10 @@
                                             <span class="aula-nome" @if (isset($cambi[$lezione->id])) style="font-weight: bold;" @endif>{{ $adatta($aulaCella->nome, '', '', isset($cambi[$lezione->id]), $pxAula) }}</span>
                                         @endif
                                     @endif
+                                    @if ($per !== 'docente')
                                     <div>{{ $adatta($lezione->docenteEffettivo()->cognome) }}</div>
-                                    @if ($lezione->docenteClilEffettivo())
+                                    @endif
+                                    @if ($per !== 'docente' && $lezione->docenteClilEffettivo())
                                         <div class="clil">{{ $adatta($lezione->docenteClilEffettivo()->cognome, 'C. ') }}</div>
                                     @endif
                                     @if ($per === 'aula')
@@ -100,6 +106,11 @@
                                 @foreach ($supporti as $supporto)
                                     <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S. ') }}</div>
                                 @endforeach
+                                @if ($per === 'docente' && $s)
+                                    @foreach ($sostegniDocente->get($s->id.'-'.$riga['id'], collect())->unique('classe_id') as $supporto)
+                                        <div class="sostegno">{{ $adatta($supporto->classe->nomeCompleto(), 'S. ') }}</div>
+                                    @endforeach
+                                @endif
                             </td>
                         @endforeach
                     @endforeach

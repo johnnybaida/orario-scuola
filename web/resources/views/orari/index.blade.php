@@ -93,6 +93,8 @@
                             <div class="flex flex-wrap gap-2">
                                 <a href="{{ route('orari.export.generale', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tabellone</a>
                                 <a href="{{ route('orari.export.generale', [$orario, 'per' => 'aula']) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tabellone per aula</a>
+                                <a href="{{ route('orari.export.generale', [$orario, 'per' => 'docente']) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tabellone per docente</a>
+                                <hr class="w-full border-gray-300">
                                 <a href="{{ route('orari.export.classi', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutte le classi</a>
                                 <a href="{{ route('orari.export.docenti', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutti i docenti</a>
                                 <a href="{{ route('orari.export.aule', $orario) }}" target="_blank" rel="noopener" class="{{ $pulsante }}">Tutte le aule</a>

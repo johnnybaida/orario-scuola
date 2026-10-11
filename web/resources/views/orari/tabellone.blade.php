@@ -4,6 +4,7 @@
 
 @section('contenuto')
     @php($aulaMode = $per === 'aula')
+    @php($docenteMode = $per === 'docente')
     @php($segmento = fn ($attivo) => 'px-3 py-1.5 text-sm transition-colors '.($attivo ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'))
 
     <div class="flex items-center justify-between mb-2 flex-wrap gap-3">
@@ -12,10 +13,11 @@
             <x-stato-orario :orario="$orario" class="align-middle ml-2" />
         </h1>
         <div class="flex items-center gap-3 flex-wrap">
-            {{-- Come organizzare le righe: una per classe (aula fissa) o una per aula (DADA). --}}
+            {{-- Come organizzare le righe: una per classe (aula fissa), per aula (DADA) o per docente. --}}
             <div class="inline-flex overflow-hidden rounded-md border border-gray-300" role="group" aria-label="Organizzazione del tabellone">
-                <a href="{{ route('orari.tabellone', [$orario, 'per' => 'classe']) }}" class="{{ $segmento(! $aulaMode) }}" @if (! $aulaMode) aria-current="true" @endif>Per classe</a>
+                <a href="{{ route('orari.tabellone', [$orario, 'per' => 'classe']) }}" class="{{ $segmento($per === 'classe') }}" @if ($per === 'classe') aria-current="true" @endif>Per classe</a>
                 <a href="{{ route('orari.tabellone', [$orario, 'per' => 'aula']) }}" class="{{ $segmento($aulaMode) }} border-l border-gray-300" @if ($aulaMode) aria-current="true" @endif>Per aula</a>
+                <a href="{{ route('orari.tabellone', [$orario, 'per' => 'docente']) }}" class="{{ $segmento($docenteMode) }} border-l border-gray-300" @if ($docenteMode) aria-current="true" @endif>Per docente</a>
             </div>
             @if ($modificabile)
                 @include('orari._barra-modifica')
@@ -50,11 +52,11 @@
                    data-editabile="{{ $modificabile ? '1' : '0' }}">
                 <thead class="bg-gray-50 text-gray-600">
                     <tr>
-                        <th class="sticky left-0 z-10 bg-gray-50 border border-gray-200 px-2 py-1 text-left" rowspan="2">{{ $aulaMode ? 'Aula' : 'Classe' }}</th>
+                        <th class="sticky left-0 z-10 bg-gray-50 border border-gray-200 px-2 py-1 text-left" rowspan="2">{{ $aulaMode ? 'Aula' : ($docenteMode ? 'Docente' : 'Classe') }}</th>
                         @foreach ($giorni as $giorno)
                             <th class="border border-gray-200 border-l-2 border-l-gray-500 px-1 py-1" colspan="{{ count($ore) }}">{{ \App\Models\Slot::GIORNI[$giorno] ?? "Giorno {$giorno}" }}</th>
                         @endforeach
-                        @unless ($aulaMode)
+                        @unless ($aulaMode || $docenteMode)
                             <th class="border border-gray-200 px-2 py-1" rowspan="2" title="Quante volte la classe cambia aula tra due ore consecutive">Cambi aula</th>
                         @endunless
                     </tr>
@@ -70,7 +72,9 @@
                     @foreach ($righe as $riga)
                         <tr>
                             <th class="sticky left-0 z-10 bg-white border border-gray-200 px-2 py-1 text-left whitespace-nowrap">
-                                @if (! $aulaMode)
+                                @if ($docenteMode)
+                                    <a href="{{ route('orari.docente', [$orario, $riga['id']]) }}" class="underline hover:text-primary">{{ $riga['etichetta'] }}</a>
+                                @elseif (! $aulaMode)
                                     <a href="{{ route('orari.classe', [$orario, $riga['id']]) }}" class="underline hover:text-primary">{{ $riga['etichetta'] }}</a>
                                 @elseif ($riga['id'])
                                     <a href="{{ route('orari.aula', [$orario, $riga['id']]) }}" class="underline hover:text-primary">{{ $riga['etichetta'] }}</a>
@@ -100,27 +104,40 @@
                                                  title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->docenteEffettivo()->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
                                                  class="relative flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
                                                 @if ($modificabile)@include('orari._pulsante-modifica', ['posizione' => 'absolute right-0 top-0'])@endif
-                                                @if ($aulaMode)
+                                                @if ($docenteMode)
+                                                    {{-- Vista per docente: la classe (e «C.» se in questa ora il docente è in compresenza CLIL) e la materia. --}}
+                                                    <div class="font-semibold">{{ $lezione->docenteClilEffettivo()?->id === $riga['id'] ? 'C. ' : '' }}{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
+                                                    <div>{{ $d->codice }}</div>
+                                                @elseif ($aulaMode)
                                                     {{-- La freccia dice che la classe arriva da un'altra aula (il nome è nel tooltip): resta su una riga. --}}
                                                     <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}@if ($cambio) <span title="Arriva da {{ $cambio['da']->nome }}">→</span>@endif</div>
                                                     <div>{{ $d->codice }}</div>
                                                 @else
                                                     <div class="font-semibold">{{ $d->codice }}</div>
                                                 @endif
+                                                @unless ($docenteMode)
                                                 <div class="text-[10px] opacity-80">{{ \Illuminate\Support\Str::limit($lezione->docenteEffettivo()->cognome, 9, '…') }}</div>
-                                                @if ($clil = $lezione->docenteClilEffettivo())
+                                                @endunless
+                                                @if (! $docenteMode && ($clil = $lezione->docenteClilEffettivo()))
                                                     <div class="truncate text-[10px] font-medium text-blue-700" title="Docente CLIL in compresenza: {{ $clil->nomeCompleto() }}">C. {{ \Illuminate\Support\Str::limit($clil->cognome, 8, '…') }}</div>
                                                 @endif
-                                                @if ($cambio && ! $aulaMode)
+                                                @if ($cambio && ! $aulaMode && ! $docenteMode)
                                                     <div class="truncate text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
                                                 @endif
                                             </div>
                                         @endforeach
+                                        @if ($docenteMode && $s)
+                                            @foreach ($sostegniDocente->get($s->id.'-'.$riga['id'], collect())->unique('classe_id') as $supporto)
+                                                <div class="flex shrink-0 grow flex-col justify-center rounded bg-green-50 px-1 py-0.5 leading-tight text-green-800" title="Sostegno in compresenza in {{ $supporto->classe->nomeCompleto() }}">
+                                                    <div class="font-semibold">S. {{ $supporto->classe->nomeCompleto() }}</div>
+                                                </div>
+                                            @endforeach
+                                        @endif
                                         </div>
                                     </td>
                                 @endforeach
                             @endforeach
-                            @unless ($aulaMode)
+                            @unless ($aulaMode || $docenteMode)
                                 <td class="border border-gray-200 px-2 py-1 text-center font-medium">{{ $cambiPerClasse[$riga['id']] ?? 0 }}</td>
                             @endunless
                         </tr>

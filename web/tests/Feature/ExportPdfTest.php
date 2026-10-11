@@ -314,4 +314,75 @@ class ExportPdfTest extends TestCase
         $this->assertStringNotContainsString('Sorvegliantissimo', $html);
         $this->assertStringContainsString('<strong>Mensa</strong>', $html);   // riga unica «Mensa hh:mm-hh:mm (n')»
     }
+
+    public function test_il_tabellone_per_docente_ha_una_riga_per_docente_con_le_classi_nelle_celle(): void
+    {
+        foreach ([1, 2] as $ordine) {
+            Slot::factory()->create(['giorno' => 1, 'ordine' => $ordine, 'inizio' => '08:00:00', 'fine' => '08:50:00']);
+        }
+        $classe = Classe::factory()->create(['anno_corso' => 2, 'sezione' => 'B']);
+        $classe->slotAttivi()->sync(Slot::query()->pluck('id'));
+        $orario = Orario::factory()->create();
+        [$rossi, $clil, $sostegno] = [Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']), Docente::factory()->create(['cognome' => 'Clilli', 'nome' => 'Eva']), Docente::factory()->create(['cognome' => 'Sostegni', 'nome' => 'Ugo'])];
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id, 'docente_clil_id' => $clil->id, 'ore_clil' => 1]);
+        $lezione = Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => Slot::query()->where('ordine', 1)->first()->id, 'con_clil' => true]);
+        $orario->compresenzeSostegno()->create(['docente_id' => $sostegno->id, 'classe_id' => $classe->id, 'slot_id' => $lezione->slot_id]);
+
+        $html = str_replace('ª', '&ordf;', app(\App\Services\Export\OrarioPdfExporter::class)->generale($orario, 'docente')->getDomPDF()->outputHtml());
+
+        $this->assertStringContainsString('Quadro generale orario per docente', $html);
+        foreach (['Rossi Anna', 'Clilli Eva', 'Sostegni Ugo'] as $nome) {
+            $this->assertStringContainsString($nome, $html);   // una riga per ognuno
+        }
+        $this->assertStringContainsString('2&ordf; B', $html);          // la classe nelle celle (del titolare e, con «C.», del CLIL)
+        $this->assertStringContainsString('C. 2&ordf; B', $html);
+        $this->assertStringContainsString('S. 2&ordf; B', $html);        // il sostegno nella riga del docente di sostegno
+        $this->assertStringContainsString('Docente</th>', $html);
+
+        $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']))->get("/orari/{$orario->id}/export/generale?per=docente")->assertOk();
+    }
+
+    public function test_il_tabellone_web_per_docente_mostra_la_riga_di_ogni_docente(): void
+    {
+        $slot = Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        $classe = Classe::factory()->create(['anno_corso' => 3, 'sezione' => 'D']);
+        $classe->slotAttivi()->sync([$slot->id]);
+        $orario = Orario::factory()->create();
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot->id]);
+
+        $pagina = $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']))->get("/orari/{$orario->id}/tabellone?per=docente")->assertOk();
+
+        $pagina->assertSee('Per docente')->assertSee('Rossi Anna')->assertSee(route('orari.docente', [$orario, $rossi]), false)->assertSee('3ª D')->assertDontSee('Cambi aula');
+        $this->get("/orari/{$orario->id}/tabellone?per=boh")->assertNotFound();
+    }
+
+    public function test_il_tabellone_per_docente_segna_la_mensa_con_le_classi_sorvegliate(): void
+    {
+        foreach ([1, 2] as $giorno) {
+            foreach ([1, 2] as $ordine) {
+                Slot::query()->create(['giorno' => $giorno, 'ordine' => $ordine, 'inizio' => $ordine === 1 ? '08:00:00' : '09:30:00', 'fine' => $ordine === 1 ? '08:50:00' : '10:20:00',
+                    'intervallo_dopo' => $ordine === 1, 'ricreazione_minuti' => $ordine === 1 ? 40 : null, 'ricreazione_nome' => $ordine === 1 ? 'Pranzo' : null,
+                    'ricreazione_mensa' => $ordine === 1]);
+            }
+        }
+        $classe = Classe::factory()->create(['anno_corso' => 1, 'sezione' => 'C']);   // rientro il lunedì (ore 1 e 2), il martedì solo la 1ª
+        $classe->slotAttivi()->sync(Slot::query()->where('giorno', 1)->pluck('id')->merge(Slot::query()->where('giorno', 2)->where('ordine', 1)->pluck('id')));
+        $orario = Orario::factory()->create();
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $senzaMensa = Docente::factory()->create(['cognome' => 'Liberi', 'nome' => 'Gigi']);
+        $rossi->assistenzePausa()->create(['giorno' => 1, 'ordine' => 1]);
+        foreach ([$rossi, $senzaMensa] as $d) {
+            $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $d->id]);
+            Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => Slot::query()->where('giorno', $d->is($rossi) ? 1 : 2)->where('ordine', 1)->first()->id]);
+        }
+
+        $html = str_replace('ª', '&ordf;', app(\App\Services\Export\OrarioPdfExporter::class)->generale($orario, 'docente')->getDomPDF()->outputHtml());
+
+        $this->assertSame(1, preg_match_all('/<th class="[^"]*pausa">Pranzo<\/th>/', $html));   // la colonna della mensa c'è solo il lunedì (il martedì nessuno è in mensa)
+        $this->assertStringContainsString('<div class="materia">Pranzo</div>', $html);          // nella riga di chi la sorveglia
+        $this->assertSame(1, substr_count($html, '<div class="materia">Pranzo</div>'));          // e solo lì
+        $this->assertStringContainsString('<div>1&ordf; C</div>', $html);                       // con la classe sorvegliata
+    }
 }
