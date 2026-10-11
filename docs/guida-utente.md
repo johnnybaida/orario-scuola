@@ -972,34 +972,43 @@ In fondo alla barra laterale compare la **versione** installata (per esempio *Ve
 
 ## Glossario
 
-- **Sostituto / supplente** (orari): il docente che fa un'ora al posto del titolare, senza cambiare la cattedra; vale solo nell'orario (o nella copia) in cui è impostato.
-- **Rientro**: il ritorno del docente assente; si ripubblica l'orario originale.
 - **Ambito** (vincoli): a chi si applica un vincolo (tutti, classi o docenti scelti).
+- **Assistenza alle pause**: sorveglianza degli alunni da parte di un docente durante una pausa, per esempio la mensa; si assegna per giorno e pausa nella scheda del docente e vale per tutti gli orari.
 - **Aula base**: l'aula di riferimento di una classe.
 - **Buca**: ora vuota tra due lezioni dello stesso docente nello stesso giorno.
+- **Capienza** (aula): quante classi possono stare insieme in quell'aula nella stessa ora; non è il numero di alunni.
 - **Cattedra**: assegnazione di un docente a una disciplina in una classe, con un numero di ore settimanali. Anche, nel linguaggio comune, l'insieme delle ore di un docente (cattedra intera = 18 ore).
 - **Classe di concorso**: il codice che identifica l'abilitazione all'insegnamento di una materia (es. A022 Lettere, A028 Matematica e scienze, AB25 Inglese, A049 Scienze motorie, A060 Tecnologia; AA25, AC25, AD25 sono le seconde lingue).
+- **CLIL**: insegnamento di una materia in lingua straniera; qui è un secondo docente (per esempio madrelingua) in compresenza per alcune ore di una cattedra.
 - **COE**: Cattedra Orario Esterna, docente con ore anche in altre scuole.
-- **Compresenza**: due docenti presenti insieme nella stessa classe nella stessa ora (tipicamente docente curricolare più docente di sostegno).
+- **Compresenza**: due docenti presenti insieme nella stessa classe nella stessa ora (tipicamente docente curricolare più docente di sostegno o docente CLIL).
+- **Conflitti provvisori**: interruttore della modifica dell'orario che accetta temporaneamente modifiche in conflitto con un docente o un'aula; il conflitto resta segnalato finché non lo risolvi.
+- **Controllo dell'orario**: il riquadro che mostra i problemi reali dell'orario in questo momento; sparisce da solo quando li risolvi. Non è il Registro delle modifiche.
 - **DADA**: didattica per ambienti di apprendimento: le classi non hanno un'aula fissa, gli alunni si spostano nell'aula della disciplina.
-- **Indisponibilità**: slot in cui un docente non può avere lezione.
+- **Fabbisogno** (sostegno): le ore di sostegno di cui ha bisogno un alunno, indicato con un codice anonimo.
+- **Indisponibilità**: le ore della settimana in cui un docente non può avere lezione.
+- **Infattibile**: stato di una generazione che non ha trovato nessun orario possibile con i dati e i vincoli attuali.
 - **IRC**: Insegnamento della Religione Cattolica.
 - **Laboratorio**: attività pomeridiana (es. Latino) assegnata a mano, fuori dal monte ore e dalla generazione, che occupa docenti e aula.
-- **Registro attività**: l'elenco, non modificabile, di chi ha fatto che cosa e quando.
-- **Supplente**: docente a cui passano le cattedre di un titolare sospeso o assente a lungo; si indica sulla sospensione (scheda del docente).
 - **Orario**: il risultato di una generazione: l'elenco delle lezioni nei vari slot. Ha uno **stato** (bozza, in revisione, approvato, pubblicato, archiviato) e una **versione**.
-- **Ore a disposizione**: ore dovute dal docente non coperte da lezioni (ore dovute − ore di cattedra); servono ad esempio per le sostituzioni.
+- **Ore a disposizione**: ore dovute dal docente meno le ore assegnate (cattedre, sostegno, CLIL e assistenza alle pause); servono ad esempio per le sostituzioni.
 - **Ore dovute**: ore settimanali di lezione previste dal contratto del docente.
 - **Part-time orizzontale / verticale / misto**: orario ridotto tutti i giorni / lavoro solo in alcuni giorni / combinazione delle due forme.
 - **Potenziamento**: organico dell'autonomia; ore per progetti e sostituzioni.
+- **Punteggio**: somma delle penalità dei vincoli preferenziali non rispettati; 0 = tutti rispettati.
 - **Quadro orario**: il monte ore settimanale per disciplina di una classe.
+- **Registro attività**: l'elenco, non modificabile, di chi ha fatto che cosa e quando.
+- **Registro delle modifiche**: il riquadro sopra la griglia con l'esito dei tentativi di modifica dell'orario; è una cronologia, non lo stato attuale.
+- **Ricreazione** (o **pausa**): intervallo tra due ore di lezione; nella scansione oraria si scrivono i minuti nella riga dell'ora che viene prima della pausa e si può dare un **nome** (per esempio «Mensa»). Compare nei PDF con nome, orario e durata.
+- **Rientro (del docente)**: il ritorno del docente sostituito; con il pulsante **Rientro** si ripubblica l'orario originale.
 - **Rientro pomeridiano**: giorno in cui una classe a tempo prolungato fa lezione anche il pomeriggio.
-- **Ricreazione** (o **pausa**): intervallo tra due ore di lezione; nella scansione oraria si indicano i minuti sull'ora che la precede e si può dare un **nome** (per esempio «Mensa»). Compare nei PDF con nome, orario e durata.
-- **Assistenza alle pause**: sorveglianza degli alunni da parte di un docente durante una pausa, per esempio la mensa; si assegna per giorno e pausa nella scheda del docente e vale per tutti gli orari.
 - **Seed**: numero che rende riproducibile una generazione; lo scegli da un elenco (casuale o uno già usato).
 - **Slot**: una singola ora della settimana (giorno + ora, es. martedì 3ª ora). La scansione oraria di istituto è l'insieme di tutti gli slot.
+- **Slot attivi**: le ore della settimana in cui una classe fa lezione.
 - **Sostegno**: supporto agli alunni con disabilità; nell'applicazione si indicano solo il fabbisogno orario (con codici anonimi) e i docenti assegnati.
-- **Tabellone**: il PDF con l'orario di tutte le classi su un unico foglio.
+- **Sostituto**: docente che fa singole ore al posto del titolare in un orario; le cattedre non cambiano e vale solo nell'orario (o nella copia) in cui è impostato.
+- **Supplente**: docente a cui passano le cattedre di un titolare sospeso o assente a lungo; si indica sulla sospensione (scheda del docente) e le cattedre cambiano.
+- **Tabellone**: l'orario di tutte le classi, delle aule o dei docenti in una sola pagina o in un unico foglio PDF.
 - **Tempo normale / prolungato**: classi con 30 ore solo al mattino / con più ore e rientri pomeridiani.
 - **Vincolo rigido / preferenziale**: regola da rispettare sempre / regola da rispettare quando possibile, con un peso.
 - **Worker di coda**: il programma di servizio che esegue in background le generazioni dell'orario.
@@ -1007,27 +1016,28 @@ In fondo alla barra laterale compare la **versione** installata (per esempio *Ve
 ## Problemi frequenti
 
 <!-- permesso: gestisci-anagrafica -->
-- **La generazione resta "in coda".** Il worker di coda è fermo (di solito parte da solo con **Avvia generazione**): in **Genera orario** premi **Avvia**.
+- **La generazione resta "in coda".** Il worker di coda (il programma che esegue i calcoli) è fermo: in **Genera orario** premi **Avvia**. Di solito parte da solo con **Avvia generazione**.
 <!-- /permesso -->
 <!-- permesso: consulta -->
 - **La generazione è "infattibile".** Leggi i messaggi nella pagina della generazione: accanto a quelli che si sa dove correggere c'è il pulsante **Correggi**. Le cause più comuni: le ore delle cattedre di una classe non coincidono con il quadro orario; gli slot attivi della classe non coincidono con le ore del quadro; a un docente sono state assegnate più ore degli slot in cui è disponibile; non ci sono abbastanza aule di un tipo; due vincoli rigidi si contraddicono; le ore di sostegno assegnate non coprono il fabbisogno.
 <!-- /permesso -->
 <!-- permesso: gestisci-docenti-classi -->
-- **Non riesco a eliminare un elemento.** È ancora in uso: ad esempio un quadro orario usato da classi. Il messaggio dopo l'eliminazione dice quanti elementi non sono stati eliminati.
+- **Non riesco a eliminare un elemento.** Alcuni elementi non si eliminano finché sono in uso (per esempio un quadro orario usato da una classe); per gli altri l'avviso elenca cosa verrebbe eliminato insieme e chiede una seconda conferma. Il messaggio dopo l'eliminazione dice quanti elementi non sono stati eliminati.
 <!-- /permesso -->
 <!-- permesso: gestisci-docenti-classi -->
 - **Ho eliminato un docente o una classe per errore.** Con loro vengono eliminate anche le cattedre collegate e le lezioni degli orari già generati che le usavano. Controlla sempre la conferma prima di eliminare.
 <!-- /permesso -->
 <!-- permesso: consulta -->
-- **Dopo «Sostituisci un docente» alcune ore sono rimaste al docente assente.** Sono quelle in cui il supplente era già impegnato (altra lezione, sostegno, indisponibilità): le trovi nel registro delle modifiche in cima alla copia, con il motivo. Sistemale una per una con **✎ → Sostituto**, scegliendo un altro supplente per quell'ora.
+- **Dopo «Sostituisci un docente» alcune ore sono rimaste al docente assente.** Sono quelle in cui il supplente era già impegnato (altra lezione, sostegno, indisponibilità): le trovi nel Registro delle modifiche in cima alla copia, con il motivo. Sistemale una per una con **✎ → Sostituto**, scegliendo un altro supplente per quell'ora.
 - **Non riesco a modificare la griglia di un orario.** Si modifica solo in stato *Bozza*: se l'orario è in revisione, approvato, pubblicato o archiviato usa **Duplica** (nasce una nuova bozza) oppure, se ne hai il permesso, riportalo in bozza.
 <!-- /permesso -->
 - **Non vedo un pulsante o una voce del menu.** Dipendono dal tuo ruolo: chiedi all'amministratore se ti serve un ruolo diverso.
 <!-- permesso: gestisci-docenti-classi -->
-- **Un campo è grigio e non posso modificarlo.** Passa il mouse sull'icona **i** accanto: dice cosa impostare per attivarlo (per esempio il peso di un vincolo richiede Severità = Preferenziale).
+- **Un campo è grigio e non posso modificarlo.** Passa il mouse sull'icona **i** accanto: dice cosa impostare per attivarlo (per esempio il peso di un vincolo si attiva con severità «Preferenziale»).
 <!-- /permesso -->
 <!-- permesso: gestisci-anagrafica -->
-- **Una modifica all'orario ha prodotto un errore o un avviso.** Leggi il Registro sopra la griglia: «modifica rifiutata» vuol dire che la modifica non è stata fatta, un avviso che è stata fatta ma va controllata. Restano lì finché non li azzeri.
+- **Il Controllo è vuoto ma il registro mostra «modifica rifiutata».** È normale: il registro è la cronologia dei tentativi; la modifica non è stata fatta e l'orario non ha problemi.
+- **Una modifica all'orario ha prodotto un errore o un avviso.** Leggi il Registro delle modifiche sopra la griglia: «modifica rifiutata» vuol dire che la modifica non è stata fatta, un avviso che è stata fatta ma va controllata. Restano lì finché non li azzeri.
 <!-- /permesso -->
 <!-- permesso: consulta -->
 - **Il PDF non mostra le ore del pomeriggio.** Le ore senza lezioni non compaiono: se nessuna classe ha lezione il pomeriggio, le righe del pomeriggio non compaiono.
