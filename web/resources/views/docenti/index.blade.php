@@ -13,7 +13,7 @@
 
     <x-barra-tabella>
         <form method="GET" class="flex items-center gap-2">
-            <input type="search" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome/cognome" aria-label="Cerca docente">
+            <input type="search" name="cerca" value="{{ $cerca }}" placeholder="Cerca per nome o cognome" aria-label="Cerca docente">
             <select name="ore" data-invia-al-cambio aria-label="Filtra per ore assegnate" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary">
                 <option value="">Tutti i docenti</option>
                 @foreach ($filtriOre as $valore => $etichetta)
@@ -41,8 +41,8 @@
                     <th class="px-4 py-2">Email</th>
                     <th class="px-4 py-2">Tipo posto</th>
                     <th class="px-4 py-2">Regime</th>
-                    <th class="px-4 py-2">Assegnate / dovute <x-info testo="Ore assegnate (cattedre e sostegno) su ore dovute. In giallo quando non coincidono: ore a disposizione se sono meno, ore oltre quelle dovute se sono di più." /></th>
-                    <th class="px-4 py-2">Assistenza pause <x-info testo="Sì se il docente ha almeno una assistenza alle pause (per esempio la mensa), con quante. Si imposta nella scheda del docente o, per la mensa, nella pagina Mensa." /></th>
+                    <th class="px-4 py-2">Assegnate / dovute <x-info testo="Ore assegnate (cattedre, sostegno, CLIL e assistenza alle pause) rispetto alle ore dovute. In giallo se non coincidono: se sono meno, la differenza sono ore a disposizione; se sono di più, ore in eccesso." /></th>
+                    <th class="px-4 py-2">Assistenza pause <x-info testo="«Sì (n)»: il docente sorveglia n pause alla settimana (per esempio la mensa). Si imposta nella scheda del docente o, per la mensa, nella pagina Mensa." /></th>
                     <th class="px-4 py-2">Cattedre</th>
                     <th class="px-4 py-2"></th>
                 </tr>

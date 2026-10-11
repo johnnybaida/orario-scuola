@@ -20,7 +20,7 @@
         <input type="number" name="cattedre[{{ $i }}][ore]" min="1" max="20" required data-somma="cattedre" value="{{ $riga['ore'] ?? '' }}" class="w-16">
     </div>
     <div class="w-32">
-        <label class="block text-xs text-gray-500">Docente CLIL <x-info testo="Facoltativo: un docente (es. madrelingua) presente insieme al titolare solo per alcune ore di questa cattedra. Le sue ore contano nel suo monte ore." /></label>
+        <label class="block text-xs text-gray-500">Docente CLIL <x-info testo="Facoltativo: un secondo docente (per esempio madrelingua) presente con il titolare in alcune ore di questa cattedra. Le ore CLIL si sommano alle sue ore assegnate, non a quelle della classe." /></label>
         <select name="cattedre[{{ $i }}][docente_clil_id]" class="w-full">
             <option value="">Nessuno</option>
             @foreach ($docenti as $docente)

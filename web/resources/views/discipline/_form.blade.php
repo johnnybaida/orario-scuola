@@ -23,7 +23,7 @@
 </div>
 
 <div>
-    <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Aula richiesta</label>
+    <label for="tipo_aula_richiesto" class="block text-sm font-medium text-gray-700">Aula richiesta <x-info testo="«Aula della classe» = nessuna aula speciale. Con un altro tipo (per esempio Palestra) le lezioni occupano un'aula di quel tipo." /></label>
     @php($sel = old('tipo_aula_richiesto', $disciplina?->tipo_aula_richiesto))
     <select name="tipo_aula_richiesto" id="tipo_aula_richiesto" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="">Aula della classe (nessuna aula speciale)</option>
@@ -41,7 +41,7 @@
     @if (count($tipiAula) > 1)
         @php($extraSel = collect(old('tipi_aula_extra', $disciplina?->tipi_aula_extra ?? [])))
         <label class="mt-3 block text-sm font-medium text-gray-700">Altre aule ammesse
-            <x-info testo="Facoltativo: tipi di aula in cui la disciplina può svolgersi in più rispetto a quello richiesto. Serve, per esempio, quando ha la propria aula DADA e anche un'aula DADA condivisa con altre discipline: il generatore sceglie quella libera." />
+            <x-info testo="Facoltativo: altri tipi di aula in cui la disciplina può svolgersi, oltre a quello richiesto (per esempio un'aula DADA condivisa). Il generatore sceglie quella libera. Di solito si compila da solo." />
         </label>
         <div class="mt-1 flex max-h-32 flex-wrap gap-x-4 gap-y-1 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
             @foreach ($tipiAula as $tipo => $etichetta)
@@ -54,7 +54,7 @@
 </div>
 
 <div>
-    <label for="padre_id" class="block text-sm font-medium text-gray-700">Sotto-disciplina di (stesso docente)</label>
+    <label for="padre_id" class="block text-sm font-medium text-gray-700">Fa parte di (solo informativo) <x-info testo="Per esempio Storia e Geografia fanno parte di Italiano. Non cambia la generazione." /></label>
     <select name="padre_id" id="padre_id" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="">— Nessuna —</option>
         @foreach ($discipline as $d)

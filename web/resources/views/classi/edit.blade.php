@@ -39,7 +39,7 @@
                         Servono <strong>{{ $attesi }}</strong> ore di lezione
                         ({{ $classe->quadroOrario->ore_totali }}h del quadro{{ $oreMensa ? " meno {$oreMensa}h di mensa" : '' }}).
                         Ne hai spuntate <strong data-conta-slot-n>{{ $slotAttiviIds->count() }}</strong>.
-                        <x-info testo="Gli slot attivi devono coincidere con le ore di lezione del quadro. Le ore di mensa del quadro contano nel totale ma non sono lezioni." />
+                        <x-info testo="Spunta le ore della settimana in cui la classe fa lezione. Devono essere tante quante le ore di lezione del quadro orario, cioè il totale del quadro meno le ore di mensa." />
                     </p>
 
                     <div class="overflow-x-auto">
@@ -81,7 +81,7 @@
                             <x-info testo="Solo amministratore e referente orario possono modificare le cattedre." />
                         @endunless
                     </h2>
-                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :blocca="$docenti->isEmpty() || $discipline->isEmpty() ? 'Servono almeno un docente e una disciplina: censiscili prima nelle rispettive sezioni.' : null" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="classi._riga-cattedra" :blocca="$docenti->isEmpty() || $discipline->isEmpty() ? 'Prima inserisci almeno un docente e una disciplina.' : null" :dati="['docenti' => $docenti, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
                     <span id="ore-quadro" hidden>{{ $classe->quadroOrario->ore_totali }}</span>
                     {{-- Le ore di mensa dichiarate dal quadro si sommano alle ore delle cattedre: 34 di discipline + 2 di mensa = 36. --}}
                     @php($oreMensaQuadro = (int) $classe->quadroOrario->ore_mensa)
@@ -104,7 +104,7 @@
                 </x-guida>
 
                     <div class="mb-4 flex items-center gap-2">
-                        <label for="conteggio_sostegno" class="text-sm text-gray-700">Conteggio ore</label>
+                        <label for="conteggio_sostegno" class="text-sm text-gray-700">Come si contano le ore di sostegno</label>
                         <select name="conteggio_sostegno" id="conteggio_sostegno">
                             <option value="" @selected(is_null($classe->conteggio_sostegno))>Default della sede ({{ \App\Models\Impostazioni::correnti()->conteggio_sostegno }})</option>
                             <option value="per_alunno" @selected($classe->conteggio_sostegno === 'per_alunno')>Per alunno</option>
@@ -116,7 +116,7 @@
                     <x-righe-ripetibili :righe="old('fabbisogni', $fabbisogni)" partial="classi._riga-fabbisogno" etichetta="Aggiungi fabbisogno" />
 
                     <h3 class="text-sm font-medium text-gray-700 mt-6 mb-2">Docenti di sostegno assegnati</h3>
-                    <x-righe-ripetibili :righe="old('assegnazioni', $assegnazioni)" partial="classi._riga-assegnazione" :blocca="$docentiSostegno->isEmpty() ? 'Nessun docente di sostegno: in Docenti imposta Tipo posto = Sostegno.' : null" :dati="['docentiSostegno' => $docentiSostegno]" etichetta="Aggiungi docente di sostegno" />
+                    <x-righe-ripetibili :righe="old('assegnazioni', $assegnazioni)" partial="classi._riga-assegnazione" :blocca="$docentiSostegno->isEmpty() ? 'Non c\'è nessun docente di sostegno: nella scheda del docente scegli Tipo posto «Sostegno».' : null" :dati="['docentiSostegno' => $docentiSostegno]" etichetta="Aggiungi docente di sostegno" />
                     <p class="mt-3 text-sm font-medium">Totale ore assegnate / richieste:
                         <span data-totale="assegnate" data-riferimento="somma:richieste"></span>
                     </p>

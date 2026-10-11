@@ -4,11 +4,11 @@
         <input type="text" name="fabbisogni[{{ $i }}][codice_anonimo]" placeholder="es. 1B-S1" required value="{{ $riga['codice_anonimo'] ?? '' }}">
     </div>
     <div>
-        <label class="block text-xs text-gray-500">Ore/sett.</label>
+        <label class="block text-xs text-gray-500">Ore a settimana</label>
         <input type="number" name="fabbisogni[{{ $i }}][ore_settimanali]" min="1" max="40" required data-somma="richieste" value="{{ $riga['ore_settimanali'] ?? '' }}" class="w-20">
     </div>
     <label class="flex items-center gap-1 text-xs text-gray-600 pb-2">
-        <input type="checkbox" name="fabbisogni[{{ $i }}][docente_unico]" value="1" @checked($riga['docente_unico'] ?? false)> Docente unico
+        <input type="checkbox" name="fabbisogni[{{ $i }}][docente_unico]" value="1" @checked($riga['docente_unico'] ?? false)> Docente unico <x-info testo="Le ore di questo alunno devono essere coperte da un solo docente di sostegno." />
     </label>
     <input type="hidden" name="fabbisogni[{{ $i }}][id]" value="{{ $riga['id'] ?? '' }}">
     <button type="button" data-rimuovi class="text-red-600 hover:text-red-800 underline text-sm pb-2 cursor-pointer">Rimuovi</button>

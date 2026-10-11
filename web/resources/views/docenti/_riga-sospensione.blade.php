@@ -42,7 +42,7 @@
             <a href="{{ route('sostituzioni.form', $riga['id']) }}" class="text-primary hover:underline">Gestisci sostituzione</a>
         @else
             <span class="text-gray-400">Gestisci sostituzione</span>
-            <x-info testo="Si attiva dopo aver salvato la sospensione e solo per amministratore e referente orario." />
+            <x-info testo="Salva prima la sospensione. Può usarlo solo l'amministratore o il referente orario." />
         @endif
     </span>
     <button type="button" data-rimuovi class="text-red-600 hover:text-red-800 underline text-sm pb-2 cursor-pointer">Rimuovi</button>

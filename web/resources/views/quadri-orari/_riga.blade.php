@@ -8,7 +8,7 @@
         </select>
     </div>
     <div>
-        <label class="block text-xs text-gray-500">Ore/sett.</label>
+        <label class="block text-xs text-gray-500">Ore a settimana</label>
         <input type="number" name="righe[{{ $i }}][ore_settimanali]" min="1" max="40" required data-somma="quadro"
                value="{{ $riga['ore_settimanali'] ?? '' }}" class="w-20">
     </div>

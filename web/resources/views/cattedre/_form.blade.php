@@ -35,7 +35,7 @@
     </div>
     <div class="flex items-end pb-2">
         <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" name="compresenza" value="1" @checked(old('compresenza', $cattedra?->compresenza))> Compresenza
+            <input type="checkbox" name="compresenza" value="1" @checked(old('compresenza', $cattedra?->compresenza))> Compresenza <x-info testo="Un altro docente è presente nella stessa ora. Solo informativo: le ore contano comunque nel totale della classe." />
         </label>
     </div>
 </div>
@@ -43,7 +43,7 @@
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
         <label for="docente_clil_id" class="block text-sm font-medium text-gray-700">Docente CLIL in compresenza
-            <x-info testo="Facoltativo: un docente (es. madrelingua) presente insieme al titolare solo per alcune ore di questa cattedra. Le sue ore contano nel suo monte ore." />
+            <x-info testo="Facoltativo: un secondo docente (per esempio madrelingua) presente con il titolare in alcune ore di questa cattedra. Le ore CLIL si sommano alle sue ore assegnate, non a quelle della classe." />
         </label>
         <select name="docente_clil_id" id="docente_clil_id" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             <option value="">Nessuno</option>

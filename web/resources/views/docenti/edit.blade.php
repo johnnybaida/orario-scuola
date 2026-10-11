@@ -81,7 +81,7 @@
                         @endunless
                     </h2>
                     <p class="mb-3 text-sm text-gray-500">Giorni e pause in cui il docente sorveglia gli alunni, per esempio la mensa. Le pause si definiscono in Scansione oraria. Vale per tutti gli orari e le ore (60 minuti = 1 ora) si sommano al totale delle ore assegnate. Per la <strong>mensa</strong> usa la pagina <a href="{{ route('mensa.index') }}" class="underline">Mensa</a>, dove assegni i docenti classe per classe.</p>
-                    <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Nessuna pausa definita: indica la durata di una ricreazione in Scansione oraria.' : null" etichetta="Aggiungi assistenza" />
+                    <x-righe-ripetibili :righe="old('assistenze', $assistenze)" partial="docenti._riga-assistenza" :dati="['pause' => $pause]" :blocca="$pause->isEmpty() ? 'Non c\'è ancora nessuna pausa: aggiungine una in Scansione oraria (colonna «Pausa dopo»).' : null" etichetta="Aggiungi assistenza" />
                 </fieldset>
 
                 <fieldset @disabled(! $puoCattedre) class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
@@ -90,7 +90,7 @@
                             <x-info testo="Solo amministratore e referente orario possono modificare le cattedre." />
                         @endunless
                     </h2>
-                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Servono almeno una classe e una disciplina: censiscile prima nelle rispettive sezioni.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
+                    <x-righe-ripetibili :righe="old('cattedre', $cattedre)" partial="docenti._riga-cattedra" :blocca="$classi->isEmpty() || $discipline->isEmpty() ? 'Prima inserisci almeno una classe e una disciplina.' : null" :dati="['classi' => $classi, 'discipline' => $discipline]" etichetta="Aggiungi cattedra" />
                     <p class="mt-3 text-sm font-medium">Totale ore assegnate / dovute (cattedre + sostegno + CLIL + assistenza alle pause):
                         <span data-totale="cattedre" data-riferimento="#ore_dovute"></span>
                     </p>
@@ -100,7 +100,7 @@
                     {{-- Sola lettura: il sostegno si assegna nella scheda della classe (con i fabbisogni), la compresenza CLIL nella cattedra. Le ore si sommano al totale sopra. --}}
                     <section class="min-w-0 bg-white border border-gray-200 rounded-lg p-6">
                         <h2 class="font-medium mb-1">Sostegno e compresenze CLIL
-                            <x-info testo="Ore assegnate in altri modi: il sostegno si imposta nella scheda della classe (sezione Sostegno), la compresenza CLIL nella cattedra della classe. Qui sono in sola lettura e contano nel totale delle ore." />
+                            <x-info testo="Ore che non vengono dalle cattedre del docente. Qui si leggono soltanto: il sostegno si modifica nella scheda della classe (sezione Sostegno), il CLIL nella cattedra del titolare. Contano nel totale delle ore." />
                         </h2>
                         @if ($sostegno->isNotEmpty())
                             <h3 class="mt-3 text-sm font-medium text-gray-700">Sostegno</h3>

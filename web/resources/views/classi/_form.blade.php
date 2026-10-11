@@ -31,7 +31,7 @@
 
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
-        <label for="piano" class="block text-sm font-medium text-gray-700">Piano della classe</label>
+        <label for="piano" class="block text-sm font-medium text-gray-700">Piano della classe <x-info testo="Piano dell'aula base (0 = piano terra). Facoltativo: serve solo al vincolo Spostamenti tra piani." /></label>
         <input type="number" name="piano" id="piano" min="-3" max="10" value="{{ old('piano', $classe?->piano) }}"
                class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <p class="mt-1 text-xs text-gray-500">Dove sta la classe (0 = piano terra). Facoltativo: conta per le ore senza aula assegnata, nel vincolo «Spostamenti tra piani».</p>
@@ -58,7 +58,7 @@
 
 <div data-attiva-se="#tempo_scuola=prolungato">
     <span class="block text-sm font-medium text-gray-700 mb-1">Rientri pomeridiani
-        <x-info testo="I rientri valgono per il tempo prolungato: imposta Tempo scuola = Prolungato." />
+        <x-info testo="Si attiva con Tempo scuola «Prolungato»." />
     </span>
     @php($rientri = old('rientri', $rientriAttivi ?? []))
     <div class="flex flex-wrap gap-4">

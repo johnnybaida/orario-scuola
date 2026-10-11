@@ -131,7 +131,7 @@ Il catalogo delle materie insegnate.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
 - **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
 - **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
-- **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
+- **Fa parte di**: collega materie affini (es. Storia e Geografia sotto Italiano). È solo informativo.
 
 <!-- permesso: gestisci-anagrafica -->
 ### La mensa non è una disciplina
@@ -172,7 +172,7 @@ Per ogni docente puoi indicare:
   - *Potenziamento*: fa parte dell'organico dell'autonomia; le sue ore servono per progetti e sostituzioni.
   - *IRC*: insegnante di Religione cattolica.
   - *Strumento musicale*: insegna uno strumento nell'indirizzo musicale.
-- **Regime**: l'orario di lavoro.
+- **Orario di lavoro (regime)**: tempo pieno o part-time.
   - *Tempo pieno*: orario di cattedra completo (di norma 18 ore settimanali di lezione).
   - *Part-time orizzontale*: lavora **tutti i giorni**, ma con un orario ridotto in ciascun giorno.
   - *Part-time verticale*: lavora **solo in alcuni giorni** della settimana, con orario pieno nei giorni di servizio.
@@ -240,9 +240,9 @@ Nella pagina della classe aggiungi o togli le cattedre (disciplina, docente, ore
 Gli alunni con sostegno non sono censiti: ogni **fabbisogno** ha solo un codice anonimo (es. `1B-S1`) e le ore settimanali. Poi assegni i **docenti di sostegno** con le loro ore.
 
 - **Codice anonimo**: un'etichetta che identifica un alunno senza nome (es. classe + progressivo). Deve essere unico nella classe.
-- **Ore/sett.** del fabbisogno: le ore di sostegno di cui l'alunno ha bisogno.
+- **Ore a settimana** del fabbisogno: le ore di sostegno di cui l'alunno ha bisogno.
 - **Docente unico**: il fabbisogno deve essere coperto da un solo docente.
-- **Conteggio ore**: "per alunno" somma le ore di tutti i fabbisogni (ogni compresenza vale per un alunno); "per classe" prende il fabbisogno più alto (una compresenza copre tutta la classe). Puoi usare il valore predefinito dell'istituto.
+- **Come si contano le ore di sostegno**: "per alunno" somma le ore di tutti i fabbisogni (ogni compresenza vale per un alunno); "per classe" prende il fabbisogno più alto (una compresenza copre tutta la classe). Puoi usare il valore predefinito dell'istituto.
 - **Docenti assegnati**: ogni docente con le sue ore. L'elenco contiene solo chi ha tipo posto **Sostegno**; lo stesso docente non si può assegnare due volte alla stessa classe. I **fabbisogni sono facoltativi**: se non censisci gli alunni, le **ore dei docenti assegnati sono il bisogno** e il generatore le programma come compresenze (senza il codice di un alunno); lo stesso docente non è mai in compresenza in due classi nello stesso momento. Se invece i fabbisogni ci sono, quando **aggiungi o cambi** un docente il salvataggio controlla che le **ore dei docenti corrispondano** a quelle richieste (conteggio «per alunno»: la somma dei fabbisogni; «per classe»: il più alto) e, se non tornano, ti dice quali e non salva. Fabbisogni e docenti si compilano e si salvano insieme.
 - Il generatore programma le **compresenze** di sostegno: dai fabbisogni se ci sono, altrimenti dalle ore dei docenti assegnati. Il totale "assegnate / richieste" ti dice se le ore bastano.
 

@@ -8,7 +8,7 @@
         </select>
     </div>
     <div>
-        <label class="block text-xs text-gray-500">Ore/sett.</label>
+        <label class="block text-xs text-gray-500">Ore a settimana</label>
         <input type="number" name="assegnazioni[{{ $i }}][ore]" min="1" max="40" required data-somma="assegnate" value="{{ $riga['ore'] ?? '' }}" class="w-20">
     </div>
     <input type="hidden" name="assegnazioni[{{ $i }}][id]" value="{{ $riga['id'] ?? '' }}">

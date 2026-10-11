@@ -37,7 +37,7 @@
         </select>
     </div>
     <div>
-        <label for="regime" class="block text-sm font-medium text-gray-700">Regime</label>
+        <label for="regime" class="block text-sm font-medium text-gray-700">Orario di lavoro (regime)</label>
         <select name="regime" id="regime" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
             @foreach (['tempo_pieno' => 'Tempo pieno', 'part_time_orizzontale' => 'Part-time orizzontale', 'part_time_verticale' => 'Part-time verticale', 'part_time_misto' => 'Part-time misto'] as $valore => $etichetta)
                 <option value="{{ $valore }}" @selected(old('regime', $docente?->regime) === $valore)>{{ $etichetta }}</option>
@@ -48,13 +48,13 @@
 
 <div class="grid sm:grid-cols-2 gap-4">
     <div>
-        <label for="ore_dovute" class="block text-sm font-medium text-gray-700">Ore dovute (18 = cattedra intera)</label>
+        <label for="ore_dovute" class="block text-sm font-medium text-gray-700">Ore dovute (18 = cattedra intera) <x-info testo="Ore settimanali previste dal contratto. Part-time al 50% = 9." /></label>
         <input type="number" name="ore_dovute" id="ore_dovute" min="1" max="24" value="{{ old('ore_dovute', $docente?->ore_dovute ?? 18) }}" required
                class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     </div>
     <div class="flex items-end pb-2">
         <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" name="coe" value="1" @checked(old('coe', $docente?->coe))> Cattedra Orario Esterna (COE)
+            <input type="checkbox" name="coe" value="1" @checked(old('coe', $docente?->coe))> Cattedra Orario Esterna (COE) <x-info testo="Ha ore anche in un'altra scuola. Segna le ore in cui è là come indisponibilità: il generatore usa solo quelle." />
         </label>
     </div>
 </div>

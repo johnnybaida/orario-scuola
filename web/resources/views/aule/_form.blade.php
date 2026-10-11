@@ -28,7 +28,7 @@
 
 <div data-attiva-se="#tipo=dada">
     <label class="block text-sm font-medium text-gray-700">Discipline di quest'aula DADA
-        <x-info testo="Si attiva scegliendo il tipo «DADA». Gli alunni si spostano in quest'aula per le discipline spuntate: una sola per un'aula dedicata, più d'una se l'aula è condivisa (per esempio Italiano, Inglese e Spagnolo). Ogni disciplina può avere più aule: la propria e una condivisa. Le discipline spuntate non possono usare l'aula nello stesso momento (capienza 1)." />
+        <x-info testo="Si attiva con il tipo «DADA». Spunta le discipline che si svolgono in quest'aula: una per un'aula dedicata, più d'una per un'aula condivisa. Con capienza 1 una sola classe alla volta può usarla." />
     </label>
     <div class="mt-1 flex max-h-40 flex-wrap gap-x-4 gap-y-1 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
         @foreach ($discipline as $disciplina)
@@ -47,7 +47,7 @@
 </div>
 
 <div>
-    <label for="capienza" class="block text-sm font-medium text-gray-700">Capienza (lezioni contemporanee)</label>
+    <label for="capienza" class="block text-sm font-medium text-gray-700">Capienza (classi insieme, non alunni)</label>
     <input type="number" name="capienza" id="capienza" min="1" value="{{ old('capienza', $aula?->capienza ?? 1) }}" required
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <p class="mt-1 text-xs text-gray-500">1 = una sola classe alla volta. Per DADA di solito 1 per ogni aula della disciplina.</p>
