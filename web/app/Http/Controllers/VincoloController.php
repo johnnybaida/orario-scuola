@@ -19,8 +19,17 @@ class VincoloController extends Controller
     {
         $vincoli = Vincolo::query()
             ->when($request->string('tipo')->toString(), fn ($q, $tipo) => $q->where('tipo', $tipo))
+            ->when($request->string('severita')->toString(), fn ($q, $s) => $q->where('severita', $s))
             ->orderByDesc('id')
             ->get();
+
+        // Filtri per docente, classe e disciplina: restano i vincoli che li nominano esplicitamente (non i globali).
+        $docenteId = $request->integer('docente');
+        $classeId = $request->integer('classe');
+        $disciplinaId = $request->integer('disciplina');
+        $vincoli = $vincoli->filter(fn (Vincolo $v) => (! $docenteId || ($v->ambito_livello === 'docente' && in_array($docenteId, array_map('intval', $v->ambito_ids ?? []), true)))
+            && (! $classeId || ($v->ambito_livello === 'classe' && in_array($classeId, array_map('intval', $v->ambito_ids ?? []), true)))
+            && (! $disciplinaId || in_array($disciplinaId, array_merge(\App\Constraints\DisciplineVincolo::ids($v->parametri ?? []), array_map('intval', $v->parametri['seguite_ids'] ?? [])), true)));
 
         // Le card sono raggruppate per tipo (nell'ordine del catalogo); i nomi di docenti e classi si risolvono una volta sola.
         $nomi = [
@@ -35,6 +44,10 @@ class VincoloController extends Controller
             'etichette' => Catalogo::etichette(),
             'discipline' => Disciplina::query()->pluck('nome', 'id'),
             'filtroTipo' => $request->string('tipo')->toString(),
+            'filtri' => $request->only('tipo', 'docente', 'classe', 'disciplina', 'severita'),
+            'docentiElenco' => Docente::query()->orderBy('cognome')->orderBy('nome')->get(),
+            'classiElenco' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get(),
+            'disciplineElenco' => Disciplina::query()->orderBy('nome')->get(),
         ]);
     }
 

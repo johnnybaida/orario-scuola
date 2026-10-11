@@ -77,6 +77,23 @@ class VincoloTest extends TestCase
         $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->patchJson(route('vincoli.attiva', $v), ['attivo' => true])->assertForbidden();
     }
 
+    public function test_l_elenco_si_filtra_per_docente_classe_disciplina_e_severita(): void
+    {
+        [$rossi, $bianchi] = \App\Models\Docente::factory()->count(2)->create();
+        $classe = \App\Models\Classe::factory()->create();
+        $arte = Disciplina::factory()->create(['nome' => 'Arte filtro']);
+        $t4 = Vincolo::factory()->create(['tipo' => 'T4_ORE_GIORNO', 'ambito_livello' => 'docente', 'ambito_ids' => [$rossi->id], 'severita' => 'rigido', 'peso' => null, 'parametri' => ['min_ore' => 2], 'nota' => 'nota-t4']);
+        Vincolo::factory()->create(['tipo' => 'T2_GIORNO_LIBERO', 'ambito_livello' => 'docente', 'ambito_ids' => [$bianchi->id], 'severita' => 'preferenziale', 'peso' => 20, 'parametri' => ['n_giorni' => 1], 'nota' => 'nota-t2']);
+        Vincolo::factory()->create(['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id], 'severita' => 'rigido', 'peso' => null, 'parametri' => ['disciplina_ids' => [$arte->id], 'max' => 1], 'nota' => 'nota-d3']);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/vincoli?docente='.$rossi->id)->assertSee('nota-t4')->assertDontSee('nota-t2')->assertDontSee('nota-d3')->assertSee('Azzera i filtri');
+        $utente->get('/vincoli?classe='.$classe->id)->assertSee('nota-d3')->assertDontSee('nota-t4');
+        $utente->get('/vincoli?disciplina='.$arte->id)->assertSee('nota-d3')->assertDontSee('nota-t2');
+        $utente->get('/vincoli?severita=preferenziale')->assertSee('nota-t2')->assertDontSee('nota-t4');
+        $utente->get('/vincoli?docente='.$rossi->id.'&severita=preferenziale')->assertSee('Nessun vincolo corrisponde ai filtri.');
+    }
+
     public function test_d1_rifiuta_min_consecutive_sotto_la_soglia(): void
     {
         $disciplina = Disciplina::factory()->create();

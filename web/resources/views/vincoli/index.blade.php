@@ -15,13 +15,40 @@
     <x-copia-da-sede area="vincoli" />
 
     <x-barra-tabella>
-        <form method="GET">
-            <select name="tipo" class="rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary" onchange="this.form.submit()">
+        <form method="GET" class="flex flex-wrap items-end gap-3">
+            @php $classiSelect = 'rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary'; @endphp
+            <select name="tipo" aria-label="Tipo" class="{{ $classiSelect }}" onchange="this.form.submit()">
                 <option value="">Tutti i tipi</option>
                 @foreach ($etichette as $tipo => $etichetta)
                     <option value="{{ $tipo }}" @selected($filtroTipo === $tipo)>{{ $etichetta }}</option>
                 @endforeach
             </select>
+            <select name="docente" aria-label="Docente" class="{{ $classiSelect }}" onchange="this.form.submit()">
+                <option value="">Tutti i docenti</option>
+                @foreach ($docentiElenco as $d)
+                    <option value="{{ $d->id }}" @selected(($filtri['docente'] ?? '') == $d->id)>{{ $d->nomeCompleto() }}</option>
+                @endforeach
+            </select>
+            <select name="classe" aria-label="Classe" class="{{ $classiSelect }}" onchange="this.form.submit()">
+                <option value="">Tutte le classi</option>
+                @foreach ($classiElenco as $c)
+                    <option value="{{ $c->id }}" @selected(($filtri['classe'] ?? '') == $c->id)>{{ $c->nomeCompleto() }}</option>
+                @endforeach
+            </select>
+            <select name="disciplina" aria-label="Disciplina" class="{{ $classiSelect }}" onchange="this.form.submit()">
+                <option value="">Tutte le discipline</option>
+                @foreach ($disciplineElenco as $d)
+                    <option value="{{ $d->id }}" @selected(($filtri['disciplina'] ?? '') == $d->id)>{{ $d->nome }}</option>
+                @endforeach
+            </select>
+            <select name="severita" aria-label="Severità" class="{{ $classiSelect }}" onchange="this.form.submit()">
+                <option value="">Ogni severità</option>
+                <option value="rigido" @selected(($filtri['severita'] ?? '') === 'rigido')>Rigido</option>
+                <option value="preferenziale" @selected(($filtri['severita'] ?? '') === 'preferenziale')>Preferenziale</option>
+            </select>
+            @if (array_filter($filtri))
+                <a href="{{ route('vincoli.index') }}" class="text-sm text-gray-600 underline">Azzera i filtri</a>
+            @endif
         </form>
         <x-slot:azioni>
             @can('gestisci-anagrafica')
@@ -85,6 +112,6 @@
             </div>
         </section>
     @empty
-        <p class="text-sm text-gray-500">Nessun vincolo.</p>
+        <p class="text-sm text-gray-500">{{ array_filter($filtri) ? 'Nessun vincolo corrisponde ai filtri.' : 'Nessun vincolo.' }}</p>
     @endforelse
 @endsection
