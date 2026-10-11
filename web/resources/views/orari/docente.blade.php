@@ -18,10 +18,10 @@
         @if ($modificabile)
             Puoi <strong>trascinare</strong> una lezione su un'altra ora: la lezione resta nella sua classe e, se in quell'ora
             la classe ha un'altra lezione, le due si scambiano. Durante il trascinamento le celle si colorano (verde: si può,
-            ambra: crea un conflitto e serve «Conflitti provvisori», rosso: non ammesso). Per cambiare docente o materia di una
-            lezione usa la griglia della classe.
+            giallo: crea un conflitto e serve «Conflitti provvisori», rosso: non ammesso). Per cambiare docente, aula, CLIL o sostegno usa il
+            pulsante ✎ sulla lezione.
         @else
-            Vista in sola lettura: per modificare l'orario apri la griglia della classe interessata.
+            Vista in sola lettura: si modifica solo un orario in bozza.
         @endif
         Sotto ogni lezione compare l'aula, se non è l'aula base della classe.
     </x-guida>
@@ -62,7 +62,7 @@
                                             <div class="font-medium">{{ $lezione->cattedra->classe->nomeCompleto() }}</div>
                                             <div class="text-gray-500">{{ $lezione->cattedra->disciplina->nome }}</div>
                                             @if ($aulaLezione = $lezione->aulaDaMostrare())
-                                                <div class="text-[10px] font-medium text-blue-800" title="Aula">{{ $aulaLezione->nome }}</div>
+                                                <div class="text-[10px] font-medium text-blue-800" title="Aula diversa da quella della classe">{{ $aulaLezione->nome }}</div>
                                             @endif
                                             @if ($conflitti)
                                                 <div class="mt-0.5 text-[10px] font-medium text-red-700">⚠ Conflitto: vedi il controllo</div>

@@ -8,7 +8,7 @@
     <x-guida>
         Un quadro orario è il monte ore settimanale per disciplina di un percorso (es. "Tempo normale 30h").
         Ogni classe ne usa uno; le cattedre di quella classe devono coprire esattamente queste ore, altrimenti
-        la generazione dell'orario segnala un'incoerenza in fase di pre-validazione. Un quadro usato da qualche
+        i controlli prima di generare lo segnalano. Un quadro usato da qualche
         classe non si può eliminare.
     </x-guida>
 

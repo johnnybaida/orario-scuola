@@ -36,7 +36,7 @@
         @if ($modificabile)
             Puoi <strong>trascinare</strong> le lezioni. Nella vista per aula: su un'altra aula nella stessa ora per cambiarle
             aula, su un'altra ora per spostarla. Nella vista per classe: lungo la riga della classe, su un'altra ora (se c'è
-            un'altra lezione le due si scambiano). Durante il trascinamento le celle si colorano (verde: si può, ambra: crea un
+            un'altra lezione le due si scambiano). Durante il trascinamento le celle si colorano (verde: si può, giallo: crea un
             conflitto e serve «Conflitti provvisori», rosso: non ammesso).
         @endif
     </x-guida>
@@ -101,7 +101,7 @@
                                             @php($trascinabile = $modificabile && ! $lezione->bloccata)
                                             <div data-lezione-id="{{ $lezione->id }}" data-slot-id="{{ $lezione->slot_id }}" draggable="{{ $trascinabile ? 'true' : 'false' }}"
                                                  style="{{ \App\Support\ColoriDiscipline::stile($colori[$d->id] ?? ['#f1f5f9', '#1e293b']) }}"
-                                                 title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->docenteEffettivo()->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — CONFLITTO: '.implode(' — ', $conflitti) : '' }}"
+                                                 title="{{ $lezione->cattedra->classe->nomeCompleto() }} · {{ $d->nome }} · {{ $lezione->docenteEffettivo()->nomeCompleto() }}@if ($lezione->aula) · {{ $lezione->aula->nome }}@endif{{ $conflitti ? ' — Conflitto: '.implode(' — ', $conflitti) : '' }}"
                                                  class="relative flex shrink-0 grow flex-col justify-center rounded px-1 py-0.5 leading-tight {{ $trascinabile ? 'cursor-grab' : '' }} {{ $conflitti ? 'ring-2 ring-red-500' : '' }}">
                                                 @if ($modificabile)@include('orari._pulsante-modifica', ['posizione' => 'absolute right-0 top-0'])@endif
                                                 @if ($docenteMode)
@@ -110,7 +110,7 @@
                                                     <div>{{ $d->codice }}</div>
                                                 @elseif ($aulaMode)
                                                     {{-- La freccia dice che la classe arriva da un'altra aula (il nome è nel tooltip): resta su una riga. --}}
-                                                    <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}@if ($cambio) <span title="Arriva da {{ $cambio['da']->nome }}">→</span>@endif</div>
+                                                    <div class="font-semibold">{{ $lezione->cattedra->classe->nomeCompleto() }}@if ($cambio) <span title="Cambio d'aula: arriva da {{ $cambio['da']->nome }}">→</span>@endif</div>
                                                     <div>{{ $d->codice }}</div>
                                                 @else
                                                     <div class="font-semibold">{{ $d->codice }}</div>
@@ -122,7 +122,7 @@
                                                     <div class="truncate text-[10px] font-medium text-blue-700" title="Docente CLIL in compresenza: {{ $clil->nomeCompleto() }}">C. {{ \Illuminate\Support\Str::limit($clil->cognome, 8, '…') }}</div>
                                                 @endif
                                                 @if ($cambio && ! $aulaMode && ! $docenteMode)
-                                                    <div class="truncate text-[10px] font-semibold" title="Cambia aula: da {{ $cambio['da']->nome }} a {{ $cambio['a']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
+                                                    <div class="truncate text-[10px] font-semibold" title="Cambio d'aula: arriva da {{ $cambio['da']->nome }}">→ {{ \App\Support\NomiBrevi::aula($cambio['a']->nome) }}</div>
                                                 @endif
                                             </div>
                                         @endforeach

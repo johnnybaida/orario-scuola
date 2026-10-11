@@ -7,8 +7,8 @@
 
     <x-guida>
         Orario di inizio e di fine di ogni ora di lezione, uguale per tutti i giorni. Per le ore seguite da una
-        ricreazione scrivi nella colonna <strong>Ricreazione dopo</strong> quanti minuti dura (anche di durata diversa
-        per ogni ricreazione); lascia vuoto dove non ce n'è. La ricreazione parte dalla fine dell'ora e deve finire
+        ricreazione scrivi nella colonna <strong>Pausa dopo (minuti)</strong> quanti minuti dura la pausa (anche di durata diversa
+        per ogni pausa); lascia vuoto dove non ce n'è. La ricreazione parte dalla fine dell'ora e deve finire
         prima dell'inizio dell'ora successiva: se cambi la fine di un'ora o la sua ricreazione, le ore che seguono si spostano da sole (poi puoi ritoccarle). Orari e ricreazioni compaiono nei PDF degli orari.
     </x-guida>
 
@@ -43,10 +43,10 @@
                         <th class="px-4 py-2">Fine</th>
                         <th class="px-4 py-2">Durata</th>
                         <th class="px-4 py-2">Pausa dopo (minuti)</th>
-                        <th class="px-4 py-2">Conta per il docente <x-info testo="Facoltativo: quanto vale la pausa nel monte ore del docente che la sorveglia, a scatti di 15 minuti (60 minuti = 1 ora). Con «Automatico» vale la durata arrotondata per eccesso al quarto d'ora: 50 minuti contano come 1 ora." /></th>
-                        <th class="px-4 py-2">Aula della pausa <x-info testo="Facoltativo: l'aula in cui si svolge la pausa (per esempio il refettorio). Compare nei PDF accanto alla pausa. Si sceglie tra le aule di tipo «Aula per la pausa»: creale in Aule." /></th>
+                        <th class="px-4 py-2">Conta per il docente <x-info testo="Facoltativo: quanto vale la pausa nelle ore del docente che la sorveglia, a multipli di 15 minuti (60 minuti = 1 ora). «Automatico» = la durata arrotondata al quarto d'ora successivo (50 minuti → 1 ora)." /></th>
+                        <th class="px-4 py-2">Aula della pausa <x-info testo="Facoltativo: l'aula in cui si svolge la pausa (per esempio il refettorio). Compare nei PDF accanto alla pausa. Si sceglie tra le aule di tipo «Aula per la pausa (mensa, ricreazione)», che crei in Aule." /></th>
                         <th class="px-4 py-2">È la mensa <x-info testo="Spunta la pausa in cui le classi pranzano: nella pagina Mensa indichi quali docenti la sorvegliano e per quali classi, e nei PDF compare la riga con i loro nomi. Puoi spuntarne più d'una (turni di mensa)." /></th>
-                        <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo (vale anche per la pausa prima della prima ora, che finisce quando comincia la prima ora): scrivi per esempio «Mensa» per la pausa lunga prima dei rientri pomeridiani. Se resta vuoto la pausa si chiama «Ricreazione». Il nome compare nei PDF." /></th>
+                        <th class="px-4 py-2">Nome della pausa <x-info testo="Facoltativo, per esempio «Mensa». Se resta vuoto la pausa si chiama «Ricreazione». Compare nei PDF." /></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">

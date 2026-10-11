@@ -2,7 +2,7 @@
      Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z, vedi editor-griglia.js). Richiede $orario, $puoAnnullare, $puoRipetere. --}}
     <label class="inline-flex items-center gap-1.5 text-sm text-gray-700">
         <input type="checkbox" id="conflitti-provvisori" class="rounded border-gray-300"> Conflitti provvisori
-        <x-info testo="Spento (consigliato): l'editor rifiuta le modifiche che creano un conflitto con un docente o con un'aula. Acceso: le accetta e il conflitto resta segnalato in rosso nel Controllo finché non lo risolvi, per esempio spostando le lezioni dell'altra classe. Utile per scambi che coinvolgono più classi." />
+        <x-info testo="Spento (consigliato): le modifiche che creano un conflitto con un docente o un'aula vengono rifiutate. Acceso: vengono accettate e il conflitto resta segnalato in rosso nel Controllo finché non lo risolvi. Serve per gli scambi tra più classi." />
     </label>
     {{-- Annulla/Ripeti su più livelli; scorciatoie Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z (vedi editor-griglia.js). --}}
     @php($pulsante = 'inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:text-gray-400 disabled:bg-gray-50 disabled:cursor-not-allowed')

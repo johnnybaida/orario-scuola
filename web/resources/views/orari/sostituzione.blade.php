@@ -30,7 +30,7 @@
         <fieldset class="sm:col-span-2">
             <legend class="block text-sm font-medium text-gray-700">Cosa sostituire</legend>
             <div class="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm">
-                <input type="hidden" name="titolare" value="0"><label class="flex items-center gap-1.5"><input type="checkbox" name="titolare" value="1" checked> Lezioni (come titolare)</label>
+                <input type="hidden" name="titolare" value="0"><label class="flex items-center gap-1.5"><input type="checkbox" name="titolare" value="1" checked> Le sue lezioni da titolare</label>
                 <input type="hidden" name="clil" value="0"><label class="flex items-center gap-1.5"><input type="checkbox" name="clil" value="1" checked> Ore CLIL</label>
                 <input type="hidden" name="sostegno" value="0"><label class="flex items-center gap-1.5"><input type="checkbox" name="sostegno" value="1" checked> Ore di sostegno</label>
             </div>

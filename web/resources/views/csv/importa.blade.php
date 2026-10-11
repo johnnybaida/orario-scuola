@@ -26,7 +26,7 @@
                 {{ $def['nota'] }}
             @else
                 Il modo più semplice è esportare la lista, aggiungere righe e reimportare: le righe già presenti vengono saltate,
-                non aggiornate. I riferimenti ad altre liste (sede, disciplina, docente, ...) si scrivono con il nome o il codice già censito.
+                non aggiornate. I riferimenti ad altre liste (sede, disciplina, docente, ...) si scrivono con il nome o il codice già inserito.
             @endisset
         </p>
 

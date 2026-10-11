@@ -52,7 +52,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Classi:** `slot_attivi` elenca le ore con giorno e numero (`LUN.1|LUN.2|…`); se la colonna è vuota la classe parte con le ore del mattino.
-- **Indisponibilità, sospensioni, assistenza alle pause:** una riga per ora, sospensione o pausa sorvegliata, con il docente scritto come cognome e nome già censiti; giorni `LUN…SAB` o `1…6`; date `2026-10-01` o `01/10/2026`; i supplenti sono «Cognome Nome» separati da `|`.
+- **Indisponibilità, sospensioni, assistenza alle pause:** una riga per ora, sospensione o pausa sorvegliata, con il docente scritto come cognome e nome già inseriti; giorni `LUN…SAB` o `1…6`; date `2026-10-01` o `01/10/2026`; i supplenti sono «Cognome Nome» separati da `|`.
 - **Laboratori:** docenti (`Cognome Nome|…`), classi (`1A|2B`) e ore del pomeriggio (`LUN.7|MAR.7`) in un'unica riga.
 - **Impostazioni:** una riga sola con il conteggio del sostegno; è l'unica lista che **aggiorna** il valore invece di saltarlo.
 - **Non si importano:** vincoli e sostegno (fabbisogni e assegnazioni). Per portare **tutto** da un'installazione all'altra, compresi vincoli, sostegno, orari e generazioni, usa il backup completo in **Dati** (ZIP), che contiene ogni tabella tranne le utenze e il registro attività.
@@ -129,7 +129,7 @@ Il catalogo delle materie insegnate.
 - **Codice**: la sigla breve e unica (es. ITA, MAT). È quella che compare nel tabellone PDF. Per una **seconda lingua straniera** usa FRA, SPA o TED (oppure scrivi «seconda lingua» nel nome): sono i codici con cui l'aula DADA delle lingue viene riconosciuta.
 - **Nome**: es. Italiano, Matematica.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
-- **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
+- **Aula richiesta**: l'elenco contiene i tipi di aula già inseriti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
 - **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
 - **Fa parte di**: collega materie affini (es. Storia e Geografia sotto Italiano). È solo informativo.
 
@@ -188,7 +188,7 @@ Nella pagina del docente puoi anche:
 
 - impostare le **indisponibilità**: la griglia degli slot in cui il docente non può avere lezione (part-time, servizio in altre scuole, permessi). Il generatore e l'editor le rispettano sempre;
 - registrare le **sospensioni e assenze lunghe** (sospensione dal servizio, malattia lunga, congedo o aspettativa): per ognuna scrivi **dal** e, se la conosci, **al** (vuoto = fino a nuova comunicazione), il motivo e una nota. Nell'elenco dei docenti chi è sospeso oggi ha l'etichetta **Sospeso**;
-- gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa ambra se non coincide.
+- gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa giallo se non coincide.
 
 **Come funziona la sospensione.** Spuntando **Escludi dall'orario** (è già spuntato di norma), finché la sospensione è in corso il docente **non può avere cattedre**: i controlli prima di generare lo segnalano con un link alla sua scheda e **la generazione non parte** finché non riassegni le sue cattedre a un **supplente** (un altro docente, per esempio con contratto *Supplenza breve*) dalla pagina **Cattedre** o dalla scheda del docente, oppure non chiudi la sospensione. Togli la spunta per un'assenza **breve** che non deve cambiare l'orario base: in quel caso viene solo registrata. Sospensioni già finite o non ancora iniziate non bloccano nulla. La proposta automatica dei sostituti per i giorni di assenza arriverà con la gestione di assenze e sostituzioni.
 
@@ -321,7 +321,7 @@ I **laboratori pomeridiani** (per esempio Latino) sono attività **fuori dal mon
 - **Aula**: facoltativa. Se indicata, il laboratorio la occupa nelle ore scelte.
 - **Docenti**: uno o più; sono occupati nelle ore scelte.
 - **Quando**: le ore del **pomeriggio** (7ª–9ª) di uno o più giorni, in una griglia con i **giorni in riga** e le **ore in colonna** (gli orari sono nell'intestazione; clicca nel riquadro per scegliere l'ora). Quando hai scelto docenti e aula, le ore **non libere** si colorano di **giallo**: passando il mouse vedi il motivo (il docente ha lezione in quell'ora, è indisponibile, è già in un altro laboratorio, l'aula è occupata). Il confronto usa l'orario **pubblicato**, o l'ultimo se non ce n'è uno pubblicato.
-- **Classi destinatarie**, **partecipanti** e **note**: facoltativi, solo informativi.
+- **Classi interessate**, **numero di partecipanti** e **note**: facoltativi, solo informativi.
 - **Attivo**: se tolto, il laboratorio resta salvato ma non occupa nessuno.
 
 <!-- permesso: gestisci-anagrafica -->
@@ -339,7 +339,7 @@ Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. I
 
 Si apre dal **menu del profilo** (le tue iniziali, in alto a destra). Le impostazioni valgono per la **sede in cui stai lavorando**: ogni sede ha le sue. Per ora ce n'è una sola.
 
-- **Conteggio predefinito delle ore di sostegno**: *per alunno* (ogni ora di un docente di sostegno vale per un solo alunno) oppure *per classe* (un docente di sostegno segue più alunni della classe insieme e l'ora vale per ciascuno). Vale per tutte le classi che non scelgono un conteggio proprio: nella scheda di una classe, sezione *Sostegno*, il campo **Conteggio ore** mostra «Default della sede» e il valore attuale.
+- **Conteggio predefinito delle ore di sostegno**: *per alunno* (ogni ora di un docente di sostegno vale per un solo alunno) oppure *per classe* (un docente di sostegno segue più alunni della classe insieme e l'ora vale per ciascuno). Vale per tutte le classi che non scelgono un conteggio proprio: nella scheda di una classe, sezione *Sostegno*, il campo **Conteggio ore** mostra «Valore della sede» e il valore attuale.
 
 <!-- permesso: gestisci-anagrafica -->
 Modifica e salva con il pulsante in basso a destra. Amministratore e referente orario; gli altri la vedono in sola lettura. Con più sedi, cambia sede dal menu in alto per modificare le impostazioni di un'altra.
@@ -778,7 +778,7 @@ Da questa pagina puoi inoltre:
 ### Griglia della classe
 
 - La griglia si modifica solo se l'orario è in **bozza**: negli altri stati compare un avviso azzurro e la griglia è in sola lettura.
-- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**. Gli slot si colorano durante il trascinamento per dirti dove si può (verde), dove creerebbe un conflitto (ambra) e dove non è ammesso (rosso).
+- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**. Gli slot si colorano durante il trascinamento per dirti dove si può (verde), dove creerebbe un conflitto (giallo) e dove non è ammesso (rosso).
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
 - **Annulla** e **Ripeti** (in alto sopra la griglia) tornano indietro e avanti **su più livelli**: spostamenti, scambi, cambi di docente o materia e blocchi/sblocchi. Scorciatoie: **Ctrl/Cmd + Z** per annullare, **Ctrl/Cmd + Maiusc + Z** (o Ctrl + Y) per ripetere. I pulsanti sono grigi quando non c'è nulla da annullare o da ripetere. Dopo una **nuova** modifica le modifiche annullate non si possono più ripetere. Annullamenti e ripristini restano nel **Registro attività**. La cronologia riguarda le modifiche fatte da questa versione in poi e non passa a una copia: un orario duplicato riparte senza cronologia.
@@ -802,7 +802,7 @@ La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto al
 - su **un'altra aula nella stessa ora**: la lezione cambia aula (solo tra aule dei tipi ammessi dalla materia: una lezione di italiano DADA si sposta tra le aule di italiano e quella condivisa);
 - su **un'altra ora**: la lezione si sposta (come nella griglia della classe, scambiandosi con la lezione che c'era) e prende l'aula della cella, se è libera, altrimenti un'altra aula libera dello stesso tipo.
 
-Mentre trascini, le celle si colorano: **verde** si può, **ambra** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
+Mentre trascini, le celle si colorano: **verde** si può, **giallo** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
 <!-- /permesso -->
 
 ### Controllo dell'orario
@@ -852,7 +852,7 @@ Il salvataggio vale come le altre modifiche: finisce nel registro, si può **ann
 
 In ogni vista trovi in alto gli stessi strumenti: **Conflitti provvisori**, **Annulla** e **Ripeti** (e le scorciatoie Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z), che valgono per tutte le modifiche, comunque fatte; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima a ogni vista. Quando due lezioni della stessa classe si trovano a scambiarsi di posto, lo scambio è un'unica modifica.
 
-1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **ambra** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
+1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **giallo** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
 2. **Cambiare docente o materia di una lezione**: scegli un'altra cattedra della **stessa classe** dal menu della lezione.
 3. **Scambi tra classi** (per esempio due docenti che devono scambiarsi le ore, o un docente che deve lasciare una lezione): spesso il primo spostamento crea un conflitto con l'altra classe e va completato lì. Accendi **Conflitti provvisori** (sopra la griglia): le modifiche con conflitti di docente o aula vengono accettate e il conflitto resta **segnalato in rosso nel Controllo**, con il link alla classe da sistemare. Apri quella classe, sposta le sue lezioni e il controllo si svuota da solo quando tutto torna coerente. Spegni l'interruttore a fine lavoro per tornare alla modalità prudente, che rifiuta ogni conflitto.
 4. **Annulla / Ripeti** vale per tutti i passaggi, anche quelli provvisori.

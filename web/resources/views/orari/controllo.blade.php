@@ -8,7 +8,7 @@
     <x-guida>
         Lo stato <strong>reale</strong> dell'orario, ricalcolato ogni volta che apri la pagina: docenti in due posti nello stesso
         momento, docenti indisponibili, classi con due lezioni insieme, ore fuori scansione, aule oltre la capienza, ore diverse
-        da quelle previste e ore senza lezione. Diversamente dal registro degli avvisi, un problema sparisce da solo quando lo risolvi.
+        da quelle previste e ore senza lezione. Diversamente dal Registro delle modifiche, un problema sparisce da solo quando lo risolvi.
     </x-guida>
 
     @php($errori = collect($problemi)->where('gravita', 'errore'))

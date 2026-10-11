@@ -16,7 +16,7 @@
     @if ($modificabile)
         <x-guida>
             Trascina una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si scambiano.
-            Usa il menu nella lezione per cambiarne docente e/o materia. Una lezione bloccata non può essere
+            Usa il menu nella lezione, o il pulsante ✎, per cambiare docente o materia. Una lezione bloccata non può essere
             spostata, scambiata né modificata: sbloccala prima con il pulsante "Blocca/Sblocca". Sotto la lezione compare
             l'aula quando non è quella della classe (sempre, con la didattica DADA): per vedere l'occupazione di un'aula usa la
             vista aula dalla pagina Orari.
@@ -74,7 +74,7 @@
                                             {{-- L'aula si mostra se non è quella della classe, oppure se è cambiata rispetto all'ora precedente (freccia →). --}}
                                             @php($cambioAula = $cambiAula[$lezione->id] ?? null)
                                             @if ($aulaLezione = $lezione->aulaDaMostrare() ?? $cambioAula['a'] ?? null)
-                                                <div class="text-[10px] font-medium text-blue-800" title="{{ $cambioAula ? 'Cambio aula: da '.$cambioAula['da']->nome : 'Aula' }}">{{ $cambioAula ? '→ ' : '' }}{{ $aulaLezione->nome }}</div>
+                                                <div class="text-[10px] font-medium text-blue-800" title="{{ $cambioAula ? 'Cambio d\'aula: arriva da '.$cambioAula['da']->nome : 'Aula diversa da quella della classe' }}">{{ $cambioAula ? '→ ' : '' }}{{ $aulaLezione->nome }}</div>
                                             @endif
                                             @if ($conflitti)
                                                 <div class="mt-0.5 text-[10px] font-medium text-red-700">⚠ Conflitto: vedi il controllo</div>

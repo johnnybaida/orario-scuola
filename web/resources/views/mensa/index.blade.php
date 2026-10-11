@@ -8,7 +8,7 @@
     <x-guida>
         La mensa è una <strong>pausa</strong> della scansione oraria, non una materia. Per configurarla: 1) in <em>Scansione oraria</em> spunta «È la mensa»
         sulla pausa del pranzo (con durata, aula e quanto vale per i docenti); 2) nel <em>quadro orario</em> del tempo prolungato scrivi le «Ore di mensa»;
-        3) una classe va in mensa nei giorni di <em>rientro</em>, cioè quando ha ore dopo la pausa (<em>Slot attivi</em> della classe); 4) qui sotto
+        3) una classe va in mensa da sola nei giorni in cui ha lezione dopo la pausa (<em>slot attivi</em> della classe): non devi indicarlo; 4) qui sotto
         indichi chi sorveglia, classe per classe e giorno per giorno. Le ore di sorveglianza contano nel monte ore del docente una volta sola per giorno.
     </x-guida>
 

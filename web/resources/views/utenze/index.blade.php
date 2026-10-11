@@ -8,7 +8,7 @@
     <x-guida>
         Account locali con accesso al sistema. Il ruolo decide cosa si può fare: l'amministratore gestisce tutto
         (anche le utenze), il referente orario l'anagrafica e l'orario, la segreteria docenti e classi, il
-        dirigente e il referente sostituzioni consultano. Per i docenti collega l'utenza alla loro anagrafica.
+        dirigente e il referente sostituzioni consultano. Per un docente scegli la sua scheda in «Docente collegato».
     </x-guida>
 
     <x-barra-tabella>

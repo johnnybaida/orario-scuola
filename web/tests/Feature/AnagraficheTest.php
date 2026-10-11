@@ -334,7 +334,7 @@ class AnagraficheTest extends TestCase
             ->assertSee('data-attiva-se="#severita=preferenziale"', false);
         $utente->get('/classi/create')->assertOk()->assertSee('data-attiva-se="#tempo_scuola=prolungato"', false);
 
-        // Nessuna disciplina censita: "aggiungi" è disabilitato e spiega perché.
+        // Nessuna disciplina inserita: "aggiungi" è disabilitato e spiega perché.
         $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina inserita');
     }
 
@@ -416,7 +416,7 @@ class AnagraficheTest extends TestCase
         }
         $utente = $this->actingAs($this->referente());
 
-        $utente->get('/scansione-oraria')->assertOk()->assertSee('Ricreazione dopo');
+        $utente->get('/scansione-oraria')->assertOk()->assertSee('Pausa dopo (minuti)');
 
         $utente->put('/scansione-oraria', ['ore' => [
             1 => ['inizio' => '08:00', 'fine' => '08:55', 'ricreazione' => '10'],

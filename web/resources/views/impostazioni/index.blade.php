@@ -22,7 +22,7 @@
             <h2 class="font-medium">Sostegno</h2>
             <div>
                 <label for="conteggio_sostegno" class="block text-sm font-medium text-gray-700">Conteggio predefinito delle ore di sostegno
-                    <x-info testo="Per alunno: ogni ora di un docente di sostegno vale per un solo alunno. Per classe: un docente di sostegno segue contemporaneamente più alunni della classe e l'ora vale per ciascuno. Ogni classe può scegliere un conteggio proprio nella sua scheda." />
+                    <x-info testo="Per alunno: ogni ora di sostegno vale per un solo alunno, quindi le ore dei docenti devono coprire la somma dei fabbisogni. Per classe: un'ora vale per tutti gli alunni della classe, quindi basta coprire il fabbisogno più alto. Ogni classe può sceglierne uno diverso nella sua scheda." />
                 </label>
                 <select name="conteggio_sostegno" id="conteggio_sostegno" required class="mt-1 block w-full max-w-xs rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
                     @foreach (\App\Models\Impostazioni::CONTEGGI as $valore => $etichetta)

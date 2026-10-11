@@ -6,8 +6,8 @@
     <h1 class="text-xl font-semibold mb-6">Classi</h1>
 
     <x-guida>
-        Anagrafica delle classi: anno, sezione, quadro orario e "slot attivi" (le ore della scansione
-        settimanale effettivamente usate, es. anche il pomeriggio per il tempo prolungato). Apri una classe per
+        Anagrafica delle classi: anno, sezione, quadro orario e "slot attivi" (le ore della settimana in cui la classe fa lezione, pomeriggi compresi
+        per il tempo prolungato). Apri una classe per
         impostare gli slot attivi e vedere le cattedre assegnate.
     </x-guida>
 

@@ -70,7 +70,7 @@
                 <span><strong>{{ $cc }}</strong>@if (! empty($classiConcorso[$cc])) <span class="text-gray-500">— {{ implode(', ', $classiConcorso[$cc]) }}</span>@endif</span>
             </label>
         @empty
-            <p class="text-xs text-gray-500">Nessuna classe di concorso censita: indicale nelle discipline.</p>
+            <p class="text-xs text-gray-500">Nessuna classe di concorso inserita: indicale nelle discipline.</p>
         @endforelse
     </div>
 </div>

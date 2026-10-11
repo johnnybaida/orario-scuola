@@ -381,7 +381,7 @@ class TabelloneAuleTest extends TestCase
         $this->assertStringNotContainsString('min-height: 4.5rem', $classe);
 
         $aula = $referente->get("{$this->base()}/tabellone?per=aula")->assertOk()->getContent();
-        $this->assertStringContainsString('title="Arriva da Aula DADA · Italiano 1"', $aula);   // la freccia accanto alla classe, il dettaglio nel tooltip
+        $this->assertStringContainsString('title="Cambio d\'aula: arriva da Aula DADA · Italiano 1"', $aula);   // la freccia accanto alla classe, il dettaglio nel tooltip
         $this->assertStringNotContainsString('→ da', $aula);
         $this->assertStringContainsString('min-height: 4.5rem', $aula);                            // 72px per ogni lezione nella cella: più alte
         $this->assertStringNotContainsString('min-height: 3.5rem', $aula);

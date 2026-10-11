@@ -7,7 +7,7 @@
 
     <x-guida>
         Questa pagina si aggiorna da sola ogni due secondi finché la generazione è in corso. Se resta bloccata
-        su "in coda", il worker non è attivo.
+        su «In coda», il worker di coda è fermo: avvialo da Genera orario.
     </x-guida>
 
     <div id="stato-generazione" data-url="{{ route('generazioni.stato', $generazione) }}" data-stato="{{ $generazione->stato }}"
@@ -54,7 +54,7 @@
         @can('gestisci-anagrafica')
             <div class="flex items-center gap-2">
                 <a href="{{ route('generazioni.diagnostica', $generazione) }}" class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">Scarica diagnostica</a>
-                <x-info testo="Scarica un file di testo con errore, vincoli, log e dati del calcolo. In caso di problemi invialo a chi gestisce l'applicazione." />
+                <x-info testo="Scarica un file di testo con l'errore e i dati del calcolo. Se c'è un problema, mandalo a chi gestisce l'applicazione." />
             </div>
         @endcan
     </div>

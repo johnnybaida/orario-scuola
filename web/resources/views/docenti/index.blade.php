@@ -7,7 +7,7 @@
 
     <x-guida>
         Anagrafica dei docenti: tipo di posto, regime orario, ore dovute (18h = cattedra intera), classi di
-        concorso e indisponibilità (slot in cui non possono avere lezione). Apri un docente per vedere le sue
+        concorso e indisponibilità (le ore della settimana in cui non possono avere lezione). Apri un docente per vedere le sue
         cattedre e impostare le indisponibilità. Puoi importare più docenti insieme con un file CSV.
     </x-guida>
 

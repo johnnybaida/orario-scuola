@@ -7,7 +7,7 @@
 
     <x-guida>
         Le sedi rappresentano i plessi dell'istituto (una sola scuola per installazione, ma può avere più plessi).
-        Ogni aula appartiene a una sede. Se l'istituto ha un solo plesso basta una sede.
+        Ogni sede ha i suoi docenti, classi, aule, discipline, orari e impostazioni. Se l'istituto ha un solo plesso basta una sede.
     </x-guida>
 
     <x-barra-tabella>

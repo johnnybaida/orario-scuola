@@ -74,7 +74,7 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Classi destinatarie <span class="text-xs text-gray-400">(facoltativo, informativo)</span></label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Classi interessate <span class="text-xs text-gray-400">(facoltativo, solo informativo)</span></label>
         <div class="flex flex-wrap gap-x-4 gap-y-1 max-h-24 overflow-y-auto rounded border border-gray-200 p-2 text-sm">
             @foreach ($classi as $classe)
                 <label class="flex items-center gap-1.5">
@@ -86,7 +86,7 @@
 
     <div class="grid sm:grid-cols-2 gap-4">
         <div>
-            <label for="n_partecipanti" class="block text-sm font-medium text-gray-700">Partecipanti</label>
+            <label for="n_partecipanti" class="block text-sm font-medium text-gray-700">Numero di partecipanti</label>
             <input type="number" name="n_partecipanti" id="n_partecipanti" min="1" max="500" value="{{ old('n_partecipanti', $laboratorio?->n_partecipanti) }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>

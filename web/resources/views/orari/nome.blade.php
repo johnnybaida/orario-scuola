@@ -9,7 +9,7 @@
         @csrf
         @method('PUT')
         <div>
-            <label for="nome" class="block text-sm font-medium text-gray-700">Nome (vuoto = «Orario v{{ $orario->versione }}»)</label>
+            <label for="nome" class="block text-sm font-medium text-gray-700">Nome (se vuoto: «Orario v{{ $orario->versione }}»)</label>
             <input type="text" name="nome" id="nome" maxlength="120" value="{{ old('nome', $orario->nome) }}" class="mt-1 block w-full">
         </div>
         <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm hover:bg-primary/90 transition-colors cursor-pointer">Salva</button>
