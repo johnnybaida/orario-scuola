@@ -1,6 +1,6 @@
 # Analisi funzionale — Applicativo web per l'orario della Scuola Secondaria di I grado
 
-> Versione 1.3 — documento di analisi, non di progettazione tecnica di dettaglio.
+> Versione 1.4 — documento di analisi, non di progettazione tecnica di dettaglio.
 > Le note **Implementazione** (blocchi con questo prefisso) indicano cosa è stato realizzato e dove l'applicazione si discosta o va oltre quanto descritto; il testo originale resta il riferimento dei requisiti.
 > Tutte le decisioni sono riepilogate al §17.
 
@@ -18,7 +18,7 @@ Realizzare un'applicazione web che permetta a una scuola media di:
 6. gestire **modifiche manuali**, versioni e pubblicazione dell'orario;
 7. esportare/stampare le viste (per classe, docente, aula, generale) in PDF ed Excel.
 
-Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni, stipendi e pagamento ore eccedenti (solo contatore), educatori e assistenti (OSA/ASACOM). Una sola scuola per installazione.
+Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni, stipendi e pagamento ore eccedenti (solo contatore), educatori e assistenti (OSA/ASACOM). Una sola scuola (istituto) per installazione, con una o più **sedi**.
 
 ---
 
@@ -57,6 +57,13 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
 | **Slot attivo** | Slot che una classe usa davvero (`classe_slot`); il generatore copre esattamente quelli, e il loro numero deve coincidere con le ore del quadro orario |
 | **Rientro pomeridiano** | Giorno in cui una classe a tempo prolungato fa lezione anche il pomeriggio (ore 7ª–9ª); si sceglie per giorno e per classe |
 | **DADA** | Didattica per ambienti di apprendimento: le classi non hanno un'aula fissa, gli alunni si spostano nell'aula dedicata alla disciplina |
+| **Sede** | Plesso dell'istituto. Ogni sede ha i propri docenti, discipline, quadri orari, scansione oraria, impostazioni, vincoli, laboratori, orari e generazioni; classi e aule appartengono a una sede |
+| **Pausa / ricreazione** | Intervallo dopo un'ora della scansione, con durata, nome facoltativo (es. «Mensa») e aula facoltativa; esiste anche una pausa prima della prima ora |
+| **Mensa** | Pausa marcata come tale: le classi con ore dopo di essa vi si fermano; i docenti che la sorvegliano sono *assistenze alle pause* |
+| **Assistenza alla pausa** | Sorveglianza di una pausa da parte di un docente in un giorno, con le classi sorvegliate; conta nel monte ore (60 minuti conteggiati = 1 ora) |
+| **CLIL** | Docente in compresenza con il titolare per alcune ore di una cattedra |
+| **Laboratorio pomeridiano** | Attività di docenti e classi nelle ore 7ª–9ª, assegnata a mano, fuori dal monte ore e dalla generazione |
+| **Generatore** | Il programma (OR-Tools CP-SAT) che calcola l'orario a partire dai dati e dai vincoli |
 | **Worker di coda** | Processo che esegue in background i job di generazione; si avvia e si ferma dall'interfaccia |
 
 ---
@@ -75,7 +82,7 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
 
 **Multi-plesso**: una scuola (o Istituto Comprensivo) può avere più plessi/sedi. Il sistema deve modellare le sedi e i tempi di spostamento tra esse.
 
-> **Implementazione.** Ruoli come account locali (`/utenze`, gestiti solo dall'amministratore, con docente collegato per il ruolo Docente). Permessi realizzati come gate: `consulta` (amministratore, DS, referente orario, referente sostituzioni, segreteria), `gestisci-anagrafica` (amministratore, referente orario), `gestisci-docenti-classi` (in più la segreteria), `gestisci-utenze` (amministratore). Il ruolo Docente vede solo dashboard e guida (non ancora il proprio orario né desiderata). Menu, pulsanti e guida seguono il ruolo. Il DS (e l'amministratore) ha anche `approva-orari`: approva, pubblica e archivia gli orari (vedi §9.2). La consultazione pubblica non è realizzata.
+> **Implementazione.** Ruoli come account locali (`/utenze`, gestiti solo dall'amministratore, con docente collegato per il ruolo Docente). Permessi come gate: `consulta` (tutti i ruoli tranne il docente), `gestisci-anagrafica` (amministratore, referente orario), `gestisci-docenti-classi` (in più la segreteria), `gestisci-utenze` (amministratore), `approva-orari` (amministratore e DS: approvano, pubblicano e archiviano gli orari, vedi §9.2). Il referente delle sostituzioni ha solo la consultazione. Il ruolo Docente vede solo dashboard e guida (non ancora il proprio orario né desiderata). Menu, pulsanti e guida seguono il ruolo. La consultazione pubblica non è realizzata. Chi lavora su più sedi sceglie la **sede corrente** da un menu in alto (con 2+ sedi); l'ultima usata è ricordata per utente.
 
 ---
 
@@ -91,7 +98,7 @@ Fuori perimetro: registro elettronico, valutazioni, anagrafica e presenze alunni
     - Gli intervalli non sono slot. Di default un blocco di due ore **può stare a cavallo dell'intervallo**; il vincolo D7 permette di vietarlo per singole discipline.
 - **Recupero minuti** (unità oraria < 60'): solo calcolo e report del debito orario di docenti e classi; nessuna pianificazione del recupero.
 
-> **Implementazione.** Pagina **Scansione oraria**: inizio e fine di ciascuna ora e ricreazioni (anche più d'una, ciascuna con la propria durata in minuti sull'ora che la precede), uguali per tutti i giorni; la ricreazione parte dalla fine dell'ora e deve finire prima dell'inizio della successiva. Gli orari non si sovrappongono. Le modifiche vanno nell'audit log. Orari delle ore e ricreazioni compaiono nei PDF (griglie di classe e docente, legenda nel tabellone). Durata dell'ora e giorni non sono ancora configurabili per singolo giorno e il report dei minuti da recuperare non è realizzato.
+> **Implementazione.** Pagina **Scansione oraria** (per sede): inizio e fine di ciascuna ora, uguali per tutti i giorni, e le **pause** (anche più d'una): ciascuna con durata in minuti sull'ora che la precede, **nome** facoltativo (es. «Mensa»), **aula** facoltativa (solo informativa), minuti **conteggiati** come servizio (a scatti di 15) e, per la mensa, la spunta «mensa». C'è anche una **pausa prima della prima ora**. La pausa parte dalla fine dell'ora e deve finire prima dell'inizio della successiva; le modifiche vanno nell'audit log. Orari e pause compaiono nei PDF (riga «Ricreazione hh:mm-hh:mm» nelle griglie, legenda nel tabellone). Una sede nuova parte vuota e crea la scansione standard con un pulsante. Pagina **Impostazioni** (per sede): oggi il conteggio predefinito del sostegno. Durata dell'ora e giorni per singolo giorno non sono configurabili e il report dei minuti da recuperare non è realizzato.
 
 ### 5.2 Sedi, aule e risorse
 
@@ -106,7 +113,7 @@ Regole:
 - Alcune discipline richiedono un tipo aula (es. Scienze motorie → palestra; Tecnologia → laboratorio se previsto).
 - La palestra può ospitare **più classi contemporaneamente** (capacità configurabile).
 
-> **Implementazione.** Aule: nome, sede, tipo e **capienza = numero di lezioni contemporanee** per aule di quel tipo. Il tipo è scelto da elenco (tipi base più quelli già censiti); le discipline puntano a un tipo di aula (select). **Variante DADA** (non prevista in origine): scegliendo nell'aula il tipo "DADA · disciplina" si crea il tipo `dada_<codice>` e lo si collega alla disciplina; le classi in DADA non hanno aula base. Risorse condivise e accessibilità non realizzate.
+> **Implementazione.** **Più sedi realizzato**: ogni sede ha i propri dati, un docente appartiene a una sola sede (una persona in due sedi ha due schede), le aule e le classi a una sede; i CSV valgono per la sede corrente, i backup dello ZIP «Dati» per l'intera installazione; si può copiare da un'altra sede (solo su un'area vuota) scansione e impostazioni, discipline, quadri orari, aule e vincoli globali; l'ultima sede non si elimina. I tempi di spostamento tra sedi (H8) non servono, perché nessun docente lavora in due sedi. Aule: nome, sede, tipo, **capienza = numero di lezioni contemporanee**, **piano** facoltativo (serve a C5) e, per le pause, il tipo «Aula per le pause». Il tipo è scelto da elenco; le discipline puntano a un tipo di aula (una o più). **Variante DADA** (non prevista in origine): il tipo «DADA · disciplina» crea il tipo `dada_<codice>` (o un'aula condivisa tra più discipline) e lo aggiunge ai tipi ammessi della disciplina; le classi in DADA non hanno aula base. Il piano dell'aula compare nei PDF. Risorse condivise e accessibilità non realizzate.
 
 ### 5.3 Discipline e quadri orari
 
@@ -130,7 +137,9 @@ Regole:
 Varianti da supportare come template distinti:
 - **Tempo prolungato** (36h, fino a 40h): ore aggiuntive di lettere/matematica + **mensa** (slot di mensa con assistenza docente, conteggiata nel servizio).
 
-> **Implementazione.** La mensa è una *pausa con nome* della scansione oraria (campo «Nome della pausa»: la pausa lunga prima dei rientri; l'hanno le classi con ore dopo di essa). I docenti che assistono si indicano a mano per giorno e pausa nella scheda del docente (tabella `assistenze_pausa`, anagrafica, uguale per tutti gli orari); conta come ore di servizio a parte nel carico dei docenti. L'assegnazione automatica da parte del solver (C3) non è realizzata.
+> **Implementazione — mensa.** La mensa è una *pausa* della scansione marcata «mensa». Il quadro orario dichiara le **ore di mensa** (`ore_totali` = discipline + mensa; gli slot attivi sono solo le ore delle discipline). Le classi in mensa si **ricavano** (le ore attive dopo la pausa sono il rientro). La pagina **Mensa** mostra, per pausa e giorno, i docenti che sorvegliano e le classi sorvegliate (nessuna indicata = tutte quelle in mensa quel giorno); le assistenze stanno nell'anagrafica del docente (indipendenti dagli orari) e contano nel monte ore. Il generatore le conosce solo per il vincolo T12 (§8.2); non assegna da solo i sorveglianti (C3 non realizzato). La dashboard segnala (senza bloccare) classi in mensa senza docente, aule troppo piccole e ore di mensa del quadro incoerenti con i giorni di rientro.
+
+> **Implementazione — CLIL.** Una cattedra può avere un **docente CLIL in compresenza** per alcune ore: il generatore lo mette come secondo docente di quelle lezioni (H2 vale anche per lui) e il suo monte ore le somma.
 - **Inglese potenziato**.
 - **Indirizzo musicale**: ore di strumento/teoria/musica d'insieme per gruppi, anche pomeridiane.
 - **LEL (Latino)**: +1h opzionale per classi 2ª e 3ª dal 2026/27.
@@ -149,7 +158,7 @@ Gli alunni **non sono censiti**: si usano solo contatori per classe e per gruppo
 
 Regola chiave: quando una lezione riguarda un **gruppo interclasse**, tutte le classi di provenienza devono avere in quello slot un'attività compatibile (es. classi 2A e 2B: francese e spagnolo in parallelo nello stesso slot; IRC e alternativa in parallelo).
 
-> **Implementazione.** Classe con anno, sezione (unica per anno e sede), sede, aula base, quadro orario, tempo scuola (normale/prolungato) e numero alunni (dato informativo). **Slot attivi** per classe e **rientri pomeridiani scelti per giorno** nel form (spuntano le ore 7ª–9ª del giorno; in modifica la griglia prevale). Import CSV delle classi. Gruppi interclasse e coordinatore non realizzati (Fase 3).
+> **Implementazione.** Classe con anno, sezione (unica per anno e sede), sede, aula base, **piano** facoltativo, quadro orario, tempo scuola (normale/prolungato) e numero alunni (dato informativo). **Slot attivi** per classe e **rientri pomeridiani scelti per giorno** nel form (spuntano le ore 7ª–9ª; in modifica la griglia prevale; un riquadro segnala la differenza tra ore attese e spuntate). Import/esport CSV delle classi. Gruppi interclasse e coordinatore non realizzati (Fase 3).
 
 ### 5.5 Docenti
 
@@ -172,7 +181,7 @@ Regole:
 - **Docente COE**: il sistema gestisce solo le sue **indisponibilità** (giorni/ore nell'altra scuola) inserite dal referente; nessun coordinamento con l'orario dell'altra scuola.
 - **Docente IRC**: insegna in molte classi (1h ciascuna) → è tipicamente il docente più vincolato; va collocato presto nell'algoritmo.
 
-> **Implementazione.** Realizzati: anagrafica, contratto, tipo posto, regime (tempo pieno, part-time orizzontale/verticale/misto), ore dovute, COE, classi di concorso (scelte tra quelle delle discipline), sedi, indisponibilità (griglia degli slot) e import CSV. **Contratto, regime, COE e classi di concorso sono dati informativi: il solver non li usa**; giorni e ore di assenza si impongono con le indisponibilità. Le ore a disposizione si vedono nel «carico dei docenti» della dashboard (ore dovute − ore assegnate, comprese quelle di sostegno). Desiderata, tipo cattedra (intera/spezzone) e ruoli del docente non realizzati. **Sospensioni:** periodi dal/al (fine facoltativa) con motivo (sospensione dal servizio, malattia lunga, congedo/aspettativa, altro) registrati dalla scheda del docente; se «esclusa dall'orario» e in corso oggi, la pre-validazione impedisce di generare finché le cattedre non sono riassegnate a un supplente. Sulla sospensione si indicano uno o più **supplenti**: una pagina dedicata passa loro le cattedre del titolare (per ogni cattedra si sceglie il supplente; cambia solo il docente della cattedra, le lezioni dell'orario restano e il supplente le eredita) e le riporta al titolare al rientro, o quando la sospensione viene tolta; la pre-validazione segnala sia il passaggio mancante sia il rientro da chiudere (sospensione finita con cattedre ancora ai supplenti). Non realizzati: assenze per singolo giorno/slot, proposta dei sostituti, recupero permessi (Fase 2, §10).
+> **Implementazione.** Realizzati: anagrafica, contratto, tipo posto, regime (tempo pieno, part-time orizzontale/verticale/misto), ore dovute, COE, classi di concorso (scelte tra quelle delle discipline), sedi, indisponibilità (griglia degli slot) e import CSV. **Contratto, regime, COE e classi di concorso sono dati informativi: il solver non li usa**; giorni e ore di assenza si impongono con le indisponibilità. Le ore a disposizione si vedono nel «carico dei docenti» della dashboard (ore dovute − ore assegnate, comprese quelle di sostegno). Desiderata, tipo cattedra (intera/spezzone) e ruoli del docente non realizzati. **Sospensioni:** periodi dal/al (fine facoltativa) con motivo (sospensione dal servizio, malattia lunga, congedo/aspettativa, altro) registrati dalla scheda del docente; se «esclusa dall'orario» e in corso oggi, la pre-validazione impedisce di generare finché le cattedre non sono riassegnate a un supplente. Sulla sospensione si indicano uno o più **supplenti**: una pagina dedicata passa loro le cattedre del titolare (per ogni cattedra si sceglie il supplente; cambia solo il docente della cattedra, le lezioni dell'orario restano e il supplente le eredita) e le riporta al titolare al rientro, o quando la sospensione viene tolta; la pre-validazione segnala sia il passaggio mancante sia il rientro da chiudere (sospensione finita con cattedre ancora ai supplenti). **Assistenza alle pause** (mensa e ricreazioni) in anagrafica, con minuti conteggiati nel monte ore; **docente CLIL** e sostegno si sommano alle ore assegnate (scheda, elenco con filtro e dashboard usano la stessa formula). Un docente appartiene a una sola sede. **Laboratori pomeridiani** (pagina dedicata): ore di servizio a parte, assegnate a mano su 7ª–9ª a docenti, classi e aula; rendono il docente indisponibile e occupano l'aula nella generazione, ma non contano nelle ore dovute. Non realizzati: assenze per singolo giorno/slot con proposta dei sostituti e recupero permessi (Fase 2, §10).
 
 ### 5.6 Sostegno
 
@@ -191,7 +200,7 @@ Modello senza anagrafica alunni:
 
 Educatori e assistenti (OSA/ASACOM) sono fuori perimetro.
 
-> **Implementazione (anticipata dalla Fase 3, su richiesta).** Fabbisogni anonimi per classe (codice, ore, *docente unico* = S4), docenti di sostegno assegnati con le ore, conteggio per alunno/per classe con default di istituto e override per classe, compresenze pianificate dal solver e salvate; i docenti di sostegno compaiono nel tabellone PDF («S Cognome»). Non realizzati i vincoli S1–S3 (discipline preferite/escluse, distribuzione su più giorni).
+> **Implementazione (anticipata dalla Fase 3, su richiesta).** Fabbisogni anonimi per classe (codice, ore, *docente unico* = S4), docenti di sostegno assegnati con le ore, conteggio per alunno/per classe con default di istituto (Impostazioni) e override per classe; compresenze pianificate dal generatore e salvate. **I fabbisogni sono facoltativi**: una classe con soli docenti assegnati programma le compresenze dalle loro ore; se i fabbisogni ci sono, le ore dei docenti devono coincidere. Il sostegno si modifica solo dalla classe; il docente non può stare in due classi nello stesso slot. Il sostegno compare nelle viste e nei PDF («S. Cognome», «S. classe»). Realizzato **S5** (§8.2, distribuzione del sostegno). Non realizzati S1–S3.
 
 ### 5.7 IRC e attività alternativa
 
@@ -216,6 +225,8 @@ Vincoli dell'assegnazione:
 - cattedra "per sezione" (es. Lettere 1A-2A-3A) come preferenza configurabile;
 - Lettere: un docente tipicamente copre Ita+Sto+Geo in una classe (10h) + approfondimento in un'altra = 18h; il sistema deve supportare la **composizione di cattedre** su più classi;
 - stesso docente per sotto-discipline accorpate (Mat+Sci), vincolo configurabile.
+
+> **Implementazione.** Cattedre manuali (anche in blocco dalla scheda della classe e con CSV); la proposta automatica non è realizzata. Per le assenze lunghe una pagina passa le cattedre del titolare ai supplenti e le riporta al rientro (§5.5). Il docente CLIL in compresenza è un campo della cattedra.
 
 Output: **matrice cattedre** (righe docenti, colonne classi, celle = disciplina/ore) con evidenza di ore scoperte e docenti sotto/sovra-utilizzati.
 
@@ -261,11 +272,13 @@ Minimizzare la somma pesata delle violazioni dei vincoli soft. Metriche mostrate
 - n. desiderata rispettati;
 - **punteggio complessivo** e dettaglio violazioni.
 
+> **Implementazione.** Il punteggio è la somma pesata delle penalità dei vincoli preferenziali (0 = tutti rispettati). Il generatore calcola le penalità per vincolo, ma oggi il dettaglio non viene salvato né mostrato (solo il totale): vedi le idee in §8.4.
+
 ### 7.5 Componente randomica
 
 - Ogni generazione usa un **seed** registrato → risultati riproducibili.
 - "Rigenera" produce una soluzione diversa con nuovo seed.
-- Possibilità di generare **N varianti** e confrontarle per punteggio.
+- Possibilità di generare **N varianti** e confrontarle per punteggio. *Realizzato:* il seed si sceglie da un elenco (casuale oppure uno già usato, con il nome dell'orario che l'ha prodotto); le varianti multiple e il confronto restano in Fase 4.
 - Casualità usata per: ordine delle lezioni a parità di priorità, scelta tra slot equivalenti, perturbazioni nella fase di ottimizzazione.
 
 ### 7.6 Strategia algoritmica
@@ -280,11 +293,15 @@ Minimizzare la somma pesata delle violazioni dei vincoli soft. Metriche mostrate
 
 Integrazione con Laravel: un job in coda lancia uno script Python (Symfony Process), gli passa il problema in JSON e legge la soluzione in JSON. Non serve un microservizio separato.
 
+> **Implementazione — ricerca.** Con vincoli preferenziali la ricerca avviene **in due fasi**: prima una soluzione senza obiettivo (al massimo il 40 % del tempo), poi la minimizzazione delle penalità partendo da quella soluzione. Il seed vale per entrambe.
+
 Requisiti comuni a ogni opzione:
 - esecuzione **asincrona** (job in coda) con avanzamento, time limit configurabile e annullamento;
 - **generazione parziale**: rigenerare solo alcune classi/giorni mantenendo il resto bloccato;
 - **diagnostica di infattibilità**: se non esiste soluzione, indicare i vincoli in conflitto (es. "docente Rossi: 20h assegnate ma solo 18 slot disponibili"; "IRC: 15 classi in 12 slot disponibili del docente");
 - **pre-validazione** prima della generazione (controlli di capacità, vedi §7.7).
+
+> **Implementazione — diagnostica.** Se l'esito è *infattibile* per i vincoli, il generatore cerca da solo, togliendoli uno alla volta, il sottoinsieme minimo di vincoli **rigidi** in conflitto (restringendo l'elenco dei docenti o delle classi coinvolti) e la pagina della generazione li elenca con il link per correggerli; se è impossibile anche senza vincoli, lo dice. I controlli prima di generare e i messaggi del generatore diventano righe con link alla pagina giusta. Le generazioni concluse senza un orario si possono eliminare.
 
 ### 7.7 Pre-validazione (prima del solving)
 
@@ -294,9 +311,9 @@ Requisiti comuni a ogni opzione:
 - vincoli contraddittori (es. "Italiano blocchi da 2" con 5 ore → impossibile senza un blocco da 1: segnalare o richiedere pattern esplicito);
 - gruppi interclasse con classi a quadri orari incompatibili.
 
-> **Implementazione.** Controlli realizzati: ore delle cattedre = ore del quadro e **numero di slot attivi = ore del quadro**, ore del docente ≤ slot disponibili, capacità delle aule per tipo, D1 incompatibile con le ore della cattedra, copertura del sostegno (ore e docente unico). Ogni problema ha un link alla pagina dove correggerlo ed è mostrato nella dashboard («Sei pronto a generare?») oltre che come diagnostica di una generazione infattibile. Gruppi interclasse non realizzati.
+> **Implementazione.** Controlli realizzati: ore delle cattedre = ore del quadro e **numero di slot attivi = ore del quadro** (al netto della mensa), ore del docente ≤ slot disponibili, capacità delle aule per tipo, D1 incompatibile con le ore della cattedra, copertura del sostegno (ore e docente unico), docenti sospesi con cattedre da riassegnare e rientri da chiudere. Ogni problema ha un link alla pagina dove correggerlo ed è mostrato nella dashboard («Sei pronto a generare?») oltre che come diagnostica di una generazione infattibile. Gli **avvisi** non bloccanti («Da controllare») segnalano mensa e sostegno incoerenti. Gruppi interclasse non realizzati.
 
-> **Implementazione — esecuzione.** La generazione è un job in coda con tempo limite (10–900 s) e seed registrato; stati `in_coda`, `in_corso`, `completata`, `infattibile`, `fallita` (l'annullamento da interfaccia non c'è ancora). Un esito «timeout» senza soluzione è trattato come infattibile. Il punteggio è la somma delle penalità dei vincoli preferenziali violati (0 = tutti rispettati). Il worker si avvia e si ferma dall'interfaccia (arresto graceful) e parte da solo con «Avvia generazione».
+> **Implementazione — esecuzione.** La generazione è un job in coda con tempo limite (10–900 s), seed e nome dell'orario facoltativo; stati `in_coda`, `in_corso`, `completata`, `infattibile`, `fallita` (l'annullamento da interfaccia non c'è ancora). Un esito «timeout» senza soluzione è trattato come infattibile. Ogni sede ha le proprie generazioni e i propri orari. Il worker si avvia e si ferma dall'interfaccia (arresto graceful) e parte da solo con «Avvia generazione». Esiste anche un **prompt per l'AI** (pagina dedicata): riepilogo testuale dei dati della sede e delle regole, da copiare o scaricare.
 
 ---
 
@@ -326,6 +343,8 @@ Requisiti comuni a ogni opzione:
 | D9 | Max discipline "pesanti" al giorno | elenco discipline, max | Max 2 tra Mat/Ita/Ing nelle ultime ore |
 | D10 | Stessa disciplina non ultima ora più di N volte | disciplina, N | |
 | D11 | Parallelo tra classi | disciplina, classi | 2ª lingua in parallelo 3A-3B (gruppi) |
+| D12 | Blocco consecutivo massimo | discipline (facoltative per il docente), max ore consecutive | Matematica mai più di 1 ora di fila *(aggiunto)* |
+| D13 | Disciplina seguita da un'altra | discipline di partenza, discipline che seguono, modo segue/non segue, n. minimo coppie | Dopo Motoria sempre Italiano, mai Matematica *(aggiunto)* |
 
 **Docente (ambito: docente o globale)**
 
@@ -341,6 +360,8 @@ Requisiti comuni a ogni opzione:
 | T8 | Ora di ricevimento | n. ore, fascia | 1h ricevimento in orario mattutino (non didattica) |
 | T9 | Ore a disposizione distribuite | min per giorno | Almeno 1 ora a disposizione ogni giorno di servizio |
 | T10 | Spostamento sede | min slot liberi tra sedi | 1 slot tra plesso A e plesso B |
+| T11 | Ore minime in certe ore | n. ore, slot | Almeno 2 ore nel pomeriggio *(aggiunto)* |
+| T12 | Ore di chi sorveglia la mensa | modo (prima / dopo / prima o dopo / a cavallo), n. ore | Chi sorveglia la mensa ha almeno un'ora prima o dopo, nel giorno di sorveglianza *(aggiunto)* |
 
 **Classe (ambito: classe)**
 
@@ -360,6 +381,7 @@ Requisiti comuni a ogni opzione:
 | S2 | Discipline escluse | Non in Motoria |
 | S3 | Distribuzione minima | Su almeno 4 giorni |
 | S4 | Docente unico per alunno | Le ore di 1B-S1 tutte a un solo docente |
+| S5 | Distribuzione del sostegno | Al massimo 1 docente di sostegno per classe e ora; ore distribuite nella settimana *(aggiunto)* |
 
 **Aule/risorse**
 
@@ -376,7 +398,7 @@ Requisiti comuni a ogni opzione:
 | F1 | Lezione fissata in uno slot (bloccata) |
 | F2 | Slot vietato per una classe |
 
-> **Implementazione.** Realizzati D1 (conteggia i *giorni* con almeno un blocco, non i blocchi), D3, D6 (*preferita* = la disciplina va solo negli slot indicati, ogni lezione fuori conta come violazione), T2 e T3; l'indisponibilità (T1) è una funzione dell'anagrafica docente. **C5** (spostamenti tra piani) è realizzato: aule e classi hanno un *piano* facoltativo (0 = terra); il piano di una lezione è quello dell'aula assegnata, altrimenti quello della classe, e le lezioni senza piano non contano; per ogni classe e per ogni coppia di ore consecutive dello stesso giorno si penalizza (preferenziale, peso) o si vieta (rigido) il salto di piani oltre una soglia (parametro `soglia`, default 0). Ambiti consentiti: D1 globale, classe o docente (per i docenti la disciplina è facoltativa: senza, il blocco conta su tutte le lezioni del docente), D3/D6 globale o classe; C5 globale o classe; T2/T3 globale o docente. Gli altri vincoli del catalogo non sono realizzati.
+> **Implementazione.** Realizzati: **D1** (conta i *giorni* con almeno un blocco, non i blocchi), **D3**, **D6** (*preferita* = solo negli slot indicati, ogni lezione fuori conta come violazione), **D12** (con ambito docente e disciplina facoltativa coincide con T5), **D13**, **T2**, **T3**, **T4** (per ogni docente il minimo si riduce da solo se ha meno ore dei giorni utili), **T11**, **T12** (usa le assistenze alle pause marcate «mensa», che il programma passa al generatore; vale solo nei giorni di sorveglianza; lezioni e sostegno contano), **S5** e **C5** (aule e classi hanno un *piano* facoltativo; per ogni coppia di ore consecutive si penalizza o si vieta il salto di piani oltre una soglia). L'indisponibilità (T1) è una funzione dell'anagrafica docente. D1, D3, D6, D12 e D13 hanno un elenco di discipline (la regola vale per ciascuna). Ambiti: D3, D6, D13, S5, C5 globale o classe; D1 e D12 anche docente; T2, T3, T4, T12 globale o docente; T11 solo docente. Gli altri vincoli del catalogo non sono realizzati.
 
 ### 8.3 Rappresentazione (esempio JSON)
 
@@ -412,7 +434,7 @@ Requisiti comuni a ogni opzione:
 - Indicatore di impatto: dopo la generazione, per ogni vincolo soft → rispettato / violato (n. volte).
 - **Rilassamento guidato** in caso di infattibilità: il sistema propone quali vincoli rendere soft.
 
-> **Implementazione.** Elenco filtrabile per tipo; form di creazione/modifica in modale con campi che dipendono da tipo, ambito e severità (disabilitati con spiegazione quando non applicabili, parametri obbligatori marcati) ed esempi d'uso nella guida in-app. Non realizzati: anteprima in linguaggio naturale, indicatore di impatto per vincolo soft (le violazioni non vengono salvate) e rilassamento guidato.
+> **Implementazione.** Elenco filtrabile per tipo; form di creazione/modifica in modale con campi che dipendono da tipo, ambito e severità (disabilitati con spiegazione quando non applicabili, parametri obbligatori marcati), etichette in linguaggio comune e almeno un esempio d'uso per ogni tipo nella guida in-app. La descrizione in linguaggio naturale compare nell'elenco. Non realizzati: indicatore di impatto per vincolo (le penalità per vincolo sono calcolate dal generatore ma non salvate; si potrebbe mostrare «vincolo X: n punti», e in seguito il dettaglio per docente/classe) e rilassamento guidato (resta la diagnosi dei vincoli in conflitto).
 
 ---
 
@@ -426,7 +448,7 @@ Requisiti comuni a ogni opzione:
 - **Blocco** di lezioni/giorni/classi prima di rigenerare il resto.
 - Undo/redo, storico modifiche con autore.
 
-> **Implementazione.** Griglia drag&drop per classe (modificabile) e vista docente in sola lettura; scambio di lezioni; blocco/sblocco; cambio di docente e/o materia di una lezione (select con ricerca); **annulla e ripeti su più livelli** (spostamenti, scambi, cambi di docente/materia e blocchi, con scorciatoie da tastiera; cronologia separata dall'audit log); esiti in un pannello di avvisi persistente (errore = operazione rifiutata, avviso = applicata da controllare); audit log delle modifiche. Le griglie mostrano solo fino all'ultima ora usata. **Controllo dell'orario** in tempo reale (docente in due posti, indisponibilità, doppioni di classe, slot fuori scansione, capienza aule, ore diverse dal quadro, ore vuote), distinto dal registro degli esiti delle modifiche; slot evidenziati durante il trascinamento (possibile / conflitto / vietato); modalità opzionale **conflitti provvisori** per sistemare scambi che coinvolgono più classi in più passaggi (restano segnalati finché non risolti). Non realizzati: vista editabile con più classi insieme, blocco dell'invio in revisione in presenza di errori. Il trascinamento è disponibile in **tutte le viste con i riquadri** (griglia della classe, vista docente, vista aula, tabellone per classe e per aula), con la stessa barra di strumenti (conflitti provvisori, annulla/ripeti) e lo stesso registro degli esiti.
+> **Implementazione.** Griglia drag&drop per classe, vista docente, vista aula e tabelloni (per classe, aula e docente) in bozza; scambio di lezioni; blocco/sblocco; **pannello «modifica quest'ora»** (✎ sul riquadro: cattedra, aula, docente CLIL, docenti di sostegno); **annulla e ripeti su più livelli** (con scorciatoie da tastiera; cronologia separata dall'audit log); esiti in un pannello di avvisi persistente. **Controllo dell'orario** in tempo reale (docente in due posti, indisponibilità, doppioni di classe, slot fuori scansione, aule oltre capienza o di tipo sbagliato, ore diverse dal quadro, sostegno), distinto dal registro degli esiti; slot evidenziati durante il trascinamento; modalità **conflitti provvisori** per sistemare scambi in più passaggi. Un solo modulo gestisce il trascinamento in tutte le viste con riquadri. Non realizzati: vista editabile con più classi insieme, blocco dell'invio in revisione in presenza di errori.
 
 ### 9.2 Stati
 
@@ -435,7 +457,7 @@ Requisiti comuni a ogni opzione:
 - Più **versioni** per anno scolastico; una sola pubblicata per periodo di validità.
 - **Confronto tra versioni** (diff per classe/docente) per comunicare le variazioni.
 
-> **Implementazione.** Ogni orario generato nasce in `bozza`; il ciclo è realizzato con pulsanti nella pagina Orari: *Invia in revisione* (referente orario), *Approva*, *Pubblica*, *Archivia* e *Riporta in bozza* (amministratore e dirigente scolastico, gate `approva-orari`), con una sola versione pubblicata per periodo (la precedente passa in archivio). Solo la bozza è modificabile; gli altri stati sono in sola lettura ed eliminabili solo se in bozza o archiviati. **Duplica** crea una nuova bozza (versione successiva) con lezioni e compresenze dell'orario di partenza, per provare varianti. Cambi di stato e duplicazioni vanno nell'audit log. Non sono realizzati il confronto (diff) tra versioni e l'orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata, impronta dei dati): oggi eliminare un docente o una classe elimina a cascata le lezioni anche degli orari approvati o pubblicati. Ogni orario ha un **nome** facoltativo (dato alla generazione, alla duplicazione o con «Rinomina»; senza nome «Orario vN»): i **cambi temporanei** si gestiscono duplicando l'orario di base e pubblicando la copia; non sono realizzate le date di validità di un orario né il ritorno automatico a quello di base.
+> **Implementazione.** Ogni orario generato nasce in `bozza`; il ciclo è realizzato con pulsanti nella pagina Orari: *Invia in revisione* (referente orario), *Approva*, *Pubblica*, *Archivia* e *Riporta in bozza* (amministratore e dirigente scolastico, gate `approva-orari`), con una sola versione pubblicata per periodo (la precedente passa in archivio). Solo la bozza è modificabile; gli altri stati sono in sola lettura ed eliminabili solo se in bozza o archiviati. **Duplica** crea una nuova bozza (versione successiva) con lezioni e compresenze dell'orario di partenza, per provare varianti. Cambi di stato e duplicazioni vanno nell'audit log. Non sono realizzati il confronto (diff) tra versioni e l'orario come *snapshot* indipendente dai censimenti (copia di classe, docente, disciplina, aula e slot su ogni lezione, FK non a cascata, impronta dei dati): oggi eliminare un docente o una classe elimina a cascata le lezioni anche degli orari approvati o pubblicati. **Sostituzioni dentro un orario** (senza rigenerare né toccare le cattedre): da «Sostituisci un docente» si sceglie assente, supplente, giorni e quali ore (titolare, CLIL, sostegno) su una copia o sulla bozza; le ore in cui il supplente non è libero restano all'assente e finiscono negli avvisi; si può cambiare il sostituto di una singola ora dal pannello. «Rientro» ripubblica l'orario originale. Un orario archiviato si può ripubblicare. Ogni orario ha un **nome** facoltativo (dato alla generazione, alla duplicazione o con «Rinomina»; senza nome «Orario vN»): i **cambi temporanei** si gestiscono duplicando l'orario di base e pubblicando la copia; non sono realizzate le date di validità di un orario né il ritorno automatico a quello di base.
 
 ---
 
@@ -469,6 +491,8 @@ Ordine adottato di default, modificabile dalla scuola in configurazione:
 
 Criteri di equità: contatore sostituzioni per docente (mensile/annuale), rotazione.
 
+> **Implementazione.** Realizzato solo ciò che serve alle assenze lunghe e ai cambi temporanei: sospensioni con supplenti (§5.5) e sostituzioni in massa dentro una copia dell'orario (§9.2). Non realizzati: assenze per singolo giorno o slot, proposta automatica, priorità del §10.2, contatori di equità, saldo permessi brevi, foglio giornaliero (Fase 2).
+
 ### 10.3 Funzionalità
 
 - **Proposta automatica** delle sostituzioni del giorno con motivazione (livello di priorità usato).
@@ -495,35 +519,35 @@ Export: **PDF** (stampa per bacheca, per classe e per docente) ed **Excel**. Nes
 
 Import: anagrafiche docenti/classi da CSV/Excel (evitare l'inserimento manuale).
 
-> **Implementazione.** Esporta/importa **CSV** (non Excel) per sedi, aule, discipline, docenti, classi, cattedre, scansione oraria e quadri orari, con i riferimenti ad altre liste per nome o codice (portabili da un'installazione all'altra). L'import crea soltanto: le righe già presenti vengono saltate, quelle con errori segnalate con il numero di riga; la scansione oraria invece sostituisce gli orari di tutte le ore, tutto o niente, e i quadri orari entrano per intero o per niente. Vincoli e sostegno non si importano.
+> **Implementazione — dati.** Esporta/importa **CSV** (non Excel) per sedi, aule, discipline, docenti, classi, cattedre, scansione oraria, quadri orari e le liste legate ai docenti (indisponibilità, sospensioni, assistenza alle pause, laboratori, impostazioni), con riferimenti per nome o codice. L'import crea soltanto (righe già presenti saltate, errori per riga); scansione e quadri hanno un import proprio. Vincoli e sostegno restano fuori dai CSV. Pagina **Dati**: **backup ZIP** dell'intera installazione (un JSON per tabella, esclusi utenti e registro) con ripristino in due passi (carica e controlla, scegli le tabelle, conferma) e controllo dei riferimenti.
 
-> **Implementazione.** Viste: orario classe, orario docente, dashboard con il carico dei docenti. Export **PDF**: griglia per classe (A4 orizzontale, titolo centrato), **PDF di tutte le classi con un foglio per classe**, griglia per docente e **PDF di tutti i docenti con un foglio per docente** (A4 orizzontale, ore di sostegno in compresenza come «S classe»), **tabellone generale su un solo foglio A3** (classi in riga, colonne per giorno tutte della stessa larghezza, sigle delle materie e cognomi troncati con «…», docenti di sostegno visibili, legenda delle sigle); le ore senza lezioni non compaiono. **Orario per aula** (vista e PDF, un foglio per aula; l'aula è scritta in ogni lezione delle griglie e dei PDF per classe e docente quando non è l'aula base, sempre in DADA). **Tabellone a schermo** per classe o per aula con un colore per disciplina, indicatore dei cambi d'aula e modifica trascinando tra aule e ore (cambio aula nella stessa ora, spostamento su un'altra ora); PDF del tabellone anche per aula. Non realizzati: disponibilità per slot, statistiche, export Excel (Fase 4). Import CSV per docenti e classi.
+> **Implementazione — viste ed export.** Viste: orario di classe, docente e aula, **tabellone** a schermo per classe, aula o docente (colori per disciplina, indicatore dei cambi d'aula, pause e mensa), dashboard con carico dei docenti, pagina Mensa e Laboratori. Export **PDF** (A3 orizzontale per le griglie, una pagina per elemento): classe, docente, aula, anche tutti insieme in un file; tabellone generale per classe o aula. Nei PDF compaiono orari delle ore, pause (nome, orario, durata, aula con piano, sorveglianti), sostegno, CLIL e sostituzioni («per X»); con 2+ sedi il titolo riporta la sede. Non realizzati: disponibilità per slot, statistiche, export Excel (Fase 4).
 
 ---
 
 ## 12. Requisiti non funzionali
 
 - **Web responsive** (consultazione da smartphone per i docenti; editing da desktop).
-- **Una sola scuola** per installazione.
+- **Una sola scuola** per installazione, con più sedi.
 - **GDPR**: nessun dato anagrafico degli alunni; il sostegno usa codici anonimi e ore. Restano i dati personali dei docenti (anagrafica, assenze): log accessi e ruoli stretti.
 - **Autenticazione**: solo account locali (utenti e ruoli nel database dell'applicazione).
 - **Prestazioni**: scuola tipo 15–30 classi, 40–70 docenti; generazione completa entro 1–5 minuti con time limit configurabile.
 - **Audit log** di tutte le modifiche a orario, vincoli e sostituzioni.
 
-> **Implementazione.** L'audit log copre creazione, modifica ed eliminazione di sedi, aule, discipline, quadri orari (e righe), docenti, classi, cattedre, sostegno, vincoli e utenze (trait `Auditable`, valori prima/dopo, password mascherate, nome leggibile conservato dopo l'eliminazione), le generazioni (richiesta, stato e orario prodotto), i cambi di stato, le duplicazioni, la scansione oraria e le modifiche manuali alla griglia con annullamenti e ripristini. Pagina **Registro attività** in sola lettura (DS e amministratore) con filtri per elemento, azione, utente, periodo e nome. Non registrati: i `sync()` di relazioni a casella (sedi e indisponibilità del docente, slot attivi delle classi) e il caricamento della scuola di esempio. Le sostituzioni (Fase 2) non esistono ancora.
+> **Implementazione.** L'audit log copre creazione, modifica ed eliminazione di sedi, aule, discipline, quadri orari (e righe), docenti, classi, cattedre, sostegno, vincoli, utenze, laboratori, sospensioni e assistenze, le generazioni, i cambi di stato, le duplicazioni, le sostituzioni, la scansione oraria e le modifiche manuali alla griglia con annullamenti e ripristini (valori prima/dopo, password mascherate, nome leggibile conservato). Pagina **Registro attività** in sola lettura con filtri per elemento, azione, utente, periodo e nome; non si modifica né si cancella dall'app. Non registrati: i `sync()` di relazioni a casella e il caricamento della scuola di esempio.
 - Accessibilità WCAG 2.1 AA per le viste pubbliche.
 
-> **Implementazione.** Interfaccia responsive con sidebar (barra orizzontale su schermi stretti), notifiche come toast, **guida in-app** (pulsante Aiuto / F1) in un unico file Markdown, con apertura sulla pagina corrente, ricerca e contenuti filtrati per ruolo. L'**audit log** oggi copre le modifiche all'orario fatte dall'editor e l'eliminazione degli orari: vincoli, utenze e anagrafiche non sono ancora registrati. Distribuzione con Docker Compose (vedi §14).
+> **Implementazione.** Interfaccia responsive con sidebar (barra orizzontale su schermi stretti), notifiche come toast, pulsante schermo intero, **guida in-app** (pulsante Aiuto / F1) in un unico file Markdown con apertura sulla pagina corrente, ricerca, glossario e contenuti filtrati per ruolo. Un avviso segnala quando esiste una versione più recente (unica chiamata verso l'esterno, disattivabile). Distribuzione con Docker Compose e avviatori a doppio clic per Windows e Mac (vedi §14).
 
 ---
 
 ## 13. Modello dati (sintesi entità)
 
 ```
-Impostazioni(durata_ora, conteggio_sostegno_default, priorita_sostituzioni json)
+Impostazioni(sede_id, conteggio_sostegno)
 AnnoScolastico(id, inizio, fine)
 Periodo(id, anno_id, nome, inizio, fine)                 -- provvisorio/definitivo
-Sede(id, nome) ; TempoSpostamento(sede_a, sede_b, minuti)
+Sede(id, nome) ; TempoSpostamento(sede_a, sede_b, minuti)            -- non realizzato (un docente = una sede)
 Slot(id, giorno, ordine, inizio, fine, tipo)            -- griglia unica di istituto
 Intervallo(id, giorno, dopo_slot_ordine, inizio, fine)
 Aula(id, sede_id, tipo, capacita)
@@ -549,7 +573,7 @@ AuditLog(...)
 
 > **Implementazione.** `Impostazioni` è per sede e contiene solo `conteggio_sostegno` (pagina **Impostazioni**, modificabile da chi gestisce l'anagrafica, con audit). La durata dell'ora non è un'impostazione (si ricava dalla scansione oraria) e le priorità delle sostituzioni non sono realizzate (Fase 2).
 
-> **Implementazione — differenze e aggiunte.** `Slot` non ha il campo `tipo` (le ore 7ª–9ª sono pomeridiane per convenzione) e non esiste `Intervallo` (l'intervallo è un flag `intervallo_dopo` dello slot); `Classe` ↔ `Slot` tramite `classe_slot` (slot attivi); indisponibilità docenti in `docente_indisponibilita`; `FabbisognoSostegno` ha anche `docente_unico`; `CompresenzaSostegno(orario_id, docente_id, classe_id, slot_id, codice_anonimo)` per le compresenze pianificate; `AvvisoOrario(orario_id, tipo, messaggio)` per il pannello avvisi; `User(ruolo, docente_id)` per gli accessi. `Gruppo`, `Assenza`, `Sostituzione` e `SaldoRecupero` non sono ancora realizzati.
+> **Implementazione — differenze e aggiunte.** `Slot` non ha il campo `tipo` e non esiste `Intervallo`: le pause sono colonne dello slot (`ricreazione_minuti`, `ricreazione_nome`, `ricreazione_mensa`, aula, minuti conteggiati, pausa prima della prima ora); `sede_id` su docenti, discipline, quadri, vincoli, orari, generazioni, slot, impostazioni e laboratori (classi e aule l'avevano già; le tabelle figlie risalgono alla sede dal genitore). Aggiunte: `Classe` ↔ `Slot` in `classe_slot`; indisponibilità in `docente_indisponibilita`; `Sospensione` con supplenti; `AssistenzaPausa` (+ classi sorvegliate); `Laboratorio` (+ docenti, classi, slot); `Cattedra.docente_clil_id/ore_clil`; `FabbisognoSostegno.docente_unico`; `CompresenzaSostegno`; `Lezione.con_clil` e campi dei sostituti; `Orario.nome/origine_id`; `Generazione.nome`; `AvvisoOrario`; `ModificaOrario` (cronologia annulla/ripeti); `User(ruolo, docente_id, ultima_sede_id)`. `Gruppo`, `Assenza`, `Sostituzione` e `SaldoRecupero` non sono ancora realizzati.
 
 ---
 
@@ -569,7 +593,7 @@ AuditLog(...)
 
 Requisiti del server: PHP, MariaDB, Python 3 con il pacchetto `ortools`, un worker delle code sempre attivo.
 
-> **Implementazione.** Laravel 13, MariaDB, Blade e JavaScript vanilla (moduli ES con Vite e Tailwind), nessun framework JS. Il worker di coda è un processo figlio avviato e fermato dall'applicazione (`QueueWorker`, PID file; arresto con `queue:restart`). **Docker Compose**: servizio `app` (FrankenPHP: PHP + web server, assets compilati, solver Python in un ambiente virtuale) e servizio `db` (MariaDB 11), volumi per database e storage, scuola di esempio al primo avvio, worker avviato al boot.
+> **Implementazione.** Laravel 13, MariaDB, Blade e JavaScript vanilla (moduli ES con Vite e Tailwind). Il worker di coda è un processo figlio avviato e fermato dall'applicazione (`QueueWorker`). **Docker Compose**: servizio `app` (FrankenPHP: PHP + web server, assets compilati, solver Python in un ambiente virtuale) e servizio `db` (MariaDB 11), volumi per database e storage, scuola di esempio al primo avvio, worker avviato al boot. Per chi non è sviluppatore, avviatori a doppio clic (Windows `.bat`, Mac `.app`) con Avvia, Aggiorna e Ferma. La versione è nel file `VERSION` e l'amministratore è avvisato quando su GitHub ce n'è una più recente. Il contratto tra PHP e solver è un JSON (`ProblemBuilder` → `solver.py` → `ResultImporter`).
 
 ---
 
@@ -578,12 +602,12 @@ Requisiti del server: PHP, MariaDB, Python 3 con il pacchetto `ortools`, un work
 | Fase | Contenuto |
 |---|---|
 | **MVP** | Anagrafiche + import CSV, scansione oraria di istituto, quadri orari, cattedre manuali e proposta automatica, vincoli H1–H10 + catalogo D/T essenziale (D1, D3, D6, T1, T2, T3), generazione con seed, editor griglia, export PDF |
-| **Anticipato** | Su richiesta esplicita, fuori fase: sostegno (fabbisogni, assegnazioni, compresenze, S4), DADA, utenze e ruoli, dashboard operativa, guida in-app, gestione del worker da interfaccia, Docker Compose |
+| **Anticipato** | Su richiesta esplicita, fuori fase: sostegno (fabbisogni, assegnazioni, compresenze, S4, S5), DADA, utenze e ruoli, dashboard operativa, guida in-app, gestione del worker, Docker Compose, **multi-sede**, mensa e assistenza alle pause, CLIL, laboratori pomeridiani, sospensioni con supplenti, sostituzioni dentro un orario, stati e duplicazione degli orari, tabelloni, backup ZIP, prompt per l'AI, vincoli D12, D13, T4, T11, T12, S5, C5 |
 | **Fase 2** | Assenze e sostituzioni con proposta automatica, recupero permessi, versioni e diff |
-| **Fase 3** | Gruppi interclasse (2ª lingua, alternativa IRC, LEL, strumento), sostegno con vincoli S1–S4, multi-sede e indisponibilità COE |
+| **Fase 3** | Gruppi interclasse (2ª lingua, alternativa IRC, LEL, strumento), sostegno con vincoli S1–S3, indisponibilità COE |
 | **Fase 4** | Generazione varianti multiple e confronto, rilassamento guidato |
 
-> **Implementazione.** L'MVP è completo. Il «sostegno con vincoli S1–S4» della Fase 3 è realizzato solo per S4 (docente unico) più compresenze e conteggio; S1–S3, gruppi interclasse e indisponibilità COE sulle altre scuole restano in Fase 3.
+> **Implementazione.** L'MVP è completo. Delle voci della Fase 3 sono già fatti multi-sede e, del sostegno, S4 e S5; restano gruppi interclasse, S1–S3 e COE. Della Fase 2 esistono sospensioni con supplenti e sostituzioni in massa dentro un orario; restano assenze per singolo giorno, proposta automatica e recupero permessi.
 
 ---
 
@@ -611,7 +635,7 @@ Requisiti del server: PHP, MariaDB, Python 3 con il pacchetto `ortools`, un work
 | Alunni | Non censiti: n. totale per classe, partecipanti per gruppo, sostegno con codici anonimi e ore |
 | Sostegno | Ore per alunno coperte anche da più docenti, salvo vincolo |
 | Solver | OR-Tools CP-SAT in locale |
-| Tenant | Una sola scuola |
+| Tenant | Una sola scuola (istituto) per installazione, con più sedi: ogni sede ha i propri dati e orari |
 | Cattedre | Assegnazione manuale e proposta automatica |
 | Export | PDF ed Excel |
 | COE | Solo indisponibilità |
@@ -634,3 +658,11 @@ Requisiti del server: PHP, MariaDB, Python 3 con il pacchetto `ortools`, un work
 | Distribuzione | Docker Compose con FrankenPHP e MariaDB; scuola di esempio al primo avvio |
 | Stati dell'orario | Bozza → in revisione → approvato → pubblicato → archiviato; modificabile solo la bozza; approva e pubblica il DS (e l'amministratore); una sola versione pubblicata per periodo; duplicazione come nuova bozza |
 | Orario come snapshot | Valutata e rimandata (vedi §9.2) |
+| Sedi | Un docente = una sede; niente tempi di spostamento (H8) perché nessun docente lavora in due sedi; sede corrente scelta in alto |
+| Mensa | Pausa marcata «mensa» + ore di mensa nel quadro; classi in mensa ricavate dai rientri; sorveglianti come assistenze alle pause (anagrafica), non assegnati dal generatore; T12 ne regola le ore attorno alla mensa |
+| Assistenza alle pause | Contano nel monte ore (60 minuti conteggiati = 1 ora); i laboratori pomeridiani no |
+| CLIL | Docente in compresenza su alcune ore di una cattedra; secondo docente delle lezioni |
+| Sostituzioni | Per ora solo assenze lunghe (sospensioni con supplenti) e sostituzioni in massa dentro una copia dell'orario; il generatore non ne sa nulla |
+| Punteggio | Somma pesata delle penalità preferenziali; dettaglio per vincolo calcolato ma non ancora mostrato |
+| Generazioni | Eliminabili quelle concluse senza orario; quelle con un orario restano come storico |
+| Backup | ZIP «Dati» dell'intera installazione (senza utenti e registro) e CSV per le liste piatte; ogni nuovo dato entra in entrambi |

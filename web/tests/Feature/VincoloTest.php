@@ -57,7 +57,24 @@ class VincoloTest extends TestCase
         Vincolo::factory()->create(['tipo' => 'T3_MAX_ORE_BUCHE', 'ambito_livello' => 'globale', 'parametri' => ['max_per_giorno' => 1]]);
 
         $this->actingAs($this->referente())->get('/vincoli')->assertOk()
-            ->assertSee('Disciplina</th>', false)->assertSee('Arte e immagine')->assertSee('Tutte');
+            ->assertSee('Discipline: ', false)->assertSee('Arte e immagine')->assertSee('Tutte');
+    }
+
+    public function test_l_elenco_a_card_raggruppa_per_tipo_con_ambito_e_severita_e_l_interruttore_cambia_l_attivo(): void
+    {
+        $docenti = \App\Models\Docente::factory()->count(4)->create();
+        $v = Vincolo::factory()->create(['tipo' => 'T4_ORE_GIORNO', 'ambito_livello' => 'docente', 'ambito_ids' => $docenti->pluck('id')->all(), 'severita' => 'preferenziale', 'peso' => 40, 'parametri' => ['min_ore' => 2], 'attivo' => true]);
+        Vincolo::factory()->create(['tipo' => 'T3_MAX_ORE_BUCHE', 'ambito_livello' => 'globale', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['max_per_giorno' => 1]]);
+        $utente = $this->actingAs($this->referente());
+
+        $utente->get('/vincoli')->assertOk()->assertSee('Preferenziale · peso 40')->assertSee('Rigido')->assertSee('Tutta la sede')
+            ->assertSee('Docenti: '.$docenti[0]->nomeCompleto(), false)->assertSee('(+1)', false)
+            ->assertSee('Ore minime/massime al giorno (T4)', false)->assertSee(route('vincoli.attiva', $v), false);
+
+        $utente->patchJson(route('vincoli.attiva', $v), ['attivo' => false])->assertOk()->assertJson(['attivo' => false]);
+        $this->assertFalse($v->fresh()->attivo);
+        $this->assertDatabaseHas('audit_log', ['entita' => 'Vincolo', 'entita_id' => $v->id, 'azione' => 'modifica']);
+        $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->patchJson(route('vincoli.attiva', $v), ['attivo' => true])->assertForbidden();
     }
 
     public function test_d1_rifiuta_min_consecutive_sotto_la_soglia(): void

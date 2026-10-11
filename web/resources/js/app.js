@@ -21,4 +21,5 @@ import './info.js';
 import './copia-testo.js';
 import './conta-slot.js';
 import './mensa.js';
+import './vincolo-attivo.js';
 import './schermo-intero.js';

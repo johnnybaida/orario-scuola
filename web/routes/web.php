@@ -102,6 +102,7 @@ Route::middleware(['auth', 'sede'])->group(function () use ($parametriRisorse) {
         Route::resource('quadri-orari', QuadroOrarioController::class)->parameters($parametriRisorse['quadri-orari'])->only(['store', 'update', 'destroy']);
         Route::resource('cattedre', CattedraController::class)->parameters($parametriRisorse['cattedre'])->only(['store', 'update', 'destroy']);
         Route::resource('vincoli', VincoloController::class)->parameters($parametriRisorse['vincoli'])->only(['store', 'update', 'destroy']);
+        Route::patch('/vincoli/{vincolo}/attivo', [VincoloController::class, 'attiva'])->name('vincoli.attiva');
         Route::resource('laboratori', \App\Http\Controllers\LaboratorioController::class)->parameters($parametriRisorse['laboratori'])->only(['store', 'update', 'destroy']);
         Route::put('/mensa', [\App\Http\Controllers\MensaController::class, 'update'])->name('mensa.update');
 

@@ -22,8 +22,16 @@ class VincoloController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        // Le card sono raggruppate per tipo (nell'ordine del catalogo); i nomi di docenti e classi si risolvono una volta sola.
+        $nomi = [
+            'docente' => Docente::query()->orderBy('cognome')->orderBy('nome')->get()->mapWithKeys(fn ($d) => [$d->id => $d->nomeCompleto()]),
+            'classe' => Classe::query()->orderBy('anno_corso')->orderBy('sezione')->get()->mapWithKeys(fn ($c) => [$c->id => $c->nomeCompleto()]),
+        ];
+        $gruppi = $vincoli->groupBy('tipo')->sortKeysUsing(fn ($a, $b) => array_search($a, array_keys(Catalogo::TIPI)) <=> array_search($b, array_keys(Catalogo::TIPI)));
+
         return view('vincoli.index', [
-            'vincoli' => $vincoli,
+            'gruppi' => $gruppi,
+            'nomi' => $nomi,
             'etichette' => Catalogo::etichette(),
             'discipline' => Disciplina::query()->pluck('nome', 'id'),
             'filtroTipo' => $request->string('tipo')->toString(),
@@ -52,6 +60,14 @@ class VincoloController extends Controller
         $vincolo->update($this->datiPuliti($request));
 
         return redirect()->route('vincoli.index')->with('successo', 'Vincolo aggiornato.');
+    }
+
+    /** Interruttore attivo/disattivo della card (con audit, dal trait del modello). */
+    public function attiva(Request $request, Vincolo $vincolo): \Illuminate\Http\JsonResponse
+    {
+        $vincolo->update(['attivo' => $request->boolean('attivo')]);
+
+        return response()->json(['attivo' => $vincolo->attivo]);
     }
 
     public function destroy(Vincolo $vincolo): RedirectResponse

@@ -380,7 +380,7 @@ class AnagraficheTest extends TestCase
     {
         $admin = $this->actingAs(User::factory()->create(['ruolo' => 'amministratore']));
 
-        foreach (['/sedi', '/aule', '/discipline', '/quadri-orari', '/docenti', '/classi', '/cattedre', '/vincoli', '/generazioni', '/utenze'] as $pagina) {
+        foreach (['/sedi', '/aule', '/discipline', '/quadri-orari', '/docenti', '/classi', '/cattedre', '/generazioni', '/utenze'] as $pagina) {
             $risposta = $admin->get($pagina)->assertOk();
             $html = $risposta->getContent();
             // La barra della tabella compare dopo il titolo e prima della tabella, con il pulsante "Nuovo" dentro.

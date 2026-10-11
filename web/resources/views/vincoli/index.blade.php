@@ -32,44 +32,59 @@
 
     <x-barra-selezione tabella="vincoli" />
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-left">
-                <tr>
-                    @can('gestisci-anagrafica')<th class="px-4 py-2 w-8"><input type="checkbox" class="js-sel-tutti" aria-label="Seleziona tutti"></th>@endcan
-                    <th class="px-4 py-2">Tipo</th>
-                    <th class="px-4 py-2">Ambito</th>
-                    <th class="px-4 py-2">Disciplina</th>
-                    <th class="px-4 py-2">Severità</th>
-                    <th class="px-4 py-2">Peso</th>
-                    <th class="px-4 py-2">Attivo</th>
-                    <th class="px-4 py-2"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
+    @can('gestisci-anagrafica')
+        <label class="mb-3 inline-flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" class="js-sel-tutti"> Seleziona tutti</label>
+    @endcan
+
+    @forelse ($gruppi as $tipo => $vincoli)
+        <section class="mb-8">
+            <h2 class="mb-3 text-base font-semibold text-gray-800">{{ $etichette[$tipo] ?? $tipo }} <span class="text-sm font-normal text-gray-500">({{ $vincoli->count() }})</span></h2>
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach ($vincoli as $vincolo)
-                    <tr>
-                        @can('gestisci-anagrafica')<td class="px-4 py-2"><input type="checkbox" class="js-sel" value="{{ route('vincoli.destroy', $vincolo) }}" aria-label="Seleziona"></td>@endcan
-                        <td class="px-4 py-2">{{ $etichette[$vincolo->tipo] ?? $vincolo->tipo }}</td>
-                        <td class="px-4 py-2">{{ $vincolo->ambito_livello }}</td>
-                        <td class="px-4 py-2">
-                            @if (! in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'], true))
-                                <span class="text-gray-400">—</span>
-                            @else
-                                {{ collect(\App\Constraints\DisciplineVincolo::ids($vincolo->parametri ?? []))->map(fn ($id) => $discipline[$id] ?? '?')->implode(', ') ?: 'Tutte' }}
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">{{ $vincolo->severita }}</td>
-                        <td class="px-4 py-2">{{ $vincolo->peso }}</td>
-                        <td class="px-4 py-2">{{ $vincolo->attivo ? 'Sì' : 'No' }}</td>
-                        <td class="px-4 py-2 text-right space-x-2">
+                    @php
+                        $livello = $vincolo->ambito_livello;
+                        $elenco = collect($vincolo->ambito_ids ?? [])->map(fn ($id) => $nomi[$livello][$id] ?? null)->filter()->values();
+                        $ambito = match (true) {
+                            $livello === 'globale' => 'Tutta la sede',
+                            $elenco->isEmpty() => ucfirst($livello).': nessuno scelto',
+                            default => ($livello === 'docente' ? 'Docenti' : 'Classi').': '.$elenco->take(3)->implode(', ').($elenco->count() > 3 ? ' (+'.($elenco->count() - 3).')' : ''),
+                        };
+                        $nomiDiscipline = in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'], true)
+                            ? (collect(\App\Constraints\DisciplineVincolo::ids($vincolo->parametri ?? []))->map(fn ($id) => $discipline[$id] ?? '?')->implode(', ') ?: 'Tutte')
+                            : null;
+                        try { $descrizione = \App\Constraints\Catalogo::istanza($vincolo->tipo)->descrizione($vincolo->parametri ?? []); } catch (\Throwable) { $descrizione = ''; }
+                    @endphp
+                    <article data-vincolo class="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-4 text-sm {{ $vincolo->attivo ? '' : 'opacity-60' }}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                @can('gestisci-anagrafica')<input type="checkbox" class="js-sel" value="{{ route('vincoli.destroy', $vincolo) }}" aria-label="Seleziona">@endcan
+                                <span class="rounded px-2 py-0.5 text-xs font-medium {{ $vincolo->severita === 'rigido' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' }}">
+                                    {{ $vincolo->severita === 'rigido' ? 'Rigido' : 'Preferenziale · peso '.$vincolo->peso }}
+                                </span>
+                            </div>
                             @can('gestisci-anagrafica')
-                                <a data-modale href="{{ route('vincoli.edit', $vincolo) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a>
+                                <label class="relative inline-flex cursor-pointer items-center" title="Attivo">
+                                    <input type="checkbox" class="peer sr-only js-vincolo-attivo" data-url="{{ route('vincoli.attiva', $vincolo) }}" @checked($vincolo->attivo) aria-label="Vincolo attivo">
+                                    <span class="h-5 w-9 rounded-full bg-gray-300 transition peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
+                                </label>
+                            @else
+                                <span class="text-xs text-gray-500">{{ $vincolo->attivo ? 'Attivo' : 'Disattivato' }}</span>
                             @endcan
-                        </td>
-                    </tr>
+                        </div>
+                        @if ($descrizione)<p class="text-gray-800">{{ $descrizione }}</p>@endif
+                        <dl class="space-y-0.5 text-gray-600">
+                            <div title="{{ $elenco->implode(', ') }}"><dt class="inline text-gray-400">Ambito: </dt><dd class="inline">{{ $ambito }}</dd></div>
+                            @if ($nomiDiscipline !== null)<div><dt class="inline text-gray-400">Discipline: </dt><dd class="inline">{{ $nomiDiscipline }}</dd></div>@endif
+                            @if ($vincolo->nota)<div><dt class="inline text-gray-400">Nota: </dt><dd class="inline">{{ $vincolo->nota }}</dd></div>@endif
+                        </dl>
+                        @can('gestisci-anagrafica')
+                            <div class="mt-auto pt-1 text-right"><a data-modale href="{{ route('vincoli.edit', $vincolo) }}" class="text-gray-600 hover:text-gray-900 underline">Modifica</a></div>
+                        @endcan
+                    </article>
                 @endforeach
-            </tbody>
-        </table>
-    </div>
+            </div>
+        </section>
+    @empty
+        <p class="text-sm text-gray-500">Nessun vincolo.</p>
+    @endforelse
 @endsection
