@@ -52,7 +52,7 @@ Per ogni pagina trovi anche una breve guida in alto. Le voci del menu e i pulsan
 - **Scansione oraria:** una riga per ora (colonne `ora`, `inizio`, `fine`, `ricreazione_minuti` e, facoltative, `nome_pausa`, `pausa_prima_minuti`, `pausa_prima_nome`, `conteggio_pausa`, `pausa_prima_conteggio`, `aula_pausa`, `pausa_prima_aula`); l'import **sostituisce** orari e ricreazioni di tutte le ore (il file deve averle tutte; se c'è un errore non cambia nulla).
 - **Quadri orari:** una riga per disciplina del quadro (con il codice della disciplina); l'import crea solo i quadri nuovi, ciascuno per intero o per niente, e le ore totali si ricalcolano dalle righe.
 - **Classi:** `slot_attivi` elenca le ore con giorno e numero (`LUN.1|LUN.2|…`); se la colonna è vuota la classe parte con le ore del mattino.
-- **Indisponibilità, sospensioni, assistenza alle pause:** una riga per ora, sospensione o pausa sorvegliata, con il docente scritto come cognome e nome già inseriti; giorni `LUN…SAB` o `1…6`; date `2026-10-01` o `01/10/2026`; i supplenti sono «Cognome Nome» separati da `|`.
+- **Indisponibilità, sospensioni, assistenza alle pause:** una riga per ora, sospensione o pausa sorvegliata, con il docente scritto come cognome e nome già censiti; giorni `LUN…SAB` o `1…6`; date `2026-10-01` o `01/10/2026`; i supplenti sono «Cognome Nome» separati da `|`.
 - **Laboratori:** docenti (`Cognome Nome|…`), classi (`1A|2B`) e ore del pomeriggio (`LUN.7|MAR.7`) in un'unica riga.
 - **Impostazioni:** una riga sola con il conteggio del sostegno; è l'unica lista che **aggiorna** il valore invece di saltarlo.
 - **Non si importano:** vincoli e sostegno (fabbisogni e assegnazioni). Per portare **tutto** da un'installazione all'altra, compresi vincoli, sostegno, orari e generazioni, usa il backup completo in **Dati** (ZIP), che contiene ogni tabella tranne le utenze e il registro attività.
@@ -129,7 +129,7 @@ Il catalogo delle materie insegnate.
 - **Codice**: la sigla breve e unica (es. ITA, MAT). È quella che compare nel tabellone PDF. Per una **seconda lingua straniera** usa FRA, SPA o TED (oppure scrivi «seconda lingua» nel nome): sono i codici con cui l'aula DADA delle lingue viene riconosciuta.
 - **Nome**: es. Italiano, Matematica.
 - **Classe di concorso**: il codice di abilitazione dei docenti che la insegnano (es. A022). Serve a proporre le classi di concorso nella scheda del docente; è un dato informativo.
-- **Aula richiesta**: l'elenco contiene i tipi di aula già inseriti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
+- **Aula richiesta**: l'elenco contiene i tipi di aula già censiti. "Aula della classe" significa nessuna aula speciale: la lezione si svolge dove sta la classe. Se scegli un tipo (es. palestra), le lezioni di quella disciplina occupano un'aula di quel tipo, nei limiti della sua capienza.
 - **Altre aule ammesse**: facoltativo, tipi di aula in più in cui la disciplina può svolgersi (per esempio l'aula DADA condivisa con altre discipline). Il generatore sceglie l'aula libera tra tutti i tipi indicati. Di solito si compila da solo quando spunti la disciplina in un'aula DADA.
 - **Sotto-disciplina di**: collega materie insegnate dallo stesso docente (es. Storia e Geografia sotto Italiano). È solo informativo.
 
@@ -188,7 +188,7 @@ Nella pagina del docente puoi anche:
 
 - impostare le **indisponibilità**: la griglia degli slot in cui il docente non può avere lezione (part-time, servizio in altre scuole, permessi). Il generatore e l'editor le rispettano sempre;
 - registrare le **sospensioni e assenze lunghe** (sospensione dal servizio, malattia lunga, congedo o aspettativa): per ognuna scrivi **dal** e, se la conosci, **al** (vuoto = fino a nuova comunicazione), il motivo e una nota. Nell'elenco dei docenti chi è sospeso oggi ha l'etichetta **Sospeso**;
-- gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa giallo se non coincide.
+- gestire le **cattedre**: aggiungi o togli righe e guarda il totale "assegnate / dovute", che diventa ambra se non coincide.
 
 **Come funziona la sospensione.** Spuntando **Escludi dall'orario** (è già spuntato di norma), finché la sospensione è in corso il docente **non può avere cattedre**: i controlli prima di generare lo segnalano con un link alla sua scheda e **la generazione non parte** finché non riassegni le sue cattedre a un **supplente** (un altro docente, per esempio con contratto *Supplenza breve*) dalla pagina **Cattedre** o dalla scheda del docente, oppure non chiudi la sospensione. Togli la spunta per un'assenza **breve** che non deve cambiare l'orario base: in quel caso viene solo registrata. Sospensioni già finite o non ancora iniziate non bloccano nulla. La proposta automatica dei sostituti per i giorni di assenza arriverà con la gestione di assenze e sostituzioni.
 
@@ -339,7 +339,7 @@ Crea, modifica ed elimina i laboratori dall'elenco, come le altre anagrafiche. I
 
 Si apre dal **menu del profilo** (le tue iniziali, in alto a destra). Le impostazioni valgono per la **sede in cui stai lavorando**: ogni sede ha le sue. Per ora ce n'è una sola.
 
-- **Conteggio predefinito delle ore di sostegno**: *per alunno* (ogni ora di un docente di sostegno vale per un solo alunno) oppure *per classe* (un docente di sostegno segue più alunni della classe insieme e l'ora vale per ciascuno). Vale per tutte le classi che non scelgono un conteggio proprio: nella scheda di una classe, sezione *Sostegno*, il campo **Conteggio ore** mostra «Valore della sede» e il valore attuale.
+- **Conteggio predefinito delle ore di sostegno**: *per alunno* (ogni ora di un docente di sostegno vale per un solo alunno) oppure *per classe* (un docente di sostegno segue più alunni della classe insieme e l'ora vale per ciascuno). Vale per tutte le classi che non scelgono un conteggio proprio: nella scheda di una classe, sezione *Sostegno*, il campo **Conteggio ore** mostra «Default della sede» e il valore attuale.
 
 <!-- permesso: gestisci-anagrafica -->
 Modifica e salva con il pulsante in basso a destra. Amministratore e referente orario; gli altri la vedono in sola lettura. Con più sedi, cambia sede dal menu in alto per modificare le impostazioni di un'altra.
@@ -354,7 +354,7 @@ I vincoli sono regole aggiuntive per la generazione, oltre a quelle di sistema s
 
 - **Tipo**: quale regola applicare (vedi sotto). I campi mostrati cambiano col tipo.
 - **Ambito**: a chi si applica. *Globale* = tutte le classi/tutti i docenti; *Classe* o *Docente* = solo quelli scelti. Le classi si scelgono solo con Ambito = Classe, i docenti solo con Ambito = Docente. Il vincolo più specifico prevale su quello globale. Non tutti gli ambiti valgono per ogni tipo: **D3, D6, D13, S5 e C5** si applicano a *Globale* o *Classe*; **D1 e D12** anche a *Docente*; **T2, T3 e T4** a *Globale* o *Docente*; **T11** solo a *Docente*. Nell'elenco dei docenti, accanto a ogni nome c'è tra parentesi il **numero di ore assegnate** (cattedre, sostegno, CLIL e assistenza alle pause), utile per scegliere i limiti (per esempio chi ha più di 20 ore non può stare in 4 ore al giorno).
-- **Severità**: *Rigido* va rispettato sempre (se non è possibile, la generazione non trova nessun orario e risulta *Infattibile*); *Preferenziale* viene rispettato quando possibile.
+- **Severità**: *Rigido* va rispettato sempre (se non è possibile l'orario risulta infattibile); *Preferenziale* viene rispettato quando possibile.
 - **Peso** (1–100): solo per i preferenziali. Più è alto, più il generatore cerca di evitare di violarlo. Si attiva solo con Severità = Preferenziale.
 - **Attivo**: se tolto (e salvato), il vincolo resta in elenco ma **non viene considerato** nelle generazioni: comodo per provare un orario senza una regola e riattivarla dopo. La colonna **Attivo** dell'elenco dice «Sì» o «No».
 - **Nota**: promemoria libero.
@@ -365,17 +365,17 @@ Nell'elenco dei vincoli la colonna **Disciplina** mostra le discipline scelte (D
 
 Tipi disponibili:
 
-- **Blocco consecutivo minimo (D1)**: una disciplina (o, con Ambito *Docente*, le lezioni dei docenti scelti) in blocchi di almeno N ore consecutive. Campi: discipline (facoltative **solo con Ambito Docente**: senza nessuna disciplina contano tutte le lezioni del docente, in qualunque classe e materia), *min ore consecutive* (2–6), *n. blocchi minimi* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
-- **Blocco consecutivo massimo (D12)**: il contrario di D1, un **tetto alle ore di fila** nello stesso giorno (le pause non interrompono la fila). Per una disciplina in ogni classe (Ambito *Globale* o *Classe*), oppure, con Ambito *Docente*, per le lezioni dei docenti scelti: lasciando «Qualsiasi disciplina» è il **massimo di ore consecutive** di un docente. Campi: discipline (facoltative solo con Ambito Docente) e *max ore consecutive* (1 = mai due ore di seguito). Rigido: il limite non si supera mai; preferenziale: ogni fila che lo supera paga una penalità (più lunga è la fila, più paga).
+- **Blocco consecutivo minimo (D1)**: una disciplina (o, con Ambito *Docente*, le lezioni dei docenti scelti) in blocchi di almeno N ore consecutive. Campi: discipline (facoltative **solo con Ambito Docente**: senza nessuna disciplina contano tutte le lezioni del docente, in qualunque classe e materia), *Ore di fila (almeno)* (2–6), *In quanti giorni (almeno)* (1–5): in quanti **giorni diversi** della settimana deve esserci almeno un blocco.
+- **Blocco consecutivo massimo (D12)**: il contrario di D1, un **tetto alle ore di fila** nello stesso giorno (le pause non interrompono la fila). Per una disciplina in ogni classe (Ambito *Globale* o *Classe*), oppure, con Ambito *Docente*, per le lezioni dei docenti scelti: lasciando «Qualsiasi disciplina» è il **massimo di ore consecutive** di un docente. Campi: discipline (facoltative solo con Ambito Docente) e *Ore di fila (al massimo)* (1 = mai due ore di seguito). Rigido: il limite non si supera mai; preferenziale: ogni fila che lo supera paga una penalità (più lunga è la fila, più paga).
 - **Ore minime/massime al giorno (T4)**: per i docenti scelti (Ambito *Docente*) o per **tutti** (Ambito *Globale*), un minimo e/o un massimo di ore al giorno. Con **Ore minime = 1** ogni docente viene **tutti i giorni**. Contano lezioni e sostegno. **Le indisponibilità e le assenze si rispettano sempre**: un giorno in cui il docente non può esserci non conta. Con la severità *Rigido*, se un docente ha meno ore della settimana che giorni in cui può venire, il minimo si riduce da solo (per esempio 3 ore in 5 giorni: almeno 0 al giorno); con *Preferenziale* il generatore distribuisce le sue ore sul maggior numero di giorni possibile. Il massimo rigido rende la generazione infattibile se le ore della settimana superano il tetto per i giorni disponibili.
-- **Disciplina seguita da un'altra (D13)**: per due discipline, la prima deve (o non deve) essere **seguita subito dopo** dalla seconda, nello stesso giorno (le pause non interrompono la sequenza). Ambito *Globale* o *Classe*. Campi: **Regola** (*Deve essere seguita da* / *NON deve essere seguita da*), **Disciplina di partenza**, **Disciplina che segue** (una o più, spunta quelle che servono) e **Almeno quante coppie nella settimana** (facoltativo, solo per «Deve essere seguita»). Per distinguere, per esempio, la **Geografia con il docente CLIL** da quella **senza**, accanto a ciascuna disciplina scegli *Tutte le lezioni*, *Solo le lezioni con CLIL* o *Solo le lezioni senza CLIL*; con «NON deve essere seguita da» puoi spuntare anche **Vale anche nell'ordine inverso** (così non si hanno mai di seguito Geografia e Geografia con CLIL, in nessun ordine). Con il campo vuoto la regola vale **ogni volta** che c'è una lezione della prima: se le ore della prima sono più di quelle della seconda (per esempio 5 di Italiano e 2 di Storia) è impossibile rispettarla sempre, quindi usa la severità *Preferenziale* oppure indica il numero minimo di coppie.
-- **Ore minime in una fascia (T11)**: i docenti scelti (Ambito *Docente*) devono fare **almeno N ore tra gli slot che selezioni** (una riga per giorno, con **Tutte** per l'intera giornata): per esempio «Rossi almeno 1 ora il mercoledì mattina». Contano le ore di lezione in qualunque classe e anche quelle di sostegno. Con la severità *Preferenziale* ogni ora mancante è una penalità; con il *Rigido* la generazione fallisce se il docente non può esserci (indisponibilità).
-- **Distribuzione del sostegno (S5)**: evita che il sostegno si concentri. Ambito *Globale* o *Classe*. Due limiti, da compilare uno o entrambi: **Max docenti di sostegno insieme** (quanti docenti di sostegno al massimo nella stessa classe nella stessa ora, di solito 1) e **Tolleranza giornaliera** (le ore di sostegno della classe si distribuiscono sui giorni: ogni giorno può averne al massimo la media più questa tolleranza; i giorni in cui nessun docente può esserci per le indisponibilità non contano). Consiglio la severità *Preferenziale*: con il *Rigido* la generazione diventa infattibile se le ore di sostegno assegnate non stanno nelle ore libere dei docenti.
-- **Max ore/giorno per disciplina (D3)**: limite di ore al giorno della stessa disciplina **in ciascuna classe** (per esempio Matematica al massimo 2 ore al giorno nella 1ª A). **Non limita le ore di un docente su più classi**: un docente che insegna la stessa materia in sei classi può comunque fare sei ore di fila, una per classe. Per limitare un **docente** usa *Ore minime/massime al giorno (T4)* (ore totali al giorno) o *Blocco consecutivo massimo (D12)* con Ambito *Docente* (ore di fila). Campi: discipline, *max ore/giorno*.
-- **Fascia oraria vietata/preferita (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: discipline, *tipo fascia* (vietata/preferita), gli *slot* interessati: una riga per giorno con le sue ore da spuntare, e **Tutte** per scegliere l'intera giornata.
-- **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *n. giorni liberi richiesti* (1–3), *giorno preferito* facoltativo.
-- **Spostamenti tra piani (C5)**: riduce i cambi di piano di una classe tra due ore consecutive (utile con la didattica DADA, dove sono gli alunni a spostarsi). Ambito *globale* o *classe*. Campo: *piani di differenza senza penalità* (0 = ogni cambio di piano pesa). Il piano di una lezione è quello dell'aula in cui si svolge, o della classe se non ha un'aula; le aule e le classi **senza piano** non contano.
-- **Max ore buche (T3)**: limite alle *buche* (ore vuote tra due lezioni dello stesso docente nello stesso giorno). Campi: *max buche/giorno*, *max buche/settimana*.
+- **Una disciplina subito dopo un'altra (D13)**: per due discipline, la prima deve (o non deve) essere **seguita subito dopo** dalla seconda, nello stesso giorno (le pause non interrompono la sequenza). Ambito *Globale* o *Classe*. Campi: **Regola** (*Deve essere seguita da* / *Non deve essere seguita da*), **Prima disciplina**, **Disciplina dell'ora dopo** (una o più, spunta quelle che servono) e **Quante volte alla settimana (almeno)** (facoltativo, solo per «Deve essere seguita»). Per distinguere, per esempio, la **Geografia con il docente CLIL** da quella **senza**, accanto a ciascuna disciplina scegli *Tutte le lezioni*, *Solo le lezioni con CLIL* o *Solo le lezioni senza CLIL*; con «Non deve essere seguita da» puoi spuntare anche **Vale anche nell'ordine inverso** (così non si hanno mai di seguito Geografia e Geografia con CLIL, in nessun ordine). Con il campo vuoto la regola vale **ogni volta** che c'è una lezione della prima: se le ore della prima sono più di quelle della seconda (per esempio 5 di Italiano e 2 di Storia) è impossibile rispettarla sempre, quindi usa la severità *Preferenziale* oppure indica il numero minimo di coppie.
+- **Ore minime di un docente in certe ore (T11)**: i docenti scelti (Ambito *Docente*) devono fare **almeno N ore tra le ore della settimana che spunti** (una riga per giorno, con **Tutte** per l'intera giornata): per esempio «Rossi almeno 1 ora il mercoledì mattina». Contano le ore di lezione in qualunque classe e anche quelle di sostegno. Con la severità *Preferenziale* ogni ora mancante è una penalità; con la severità *Rigido* la generazione è impossibile se il docente non può esserci in quelle ore (indisponibilità).
+- **Distribuzione del sostegno (S5)**: evita che il sostegno si concentri. Ambito *Globale* o *Classe*. Due limiti, da compilare uno o entrambi: **Docenti di sostegno insieme (al massimo)** (quanti docenti di sostegno al massimo nella stessa classe nella stessa ora, di solito 1) e **Tolleranza giornaliera** (le ore di sostegno della classe si distribuiscono sui giorni: ogni giorno può averne al massimo la media più questa tolleranza; i giorni in cui nessun docente può esserci per le indisponibilità non contano). Consiglio la severità *Preferenziale*: con il *Rigido* la generazione diventa infattibile se le ore di sostegno assegnate non stanno nelle ore libere dei docenti.
+- **Ore al giorno di una disciplina, al massimo (D3)**: limite di ore al giorno della stessa disciplina **in ciascuna classe** (per esempio Matematica al massimo 2 ore al giorno nella 1ª A). **Non limita le ore di un docente su più classi**: un docente che insegna la stessa materia in sei classi può comunque fare sei ore di fila, una per classe. Per limitare un **docente** usa *Ore minime/massime al giorno (T4)* (ore totali al giorno) o *Blocco consecutivo massimo (D12)* con Ambito *Docente* (ore di fila). Campi: discipline, *max ore/giorno*.
+- **Ore vietate o preferite per una disciplina (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: discipline, *Queste ore sono* (vietate/preferite) e le ore della settimana interessate: una riga per giorno con le sue ore da spuntare, e **Tutte** per scegliere l'intera giornata.
+- **Giorno libero (T2)**: un docente ha uno o più giorni liberi. Campi: *Giorni liberi* (1–3), *Giorno libero preferito* facoltativo.
+- **Spostamenti tra piani (C5)**: riduce i cambi di piano di una classe tra due ore consecutive (utile con la didattica DADA, dove sono gli alunni a spostarsi). Ambito *globale* o *classe*. Campo: *Piani che si possono salire o scendere senza penalità* (0 = ogni cambio di piano è penalizzato). Il piano di una lezione è quello dell'aula in cui si svolge, o della classe se non ha un'aula; le aule e le classi **senza piano** non contano.
+- **Ore buche dei docenti, al massimo (T3)**: limite alle *buche* (ore vuote tra due lezioni dello stesso docente nello stesso giorno). Campi: *Ore buche al giorno (al massimo)*, *Ore buche alla settimana (al massimo)*.
 
 <!-- permesso: gestisci-anagrafica -->
 ### Esempi di utilizzo
@@ -391,8 +391,8 @@ Ogni esempio è una tabella con i campi del form **Nuovo vincolo** e il valore d
 | Tipo | Blocco consecutivo minimo (D1) |
 | Ambito | Globale |
 | Disciplina | Arte e immagine |
-| Min ore consecutive | 2 |
-| N. blocchi minimi | 1 |
+| Ore di fila (almeno) | 2 |
+| In quanti giorni (almeno) | 1 |
 | Severità | Preferenziale |
 | Peso | 50 |
 
@@ -406,11 +406,11 @@ In ogni classe il generatore cerca di avere almeno un giorno con due ore di Arte
 | Ambito | Classe |
 | Classi | 2ª B |
 | Disciplina | Scienze |
-| Min ore consecutive | 2 |
-| N. blocchi minimi | 1 |
+| Ore di fila (almeno) | 2 |
+| In quanti giorni (almeno) | 1 |
 | Severità | Rigido |
 
-Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione non trova nessun orario (stato *Infattibile*).
+Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossibile la generazione risulta infattibile.
 
 *Alcuni docenti con almeno un blocco di due ore di fila, di qualunque materia.*
 
@@ -420,8 +420,8 @@ Per la 2ª B le Scienze devono avere almeno un blocco da due ore; se è impossib
 | Ambito | Docente |
 | Docenti | i docenti interessati (anche più d'uno) |
 | Disciplina | Qualsiasi disciplina |
-| Min ore consecutive | 2 |
-| N. blocchi minimi | 1 |
+| Ore di fila (almeno) | 2 |
+| In quanti giorni (almeno) | 1 |
 | Severità | Rigido |
 
 Per ciascun docente scelto, in almeno un giorno della settimana ci sono due sue lezioni consecutive, anche in classi o materie diverse. Se indichi una disciplina contano solo le sue lezioni di quella disciplina.
@@ -435,7 +435,7 @@ Per ciascun docente scelto, in almeno un giorno della settimana ci sono due sue 
 | Tipo | Blocco consecutivo massimo (D12) |
 | Ambito | Globale |
 | Disciplina | Matematica |
-| Max ore consecutive | 1 |
+| Ore di fila (al massimo) | 1 |
 | Severità | Rigido |
 
 Le ore di Matematica di una classe cadono in giorni diversi o separate da almeno un'altra ora.
@@ -448,7 +448,7 @@ Le ore di Matematica di una classe cadono in giorni diversi o separate da almeno
 | Ambito | Docente |
 | Docenti | tutti quelli che servono (selezionali) |
 | Disciplina | Qualsiasi disciplina |
-| Max ore consecutive | 4 |
+| Ore di fila (al massimo) | 4 |
 | Severità | Preferenziale |
 | Peso | 40 |
 
@@ -468,30 +468,56 @@ Il generatore cerca di non dare a quei docenti più di quattro ore di fila; se n
 
 Il generatore distribuisce le ore di ogni docente sul maggior numero di giorni possibile. I giorni in cui un docente è indisponibile non contano, e un docente con meno ore dei giorni a disposizione non rende impossibile nulla (con la severità Preferenziale).
 
-**Ore minime in una fascia (T11)**
+*Nessun docente più di 5 ore in un giorno, e almeno 2 negli altri.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore minime/massime al giorno (T4) |
+| Ambito | Globale |
+| Ore minime al giorno | 2 |
+| Ore massime al giorno | 5 |
+| Severità | Rigido |
+
+Con il Rigido il tetto di 5 ore non si può mai superare, mentre il minimo si abbassa da solo per chi ha poche ore. Se la generazione risulta impossibile, la pagina della generazione indica quali vincoli sono in conflitto: di solito basta passare il minimo a *Preferenziale* o escludere i docenti con tante ore (per esempio scegliendo l'Ambito *Docente* per chi ha più di 20 ore).
+
+**Ore minime di un docente in certe ore (T11)**
 
 *Il prof. Rossi fa almeno un'ora il mercoledì mattina.*
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Ore minime in una fascia (T11) |
+| Tipo | Ore minime di un docente in certe ore (T11) |
 | Ambito | Docente |
 | Docenti | Rossi |
-| Ore minime negli slot | 1 |
+| Ore nelle fasce scelte (almeno) | 1 |
 | Slot | mercoledì 1ª–3ª (con «Tutte» spunti l'intero giorno) |
 | Severità | Rigido |
 
-**Disciplina seguita da un'altra (D13)**
+*Chi ha il sostegno è presente almeno 2 ore nel pomeriggio, se possibile.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Ore minime di un docente in certe ore (T11) |
+| Ambito | Docente |
+| Docenti | i docenti di sostegno scelti |
+| Ore nelle fasce scelte (almeno) | 2 |
+| Slot | 7ª–9ª di lunedì e mercoledì |
+| Severità | Preferenziale |
+| Peso | 30 |
+
+Ogni ora che manca ai 2 richiesti costa una penalità: il generatore ci arriva quando può, senza rendere impossibile l'orario. Contano anche le ore di sostegno in compresenza.
+
+**Una disciplina subito dopo un'altra (D13)**
 
 *Mai Geografia senza CLIL e Geografia con CLIL di seguito, in nessun ordine.*
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Disciplina seguita da un'altra (D13) |
+| Tipo | Una disciplina subito dopo un'altra (D13) |
 | Ambito | Globale |
-| Regola | NON deve essere seguita da |
-| Disciplina di partenza | Geografia, «Solo le lezioni senza CLIL» |
-| Disciplina che segue | Geografia, «Solo le lezioni con CLIL» |
+| Regola | Non deve essere seguita da |
+| Prima disciplina | Geografia, «Solo le lezioni senza CLIL» |
+| Disciplina dell'ora dopo | Geografia, «Solo le lezioni con CLIL» |
 | Vale anche nell'ordine inverso | spuntato |
 | Severità | Preferenziale |
 | Peso | 50 |
@@ -500,10 +526,10 @@ Il generatore distribuisce le ore di ogni docente sul maggior numero di giorni p
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Disciplina seguita da un'altra (D13) |
+| Tipo | Una disciplina subito dopo un'altra (D13) |
 | Regola | Deve essere seguita da |
-| Disciplina di partenza / che segue | Italiano / Storia |
-| Almeno quante coppie nella settimana | 2 |
+| Prima disciplina / Disciplina dell'ora dopo | Italiano / Storia |
+| Quante volte alla settimana (almeno) | 2 |
 | Severità | Preferenziale |
 
 **Distribuzione del sostegno (S5)**
@@ -514,23 +540,34 @@ Il generatore distribuisce le ore di ogni docente sul maggior numero di giorni p
 | --- | --- |
 | Tipo | Distribuzione del sostegno (S5) |
 | Ambito | Globale |
-| Max docenti di sostegno insieme | 1 |
+| Docenti di sostegno insieme (al massimo) | 1 |
 | Tolleranza giornaliera | 1 |
 | Severità | Preferenziale |
 | Peso | 40 |
 
 Se in una classe le ore di sostegno assegnate superano le ore della settimana, le sovrapposizioni restano inevitabili: il vincolo le riduce al minimo.
 
-**Max ore/giorno per disciplina (D3)**
+*Il sostegno di una classe non si concentra in un solo giorno.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Distribuzione del sostegno (S5) |
+| Ambito | Classe (la 2ª B) |
+| Tolleranza giornaliera | 0 |
+| Severità | Rigido |
+
+Con 10 ore di sostegno in 5 giorni la classe ne ha al massimo 2 al giorno. Lasciando vuoto «Docenti di sostegno insieme (al massimo)» si limita solo la distribuzione, non quanti docenti ci sono insieme.
+
+**Ore al giorno di una disciplina, al massimo (D3)**
 
 *Scienze motorie al massimo un'ora al giorno.*
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Max ore/giorno per disciplina (D3) |
+| Tipo | Ore al giorno di una disciplina, al massimo (D3) |
 | Ambito | Globale |
 | Disciplina | Scienze motorie |
-| Max ore/giorno | 1 |
+| Ore al giorno (al massimo) | 1 |
 | Severità | Rigido |
 
 In nessuna classe ci saranno due ore di motoria lo stesso giorno.
@@ -539,25 +576,25 @@ In nessuna classe ci saranno due ore di motoria lo stesso giorno.
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Max ore/giorno per disciplina (D3) |
+| Tipo | Ore al giorno di una disciplina, al massimo (D3) |
 | Ambito | Classe |
 | Classi | 1ª A |
 | Disciplina | Italiano |
-| Max ore/giorno | 2 |
+| Ore al giorno (al massimo) | 2 |
 | Severità | Preferenziale |
 | Peso | 70 |
 
 
-**Fascia oraria vietata o preferita (D6)**
+**Ore vietate o preferite per una disciplina (D6)**
 
 *Matematica mai all'ultima ora.*
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Fascia oraria vietata/preferita (D6) |
+| Tipo | Ore vietate o preferite per una disciplina (D6) |
 | Ambito | Globale |
 | Disciplina | Matematica |
-| Tipo fascia | Vietata |
+| Queste ore sono | Vietata |
 | Slot | 6ª ora di tutti i giorni |
 | Severità | Preferenziale |
 | Peso | 40 |
@@ -568,10 +605,10 @@ Ogni lezione di Matematica messa alla 6ª ora aggiunge una penalità.
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Fascia oraria vietata/preferita (D6) |
+| Tipo | Ore vietate o preferite per una disciplina (D6) |
 | Ambito | Globale |
 | Disciplina | Matematica |
-| Tipo fascia | Preferita |
+| Queste ore sono | Preferita |
 | Slot | 1ª, 2ª e 3ª ora di tutti i giorni |
 | Severità | Preferenziale |
 | Peso | 30 |
@@ -586,8 +623,8 @@ Ogni lezione fuori da quelle ore aggiunge una penalità. Con severità *Rigido* 
 | --- | --- |
 | Tipo | Giorno libero (T2) |
 | Ambito | Globale |
-| N. giorni liberi richiesti | 1 |
-| Giorno preferito (facoltativo) | Venerdì |
+| Giorni liberi | 1 |
+| Giorno libero preferito (facoltativo) | Venerdì |
 | Severità | Preferenziale |
 | Peso | 20 |
 
@@ -600,12 +637,12 @@ Il giorno preferito è solo un piccolo bonus.
 | Tipo | Giorno libero (T2) |
 | Ambito | Docente |
 | Docenti | il docente |
-| N. giorni liberi richiesti | 2 |
+| Giorni liberi | 2 |
 | Severità | Rigido |
 
 Se i giorni liberi sono già decisi (per esempio un part-time verticale con giorni fissi) è meglio segnare le **indisponibilità** del docente: T2 lascia scegliere i giorni al generatore.
 
-**Max ore buche (T3)**
+**Ore buche dei docenti, al massimo (T3)**
 
 Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso giorno.
 
@@ -613,9 +650,9 @@ Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso gio
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Max ore buche (T3) |
+| Tipo | Ore buche dei docenti, al massimo (T3) |
 | Ambito | Globale |
-| Max buche/giorno | 1 |
+| Ore buche al giorno (al massimo) | 1 |
 | Severità | Preferenziale |
 | Peso | 60 |
 
@@ -624,10 +661,10 @@ Una *buca* è un'ora vuota tra due lezioni dello stesso docente nello stesso gio
 
 | Campo | Valore |
 | --- | --- |
-| Tipo | Max ore buche (T3) |
+| Tipo | Ore buche dei docenti, al massimo (T3) |
 | Ambito | Docente |
 | Docenti | la docente |
-| Max buche/settimana | 3 |
+| Ore buche alla settimana (al massimo) | 3 |
 | Severità | Rigido |
 
 Basta compilare uno solo dei due limiti (giorno o settimana).
@@ -642,7 +679,7 @@ Serve a evitare, per esempio, che gli alunni vadano dal piano 1 al piano 3 e poi
 | --- | --- |
 | Tipo | Spostamenti tra piani (C5) |
 | Ambito | Globale |
-| Piani di differenza senza penalità | 0 |
+| Piani che si possono salire o scendere senza penalità | 0 |
 | Severità | Preferenziale |
 | Peso | 30 |
 
@@ -655,7 +692,7 @@ Il generatore sceglie gli orari in modo da ridurre la somma dei piani percorsi.
 | Tipo | Spostamenti tra piani (C5) |
 | Ambito | Classe |
 | Classi | le classi interessate |
-| Piani di differenza senza penalità | 1 |
+| Piani che si possono salire o scendere senza penalità | 1 |
 | Severità | Rigido |
 
 Può rendere impossibile l'orario: se succede, ammorbidiscilo o rendilo preferenziale.
@@ -741,7 +778,7 @@ Da questa pagina puoi inoltre:
 ### Griglia della classe
 
 - La griglia si modifica solo se l'orario è in **bozza**: negli altri stati compare un avviso azzurro e la griglia è in sola lettura.
-- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**. Gli slot si colorano durante il trascinamento per dirti dove si può (verde), dove creerebbe un conflitto (giallo) e dove non è ammesso (rosso).
+- **Trascina** una lezione su un altro slot per spostarla; se lo slot è occupato, le due lezioni si **scambiano**. Gli slot si colorano durante il trascinamento per dirti dove si può (verde), dove creerebbe un conflitto (ambra) e dove non è ammesso (rosso).
 - Il menu dentro la lezione cambia **materia e/o docente** (cerca per materia o per docente).
 - **Blocca/Sblocca**: una lezione bloccata non si sposta, non si scambia e non si modifica.
 - **Annulla** e **Ripeti** (in alto sopra la griglia) tornano indietro e avanti **su più livelli**: spostamenti, scambi, cambi di docente o materia e blocchi/sblocchi. Scorciatoie: **Ctrl/Cmd + Z** per annullare, **Ctrl/Cmd + Maiusc + Z** (o Ctrl + Y) per ripetere. I pulsanti sono grigi quando non c'è nulla da annullare o da ripetere. Dopo una **nuova** modifica le modifiche annullate non si possono più ripetere. Annullamenti e ripristini restano nel **Registro attività**. La cronologia riguarda le modifiche fatte da questa versione in poi e non passa a una copia: un orario duplicato riparte senza cronologia.
@@ -765,7 +802,7 @@ La freccia **→** segna le lezioni in cui la classe **cambia aula** rispetto al
 - su **un'altra aula nella stessa ora**: la lezione cambia aula (solo tra aule dei tipi ammessi dalla materia: una lezione di italiano DADA si sposta tra le aule di italiano e quella condivisa);
 - su **un'altra ora**: la lezione si sposta (come nella griglia della classe, scambiandosi con la lezione che c'era) e prende l'aula della cella, se è libera, altrimenti un'altra aula libera dello stesso tipo.
 
-Mentre trascini, le celle si colorano: **verde** si può, **giallo** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
+Mentre trascini, le celle si colorano: **verde** si può, **ambra** crea un conflitto (aula già occupata, docente occupato: si può fare solo con **Conflitti provvisori** acceso), **rosso** non è ammesso (lezione bloccata, ora fuori scansione, aula di tipo sbagliato). Una materia senza aula speciale può muoversi solo nella riga dell'aula della sua classe. **Annulla** e **Ripeti** valgono anche per i cambi di aula; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima alla pagina.
 <!-- /permesso -->
 
 ### Controllo dell'orario
@@ -815,7 +852,7 @@ Il salvataggio vale come le altre modifiche: finisce nel registro, si può **ann
 
 In ogni vista trovi in alto gli stessi strumenti: **Conflitti provvisori**, **Annulla** e **Ripeti** (e le scorciatoie Ctrl/Cmd+Z e Ctrl/Cmd+Maiusc+Z), che valgono per tutte le modifiche, comunque fatte; gli esiti dei tentativi restano nel **Registro delle modifiche** in cima a ogni vista. Quando due lezioni della stessa classe si trovano a scambiarsi di posto, lo scambio è un'unica modifica.
 
-1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **giallo** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
+1. **Stessa classe, spostare una lezione**: trascinala. Mentre la trascini gli slot si colorano: **verde** = si può fare, **ambra** = crea un conflitto (si può fare solo con i conflitti provvisori, vedi sotto), **rosso** = non ammesso (lezione bloccata, ora fuori scansione, o conflitto con la modalità spenta). Passando col mouse su uno slot vedi il motivo.
 2. **Cambiare docente o materia di una lezione**: scegli un'altra cattedra della **stessa classe** dal menu della lezione.
 3. **Scambi tra classi** (per esempio due docenti che devono scambiarsi le ore, o un docente che deve lasciare una lezione): spesso il primo spostamento crea un conflitto con l'altra classe e va completato lì. Accendi **Conflitti provvisori** (sopra la griglia): le modifiche con conflitti di docente o aula vengono accettate e il conflitto resta **segnalato in rosso nel Controllo**, con il link alla classe da sistemare. Apri quella classe, sposta le sue lezioni e il controllo si svuota da solo quando tutto torna coerente. Spegni l'interruttore a fine lavoro per tornare alla modalità prudente, che rifiuta ogni conflitto.
 4. **Annulla / Ripeti** vale per tutti i passaggi, anche quelli provvisori.

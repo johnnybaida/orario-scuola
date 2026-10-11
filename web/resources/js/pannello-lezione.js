@@ -77,7 +77,7 @@ async function apri(base, lezioneId) {
     });
     form.append(el('p', 'mt-4 text-sm font-medium text-gray-700', 'Docenti di sostegno'));
     selSostegno.forEach((s, i) => form.append(etichetta(`Sostegno ${i + 1}`, s)));
-    if (!dati.candidati_sostegno.length) form.append(el('p', 'text-xs text-gray-500', 'Nessun docente con tipo posto «Sostegno» inserito.'));
+    if (!dati.candidati_sostegno.length) form.append(el('p', 'text-xs text-gray-500', 'Nessun docente con tipo posto «Sostegno» censito.'));
 
     const errore = el('p', 'mt-3 text-sm text-red-700');
     const annulla = el('button', 'rounded border border-gray-300 px-4 py-2 text-sm cursor-pointer', 'Annulla');

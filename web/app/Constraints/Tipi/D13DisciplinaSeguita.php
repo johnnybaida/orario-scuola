@@ -10,7 +10,7 @@ class D13DisciplinaSeguita implements VincoloTipoInterface
 {
     public function etichetta(): string
     {
-        return 'Disciplina seguita da un\'altra (D13)';
+        return 'Una disciplina subito dopo un\'altra (D13)';
     }
 
     public function ambitiConsentiti(): array

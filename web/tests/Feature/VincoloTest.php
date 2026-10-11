@@ -276,7 +276,7 @@ class VincoloTest extends TestCase
         $utente = $this->actingAs($this->referente());
         $base = ['tipo' => 'T11_ORE_IN_FASCIA', 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id], 'severita' => 'rigido'];
 
-        $utente->get('/vincoli/create')->assertOk()->assertSee('T11_ORE_IN_FASCIA', false)->assertSee('Ore minime in una fascia', false);
+        $utente->get('/vincoli/create')->assertOk()->assertSee('T11_ORE_IN_FASCIA', false)->assertSee('Ore minime di un docente in certe ore', false);
         $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 1, 'slot_ids' => [$slot->id]]])->assertSessionHasNoErrors();
         $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 0, 'slot_ids' => [$slot->id]]])->assertSessionHasErrors('parametri.min_ore');
         $utente->post('/vincoli', $base + ['parametri' => ['min_ore' => 1]])->assertSessionHasErrors('parametri.slot_ids');
@@ -296,7 +296,7 @@ class VincoloTest extends TestCase
         $utente = $this->actingAs($this->referente());
         $base = ['tipo' => 'D13_DISCIPLINA_SEGUITA', 'ambito_livello' => 'globale', 'severita' => 'preferenziale', 'peso' => 30];
 
-        $utente->get('/vincoli/create')->assertOk()->assertSee('parametri[seguite_ids][]', false)->assertSee('Disciplina che segue', false);
+        $utente->get('/vincoli/create')->assertOk()->assertSee('parametri[seguite_ids][]', false)->assertSee('Disciplina dell&#039;ora dopo', false);
         $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'segue', 'min_coppie' => '2']])->assertSessionHasNoErrors();
         $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'modo' => 'segue']])->assertSessionHasErrors('parametri.seguite_ids');
         $utente->post('/vincoli', $base + ['parametri' => ['disciplina_ids' => [$ita->id], 'seguite_ids' => [$sto->id], 'modo' => 'boh']])->assertSessionHasErrors('parametri.modo');

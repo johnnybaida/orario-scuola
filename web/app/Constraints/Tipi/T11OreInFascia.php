@@ -9,7 +9,7 @@ class T11OreInFascia implements VincoloTipoInterface
 {
     public function etichetta(): string
     {
-        return 'Ore minime in una fascia (T11)';
+        return 'Ore minime di un docente in certe ore (T11)';
     }
 
     public function ambitiConsentiti(): array

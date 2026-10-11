@@ -22,7 +22,7 @@
 
 <div data-attiva-se="#ambito_livello=classe">
     <label class="block text-sm font-medium text-gray-700 mb-1">Classi
-        <x-info testo="Per scegliere le classi imposta Ambito = Classe." />
+        <x-info testo="Si attiva con Ambito «Classe»." />
     </label>
     <div class="flex flex-wrap gap-3">
         @foreach ($classi as $classe)
@@ -37,7 +37,7 @@
 
 <div data-attiva-se="#ambito_livello=docente">
     <label class="block text-sm font-medium text-gray-700 mb-1">Docenti
-        <x-info testo="Per scegliere i docenti imposta Ambito = Docente." />
+        <x-info testo="Si attiva con Ambito «Docente»." />
     </label>
     <div class="flex flex-wrap gap-3 max-h-32 overflow-y-auto">
         @foreach ($docenti as $docente)
@@ -57,12 +57,14 @@
     @include('vincoli._discipline', ['info' => "Il vincolo vale per ciascuna disciplina scelta. Con Ambito = Docente puoi non sceglierne nessuna: il blocco conta sulle lezioni del docente, in qualunque classe e materia. Con gli altri ambiti serve almeno una disciplina."])
     <div class="grid sm:grid-cols-2 gap-4 mt-2">
         <div>
-            <label class="block text-sm font-medium text-gray-700">Min ore consecutive</label>
+            <label class="block text-sm font-medium text-gray-700">Ore di fila (almeno)</label>
             <input type="number" name="parametri[min_consecutive]" required min="2" max="6" value="{{ $parametri['min_consecutive'] ?? 2 }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700">N. blocchi minimi</label>
+            <label class="block text-sm font-medium text-gray-700">In quanti giorni (almeno)
+                <x-info testo="In quanti giorni diversi della settimana deve esserci almeno un blocco di quelle ore di fila." />
+            </label>
             <input type="number" name="parametri[n_blocchi_min]" min="1" max="5" value="{{ $parametri['n_blocchi_min'] ?? 1 }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>
@@ -71,8 +73,8 @@
 
 <div data-parametri-per="D12_BLOCCO_MAX_CONSECUTIVO">
     @include('vincoli._discipline', ['info' => "Il limite vale per ciascuna disciplina scelta. Con Ambito = Docente puoi non sceglierne nessuna: conta sulle lezioni del docente, in qualunque classe e materia (è il «massimo di ore consecutive» di un docente). Con gli altri ambiti serve almeno una disciplina."])
-    <label class="block text-sm font-medium text-gray-700 mt-2">Max ore consecutive
-        <x-info testo="Quante ore di fila, nello stesso giorno, al massimo (le pause non interrompono la fila). 1 = mai due ore di seguito." />
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore di fila (al massimo)
+        <x-info testo="Quante ore di fila al massimo nello stesso giorno. Una ricreazione non interrompe la fila. 1 = mai due ore di seguito." />
     </label>
     <input type="number" name="parametri[max_consecutive]" required min="1" max="8" value="{{ $parametri['max_consecutive'] ?? 2 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -80,28 +82,28 @@
 
 <div data-parametri-per="S5_DISTRIBUZIONE_SOSTEGNO">
     <p class="text-sm text-gray-500">Vale per i docenti di sostegno assegnati alle classi. Compila uno o entrambi i limiti.</p>
-    <label class="block text-sm font-medium text-gray-700 mt-2">Max docenti di sostegno insieme
+    <label class="block text-sm font-medium text-gray-700 mt-2">Docenti di sostegno insieme (al massimo)
         <x-info testo="Quanti docenti di sostegno al massimo possono essere presenti nella stessa classe nella stessa ora (di solito 1). Vuoto = nessun limite." />
     </label>
     <input type="number" name="parametri[max_insieme]" min="1" max="6" value="{{ $parametri['max_insieme'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <label class="block text-sm font-medium text-gray-700 mt-2">Tolleranza giornaliera (ore)
-        <x-info testo="Distribuisce le ore di sostegno della classe nella settimana: ogni giorno può averne al massimo la media (ore totali / giorni in cui un docente può esserci) più questa tolleranza. Le indisponibilità dei docenti sono già escluse. 0 = distribuzione il più uniforme possibile. Vuoto = nessun limite." />
+        <x-info testo="Serve a spalmare il sostegno sulla settimana. Ogni giorno la classe può avere al massimo la sua media giornaliera di ore di sostegno più questo numero. Esempio: 10 ore in 5 giorni e tolleranza 1 → al massimo 3 ore al giorno. Le indisponibilità dei docenti sono già escluse. 0 = il più uniforme possibile; vuoto = nessun limite." />
     </label>
     <input type="number" name="parametri[tolleranza_giorno]" min="0" max="6" value="{{ $parametri['tolleranza_giorno'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
 <div data-parametri-per="D3_MAX_ORE_GIORNO">
-    @include('vincoli._discipline', ['info' => 'Il limite vale per ciascuna disciplina scelta e per ciascuna classe: non limita le ore di un docente su più classi (per quello usa «Ore minime/massime al giorno (T4)» o «Blocco consecutivo massimo (D12)» con Ambito Docente).'])
-    <label class="block text-sm font-medium text-gray-700 mt-2">Max ore/giorno</label>
+    @include('vincoli._discipline', ['info' => 'Il limite vale per ogni classe separatamente, per ciascuna disciplina scelta. Non limita un docente che insegna in più classi: per quello usa «Ore minime/massime al giorno (T4)» o «Blocco consecutivo massimo (D12)» con Ambito «Docente».'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore al giorno (al massimo)</label>
     <input type="number" name="parametri[max]" required min="1" max="6" value="{{ $parametri['max'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
 <div data-parametri-per="D6_FASCIA_ORARIA">
     @include('vincoli._discipline', ['info' => 'La fascia vale per ciascuna disciplina scelta.'])
-    <label class="block text-sm font-medium text-gray-700 mt-2">Tipo fascia</label>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Queste ore sono</label>
     <select name="parametri[tipo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="vietata" @selected(($parametri['tipo'] ?? null) === 'vietata')>Vietata</option>
         <option value="preferita" @selected(($parametri['tipo'] ?? null) === 'preferita')>Preferita</option>
@@ -113,36 +115,36 @@
     <label class="block text-sm font-medium text-gray-700">Regola</label>
     <select name="parametri[modo]" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="segue" @selected(($parametri['modo'] ?? 'segue') === 'segue')>Deve essere seguita da</option>
-        <option value="non_segue" @selected(($parametri['modo'] ?? null) === 'non_segue')>NON deve essere seguita da</option>
+        <option value="non_segue" @selected(($parametri['modo'] ?? null) === 'non_segue')>Non deve essere seguita da</option>
     </select>
     @php($opzioniClil = ['tutte' => 'Tutte le lezioni', 'con' => 'Solo le lezioni con CLIL', 'senza' => 'Solo le lezioni senza CLIL'])
-    @include('vincoli._discipline', ['titolo' => 'Disciplina di partenza', 'info' => 'La lezione di queste discipline è quella «prima». Se ne scegli più d\'una, vale per ciascuna.'])
-    <label class="block text-sm font-medium text-gray-700 mt-2">Lezioni della disciplina di partenza
-        <x-info testo="Per distinguere, per esempio, la Geografia con il docente CLIL da quella senza: scegli «con CLIL» o «senza CLIL»." />
+    @include('vincoli._discipline', ['titolo' => 'Prima disciplina', 'info' => 'La lezione che viene prima. Se ne scegli più d\'una, la regola vale per ciascuna.'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Quali lezioni della prima disciplina
+        <x-info testo="Puoi limitare la regola alle sole ore con il docente CLIL in compresenza, o alle sole ore senza." />
     </label>
     <select name="parametri[clil_prima]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         @foreach ($opzioniClil as $valore => $etichetta)
             <option value="{{ $valore }}" @selected(($parametri['clil_prima'] ?? 'tutte') === $valore)>{{ $etichetta }}</option>
         @endforeach
     </select>
-    @include('vincoli._discipline', ['campo' => 'seguite_ids', 'titolo' => 'Disciplina che segue', 'info' => 'L\'ora subito dopo (nello stesso giorno; le pause non interrompono) deve essere (o non deve essere) di una di queste.'])
-    <label class="block text-sm font-medium text-gray-700 mt-2">Lezioni della disciplina che segue
-        <x-info testo="Per distinguere, per esempio, la Geografia con il docente CLIL da quella senza: scegli «con CLIL» o «senza CLIL»." />
+    @include('vincoli._discipline', ['campo' => 'seguite_ids', 'titolo' => 'Disciplina dell\'ora dopo', 'info' => 'L\'ora subito successiva, nello stesso giorno, è (o non è) di una di queste discipline. Una ricreazione in mezzo non conta.'])
+    <label class="block text-sm font-medium text-gray-700 mt-2">Quali lezioni della disciplina dell'ora dopo
+        <x-info testo="Puoi limitare la regola alle sole ore con il docente CLIL in compresenza, o alle sole ore senza." />
     </label>
     <select name="parametri[clil_dopo]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         @foreach ($opzioniClil as $valore => $etichetta)
             <option value="{{ $valore }}" @selected(($parametri['clil_dopo'] ?? 'tutte') === $valore)>{{ $etichetta }}</option>
         @endforeach
     </select>
-    <label class="block text-sm font-medium text-gray-700 mt-2">Almeno quante coppie nella settimana (facoltativo)
-        <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (è impossibile se le ore della prima sono più di quelle della seconda: meglio allora la severità Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
+    <label class="block text-sm font-medium text-gray-700 mt-2">Quante volte alla settimana (almeno, facoltativo)
+        <x-info testo="Vuoto = vale ogni volta che c'è una lezione di partenza (può essere infattibile se le ore della prima sono più di quelle della seconda: meglio allora il tipo Preferenziale). Con un numero, per ciascuna classe servono almeno tante coppie «prima + dopo» nella settimana. Solo per «Deve essere seguita da»." />
     </label>
     <input type="number" name="parametri[min_coppie]" min="1" max="30" value="{{ $parametri['min_coppie'] ?? '' }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <input type="hidden" name="parametri[inverso]" value="0">
     <label class="mt-3 flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" name="parametri[inverso]" value="1" @checked($parametri['inverso'] ?? false)> Vale anche nell'ordine inverso
-        <x-info testo="Solo per «NON deve essere seguita da»: vieta la coppia anche al contrario (per esempio né «Geografia, poi Geografia con CLIL» né «Geografia con CLIL, poi Geografia»)." />
+        <x-info testo="Solo per «Non deve essere seguita da»: vieta le due discipline di seguito in qualunque ordine." />
     </label>
 </div>
 
@@ -154,7 +156,7 @@
     <input type="number" name="parametri[min_ore]" min="1" max="9" value="{{ $parametri['min_ore'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
     <label class="block text-sm font-medium text-gray-700 mt-2">Ore massime al giorno
-        <x-info testo="Tetto giornaliero (vuoto = nessun tetto). Con la severità Rigido la generazione è impossibile se le ore settimanali del docente superano tetto × giorni disponibili." />
+        <x-info testo="Tetto giornaliero (vuoto = nessun tetto). Con il tipo Rigido la generazione diventa infattibile se le ore settimanali del docente superano tetto × giorni disponibili." />
     </label>
     <input type="number" name="parametri[max_ore]" min="1" max="9" value="{{ $parametri['max_ore'] ?? '' }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -162,19 +164,19 @@
 
 <div data-parametri-per="T11_ORE_IN_FASCIA">
     <p class="text-sm text-gray-500">Ambito <strong>Docente</strong>: scegli i docenti. Ciascuno deve avere almeno questo numero di ore (lezioni o sostegno) tra gli slot selezionati.</p>
-    <label class="block text-sm font-medium text-gray-700 mt-2">Ore minime negli slot
-        <x-info testo="Quante ore, almeno, ogni docente scelto deve fare negli slot selezionati qui sotto (in qualunque classe e disciplina; contano anche le ore di sostegno). 1 = almeno un'ora in quella fascia." />
+    <label class="block text-sm font-medium text-gray-700 mt-2">Ore nelle fasce scelte (almeno)
+        <x-info testo="Quante ore almeno ogni docente scelto deve avere tra le ore spuntate qui sotto, in qualunque classe e disciplina (conta anche il sostegno). 1 = almeno un'ora in quella fascia." />
     </label>
     <input type="number" name="parametri[min_ore]" required min="1" max="30" value="{{ $parametri['min_ore'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-    @include('vincoli._slot', ['etichettaSlot' => 'Slot in cui devono fare le ore'])
+    @include('vincoli._slot', ['etichettaSlot' => 'Ore della settimana in cui devono esserci'])
 </div>
 
 <div data-parametri-per="T2_GIORNO_LIBERO">
-    <label class="block text-sm font-medium text-gray-700">N. giorni liberi richiesti</label>
+    <label class="block text-sm font-medium text-gray-700">Giorni liberi</label>
     <input type="number" name="parametri[n_giorni]" required min="1" max="3" value="{{ $parametri['n_giorni'] ?? 1 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-    <label class="block text-sm font-medium text-gray-700 mt-2">Giorno preferito (facoltativo)</label>
+    <label class="block text-sm font-medium text-gray-700 mt-2">Giorno libero preferito (facoltativo)</label>
     <select name="parametri[preferenze][]" class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         <option value="">— Nessuna preferenza —</option>
         @foreach ([1 => 'Lunedì', 2 => 'Martedì', 3 => 'Mercoledì', 4 => 'Giovedì', 5 => 'Venerdì', 6 => 'Sabato'] as $g => $nome)
@@ -186,12 +188,14 @@
 <div data-parametri-per="T3_MAX_ORE_BUCHE">
     <div class="grid sm:grid-cols-2 gap-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700">Max buche/giorno</label>
+            <label class="block text-sm font-medium text-gray-700">Ore buche al giorno (al massimo)
+                <x-info testo="Ora buca = ora vuota tra due lezioni dello stesso docente nello stesso giorno." />
+            </label>
             <input type="number" name="parametri[max_per_giorno]" min="0" max="6" value="{{ $parametri['max_per_giorno'] ?? '' }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700">Max buche/settimana</label>
+            <label class="block text-sm font-medium text-gray-700">Ore buche alla settimana (al massimo)</label>
             <input type="number" name="parametri[max_per_settimana]" min="0" max="20" value="{{ $parametri['max_per_settimana'] ?? '' }}"
                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
         </div>
@@ -199,8 +203,8 @@
 </div>
 
 <div data-parametri-per="C5_SPOSTAMENTI_PIANO">
-    <label class="block text-sm font-medium text-gray-700">Piani di differenza senza penalità
-        <x-info testo="Tra due ore consecutive la classe può cambiare piano di questo numero di piani senza penalità; oltre, ogni piano in più pesa. 0 = ogni cambio di piano pesa. Serve soprattutto con la didattica DADA. I piani si indicano su aule e classi; le aule e le classi senza piano non contano." />
+    <label class="block text-sm font-medium text-gray-700">Piani che si possono salire o scendere senza penalità
+        <x-info testo="Tra due ore di fila la classe può salire o scendere questo numero di piani senza penalità; ogni piano in più è penalizzato. 0 = ogni cambio di piano è penalizzato. Serve soprattutto con la didattica DADA. I piani si indicano su aule e classi; le aule e le classi senza piano non contano." />
     </label>
     <input type="number" name="parametri[soglia]" min="0" max="10" value="{{ $parametri['soglia'] ?? 0 }}"
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
@@ -217,8 +221,8 @@
         </select>
     </div>
     <div data-attiva-se="#severita=preferenziale" data-richiesto>
-        <label for="peso" class="block text-sm font-medium text-gray-700">Peso (1-100)
-            <x-info testo="Il peso serve solo ai vincoli preferenziali: imposta Severità = Preferenziale." />
+        <label for="peso" class="block text-sm font-medium text-gray-700">Peso (da 1 a 100)
+            <x-info testo="Si attiva con severità «Preferenziale». Più alto è il peso, più il generatore evita di violare il vincolo." />
         </label>
         <input type="number" name="peso" id="peso" min="1" max="100" value="{{ old('peso', $vincolo?->peso) }}"
                class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">

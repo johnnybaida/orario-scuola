@@ -8,7 +8,7 @@ class T3MaxOreBuche implements VincoloTipoInterface
 {
     public function etichetta(): string
     {
-        return 'Max ore buche (T3)';
+        return 'Ore buche dei docenti, al massimo (T3)';
     }
 
     public function ambitiConsentiti(): array

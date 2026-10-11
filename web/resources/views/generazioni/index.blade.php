@@ -6,10 +6,10 @@
     <h1 class="text-xl font-semibold mb-6">Generazioni orario</h1>
 
     <x-guida>
-        Ogni generazione calcola in background per produrre un orario che rispetta i vincoli
+        Ogni generazione lancia il solver (OR-Tools) in background per produrre un orario che rispetta i vincoli
         rigidi e minimizza le violazioni di quelli preferenziali. Il seed determina il risultato in modo
         riproducibile: stesso seed e stessi dati producono lo stesso orario. Serve un worker di coda attivo:
-        puoi avviarlo e fermarlo da qui sotto. L'arresto è sicuro, il worker finisce prima la generazione in corso.
+        puoi avviarlo e fermarlo da qui sotto. L'arresto è sicuro, il worker termina prima il job in corso.
     </x-guida>
 
     @php($attivoPieno = $workerAttivo && ! $workerInArresto)
@@ -17,13 +17,13 @@
         <span class="font-medium">Worker di coda: {{ $attivoPieno ? 'attivo' : ($workerInArresto ? 'in arresto' : 'fermo') }}</span>
         @can('gestisci-anagrafica')
             <form method="POST" action="{{ route($attivoPieno ? 'worker.ferma' : 'worker.avvia') }}"
-                  @if ($attivoPieno) onsubmit="return confirm('Fermare il worker? Finisce prima la generazione in corso.');" @endif>
+                  @if ($attivoPieno) onsubmit="return confirm('Fermare il worker? Termina prima il job in corso.');" @endif>
                 @csrf
                 <button type="submit" class="underline cursor-pointer">{{ $attivoPieno ? 'Ferma' : 'Avvia' }}</button>
             </form>
         @endcan
         @if ($workerInArresto)
-            <span>Sta finendo la generazione in corso: puoi già riavviarlo.</span>
+            <span>Sta terminando il job in corso: puoi già riavviarlo.</span>
         @elseif (! $workerAttivo)
             <span>Le generazioni restano in coda finché non viene avviato.</span>
         @endif

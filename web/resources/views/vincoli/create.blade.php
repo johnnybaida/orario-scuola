@@ -8,7 +8,7 @@
     <x-guida>
         Scegli il tipo: i campi sotto cambiano di conseguenza. "Ambito globale" applica il vincolo a tutte le
         classi/docenti; scegli classi o docenti specifici per restringerlo. Con severità "preferenziale" imposta
-        anche un peso: più alto, più il generatore cerca di evitarne la violazione.
+        anche un peso: più alto, più il solver cerca di evitarne la violazione.
     </x-guida>
 
     <form method="POST" action="{{ route('vincoli.store') }}" class="bg-white border border-gray-200 rounded-lg p-6 form-colonne">

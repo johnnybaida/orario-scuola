@@ -330,11 +330,11 @@ class AnagraficheTest extends TestCase
 
         $utente->get('/vincoli/create')->assertOk()
             ->assertSee('data-attiva-se="#ambito_livello=classe"', false)
-            ->assertSee('Per scegliere le classi imposta Ambito = Classe.')
+            ->assertSee('Si attiva con Ambito «Classe».')
             ->assertSee('data-attiva-se="#severita=preferenziale"', false);
         $utente->get('/classi/create')->assertOk()->assertSee('data-attiva-se="#tempo_scuola=prolungato"', false);
 
-        // Nessuna disciplina inserita: "aggiungi" è disabilitato e spiega perché.
+        // Nessuna disciplina censita: "aggiungi" è disabilitato e spiega perché.
         $utente->get("/quadri-orari/{$quadro->id}/edit")->assertOk()->assertSee('Nessuna disciplina inserita');
     }
 

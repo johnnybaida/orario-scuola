@@ -8,7 +8,7 @@
     <x-guida>
         Regole aggiuntive per la generazione automatica dell'orario, oltre a quelle di sistema sempre attive
         (es. un docente non può essere in due posti contemporaneamente). Un vincolo <strong>rigido</strong> deve
-        essere rispettato sempre, altrimenti la generazione non trova nessun orario; uno <strong>preferenziale</strong> ha un peso (1-100) e
+        essere rispettato sempre, pena l'infattibilità; uno <strong>preferenziale</strong> ha un peso (1-100) e
         viene violato solo se non c'è alternativa migliore.
     </x-guida>
 

@@ -9,7 +9,7 @@ class D3MaxOreGiorno implements VincoloTipoInterface
 {
     public function etichetta(): string
     {
-        return 'Max ore/giorno per disciplina (D3)';
+        return 'Ore al giorno di una disciplina, al massimo (D3)';
     }
 
     public function ambitiConsentiti(): array

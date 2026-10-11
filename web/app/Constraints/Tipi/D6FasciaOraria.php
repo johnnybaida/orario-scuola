@@ -9,7 +9,7 @@ class D6FasciaOraria implements VincoloTipoInterface
 {
     public function etichetta(): string
     {
-        return 'Fascia oraria vietata/preferita (D6)';
+        return 'Ore vietate o preferite per una disciplina (D6)';
     }
 
     public function ambitiConsentiti(): array
