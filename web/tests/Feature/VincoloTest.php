@@ -94,6 +94,16 @@ class VincoloTest extends TestCase
         $utente->get('/vincoli?docente='.$rossi->id.'&severita=preferenziale')->assertSee('Nessun vincolo corrisponde ai filtri.');
     }
 
+    public function test_i_tipi_sono_raggruppati_nelle_select_e_nessuno_resta_fuori(): void
+    {
+        $this->assertSame([], array_keys(\App\Constraints\Catalogo::gruppi()['Altri'] ?? []));
+        $this->assertEqualsCanonicalizing(array_keys(\App\Constraints\Catalogo::TIPI), collect(\App\Constraints\Catalogo::gruppi())->flatMap(fn ($g) => array_keys($g))->all());
+
+        $utente = $this->actingAs($this->referente());
+        $utente->get('/vincoli')->assertSee('<optgroup label="Docenti">', false);
+        $utente->get('/vincoli/create')->assertSee('<optgroup label="Discipline">', false);
+    }
+
     public function test_d1_rifiuta_min_consecutive_sotto_la_soglia(): void
     {
         $disciplina = Disciplina::factory()->create();

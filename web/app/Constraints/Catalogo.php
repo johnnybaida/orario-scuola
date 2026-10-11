@@ -33,6 +33,27 @@ class Catalogo
         'C5_SPOSTAMENTI_PIANO' => C5SpostamentiPiano::class,
     ];
 
+    /** Raggruppamento dei tipi per le select (optgroup). */
+    public const GRUPPI = [
+        'Discipline' => ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'],
+        'Docenti' => ['T2_GIORNO_LIBERO', 'T3_MAX_ORE_BUCHE', 'T4_ORE_GIORNO', 'T11_ORE_IN_FASCIA', 'T12_ORE_ATTORNO_MENSA'],
+        'Sostegno' => ['S5_DISTRIBUZIONE_SOSTEGNO'],
+        'Classi e aule' => ['C5_SPOSTAMENTI_PIANO'],
+    ];
+
+    /** @return array<string, array<string, string>> gruppo => [tipo => etichetta]; un tipo nuovo non elencato in GRUPPI finisce in «Altri». */
+    public static function gruppi(): array
+    {
+        $etichette = self::etichette();
+        $gruppi = [];
+        foreach (self::GRUPPI as $nome => $tipi) {
+            $gruppi[$nome] = array_intersect_key(array_replace(array_flip($tipi), $etichette), array_flip($tipi));
+        }
+        $altri = array_diff_key($etichette, array_flip(array_merge(...array_values(self::GRUPPI))));
+
+        return $altri ? $gruppi + ['Altri' => $altri] : $gruppi;
+    }
+
     public static function istanza(string $tipo): VincoloTipoInterface
     {
         $classe = self::TIPI[$tipo] ?? null;

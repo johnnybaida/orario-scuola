@@ -19,8 +19,12 @@
             @php $classiSelect = 'rounded border-gray-300 shadow-sm text-sm focus:border-primary focus:ring-primary'; @endphp
             <select name="tipo" aria-label="Tipo" class="{{ $classiSelect }}" onchange="this.form.submit()">
                 <option value="">Tutti i tipi</option>
-                @foreach ($etichette as $tipo => $etichetta)
-                    <option value="{{ $tipo }}" @selected($filtroTipo === $tipo)>{{ $etichetta }}</option>
+                @foreach (\App\Constraints\Catalogo::gruppi() as $gruppo => $tipi)
+                    <optgroup label="{{ $gruppo }}">
+                        @foreach ($tipi as $tipo => $etichetta)
+                            <option value="{{ $tipo }}" @selected($filtroTipo === $tipo)>{{ $etichetta }}</option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             </select>
             <select name="docente" aria-label="Docente" class="{{ $classiSelect }}" onchange="this.form.submit()">

@@ -5,8 +5,12 @@
     <div>
         <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo</label>
         <select name="tipo" id="tipo" required class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-            @foreach ($etichette as $codice => $etichetta)
-                <option value="{{ $codice }}" @selected(old('tipo', $vincolo?->tipo) === $codice)>{{ $etichetta }}</option>
+            @foreach (\App\Constraints\Catalogo::gruppi() as $gruppo => $tipi)
+                <optgroup label="{{ $gruppo }}">
+                    @foreach ($tipi as $codice => $etichetta)
+                        <option value="{{ $codice }}" @selected(old('tipo', $vincolo?->tipo) === $codice)>{{ $etichetta }}</option>
+                    @endforeach
+                </optgroup>
             @endforeach
         </select>
     </div>
