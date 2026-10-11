@@ -747,7 +747,7 @@ Lo **stato** di una generazione:
    - *Fallita*: errore tecnico durante il calcolo. Premi **Scarica diagnostica** nella pagina della generazione e invia il file a chi gestisce l'applicazione: contiene l'errore, i vincoli attivi, i controlli sui dati e il log.
 
 <!-- permesso: gestisci-anagrafica -->
-**Eliminare le generazioni.** Le generazioni *infattibili* e *fallite* (che non hanno prodotto nessun orario) si possono eliminare: spunta la casella accanto e usa la barra di selezione; le altre non hanno la casella. L'eliminazione cancella solo la riga dell'elenco e la sua diagnostica, e resta nel Registro attività.
+**Eliminare le generazioni.** Le generazioni concluse (*infattibili*, *fallite*, *annullate*, o *completate* il cui orario è stato eliminato) e **senza un orario associato** si possono eliminare: spunta la casella accanto e usa la barra di selezione; quelle in coda, in corso o con un orario non hanno la casella. L'eliminazione cancella solo la riga dell'elenco e la sua diagnostica, e resta nel Registro attività.
 <!-- /permesso -->
 
 Il **punteggio** di un orario somma le penalità dei vincoli preferenziali violati: **0 = tutti rispettati, più è basso meglio è**.

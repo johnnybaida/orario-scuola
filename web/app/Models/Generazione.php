@@ -17,7 +17,7 @@ class Generazione extends Model
     protected $table = 'generazioni';
 
     /** Si eliminano solo le generazioni senza orario prodotto: infattibili o fallite. */
-    public const ELIMINABILI = ['infattibile', 'fallita'];
+    public const ELIMINABILI = ['completata', 'infattibile', 'fallita', 'annullata'];
 
     protected function casts(): array
     {

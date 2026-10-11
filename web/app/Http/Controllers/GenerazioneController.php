@@ -26,7 +26,7 @@ class GenerazioneController extends Controller
 
     public function destroy(Generazione $generazione): RedirectResponse
     {
-        abort_unless(in_array($generazione->stato, Generazione::ELIMINABILI, true) && ! $generazione->orario_id, 422, 'Si eliminano solo le generazioni infattibili o fallite.');
+        abort_unless(in_array($generazione->stato, Generazione::ELIMINABILI, true) && ! $generazione->orario_id, 422, 'Si eliminano solo le generazioni concluse che non hanno un orario.');
 
         $generazione->delete();
 

@@ -69,11 +69,13 @@ class CorreggiGenerazioneTest extends TestCase
         $this->assertSame('Un messaggio sconosciuto.', $righe[5]['testo']);
     }
 
-    public function test_si_eliminano_solo_le_generazioni_infattibili_o_fallite_senza_orario(): void
+    public function test_si_eliminano_solo_le_generazioni_concluse_senza_orario(): void
     {
         $nuova = fn (string $stato, array $extra = []) => \App\Models\Generazione::query()->create(['periodo_id' => \App\Models\Periodo::factory()->create()->id, 'seed' => 1, 'time_limit_s' => 10, 'stato' => $stato] + $extra);
         $infattibile = $nuova('infattibile');
         $fallita = $nuova('fallita');
+        $senzaOrario = $nuova('completata');
+        $in_corso = $nuova('in_corso');
         $completata = $nuova('completata', ['orario_id' => \App\Models\Orario::factory()->create()->id]);
         $referente = $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']));
 
@@ -81,9 +83,12 @@ class CorreggiGenerazioneTest extends TestCase
         $referente->delete(route('generazioni.destroy', $completata))->assertStatus(422);
         $referente->delete(route('generazioni.destroy', $infattibile))->assertRedirect(route('generazioni.index'));
         $referente->delete(route('generazioni.destroy', $fallita))->assertRedirect();
+        $referente->delete(route('generazioni.destroy', $senzaOrario))->assertRedirect();
+        $referente->delete(route('generazioni.destroy', $in_corso))->assertStatus(422);
 
         $this->assertModelMissing($infattibile);
         $this->assertModelMissing($fallita);
+        $this->assertModelMissing($senzaOrario);
         $this->assertModelExists($completata);
         $this->assertDatabaseHas('audit_log', ['entita' => 'Generazione', 'entita_id' => $infattibile->id, 'azione' => 'eliminazione']);
 
