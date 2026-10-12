@@ -80,7 +80,7 @@
                             $elenco->isEmpty() => ucfirst($livello).': nessuno scelto',
                             default => ($livello === 'docente' ? 'Docenti' : 'Classi').': '.$elenco->take(3)->implode(', ').($elenco->count() > 3 ? ' (+'.($elenco->count() - 3).')' : ''),
                         };
-                        $nomiDiscipline = in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'], true)
+                        $nomiDiscipline = in_array($vincolo->tipo, ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA', 'S1_DISCIPLINE_PREFERITE', 'S2_DISCIPLINE_ESCLUSE'], true)
                             ? (collect(\App\Constraints\DisciplineVincolo::ids($vincolo->parametri ?? []))->map(fn ($id) => $discipline[$id] ?? '?')->implode(', ') ?: 'Tutte')
                             : null;
                         try { $descrizione = \App\Constraints\Catalogo::istanza($vincolo->tipo)->descrizione($vincolo->parametri ?? []); } catch (\Throwable) { $descrizione = ''; }

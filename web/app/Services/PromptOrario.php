@@ -263,6 +263,8 @@ class PromptOrario
             'D1_BLOCCO_MIN_CONSECUTIVO' => 'in almeno '.($p['n_blocchi_min'] ?? 1).' giorno/i della settimana '.($disciplina ? "{$disciplina} deve avere" : 'le lezioni del docente devono avere')
                 ." un blocco di almeno {$p['min_consecutive']} ore consecutive (conta i giorni con un blocco, non i blocchi)",
             'D12_BLOCCO_MAX_CONSECUTIVO' => ($disciplina ? "{$disciplina}: " : 'le lezioni del docente: ')."al massimo {$p['max_consecutive']} ore consecutive nello stesso giorno (le pause non interrompono la fila)",
+            'S1_DISCIPLINE_PREFERITE' => "sostegno: il docente di sostegno sta in compresenza solo nelle lezioni di {$nomiDiscipline} (ogni ora in un'altra disciplina è una violazione)",
+            'S2_DISCIPLINE_ESCLUSE' => "sostegno: il docente di sostegno non sta in compresenza nelle lezioni di {$nomiDiscipline} (ogni ora in esse è una violazione)",
             'S5_DISTRIBUZIONE_SOSTEGNO' => 'sostegno: '.collect([
                 ($p['max_insieme'] ?? '') !== '' ? "al massimo {$p['max_insieme']} docente/i di sostegno insieme nella stessa classe e ora" : null,
                 ($p['tolleranza_giorno'] ?? '') !== '' ? "ore di sostegno distribuite nella settimana (per classe, al massimo la media sui giorni in cui un docente può esserci + {$p['tolleranza_giorno']} ora/e al giorno)" : null,

@@ -8,6 +8,8 @@ use App\Constraints\Tipi\D3MaxOreGiorno;
 use App\Constraints\Tipi\D6FasciaOraria;
 use App\Constraints\Tipi\D12BloccoMaxConsecutivo;
 use App\Constraints\Tipi\D13DisciplinaSeguita;
+use App\Constraints\Tipi\S1DisciplinePreferite;
+use App\Constraints\Tipi\S2DisciplineEscluse;
 use App\Constraints\Tipi\S5DistribuzioneSostegno;
 use App\Constraints\Tipi\T11OreInFascia;
 use App\Constraints\Tipi\T12OreAttornoMensa;
@@ -23,6 +25,8 @@ class Catalogo
         'D3_MAX_ORE_GIORNO' => D3MaxOreGiorno::class,
         'D6_FASCIA_ORARIA' => D6FasciaOraria::class,
         'D12_BLOCCO_MAX_CONSECUTIVO' => D12BloccoMaxConsecutivo::class,
+        'S1_DISCIPLINE_PREFERITE' => S1DisciplinePreferite::class,
+        'S2_DISCIPLINE_ESCLUSE' => S2DisciplineEscluse::class,
         'S5_DISTRIBUZIONE_SOSTEGNO' => S5DistribuzioneSostegno::class,
         'D13_DISCIPLINA_SEGUITA' => D13DisciplinaSeguita::class,
         'T2_GIORNO_LIBERO' => T2GiornoLibero::class,
@@ -37,7 +41,7 @@ class Catalogo
     public const GRUPPI = [
         'Discipline' => ['D1_BLOCCO_MIN_CONSECUTIVO', 'D3_MAX_ORE_GIORNO', 'D6_FASCIA_ORARIA', 'D12_BLOCCO_MAX_CONSECUTIVO', 'D13_DISCIPLINA_SEGUITA'],
         'Docenti' => ['T2_GIORNO_LIBERO', 'T3_MAX_ORE_BUCHE', 'T4_ORE_GIORNO', 'T11_ORE_IN_FASCIA', 'T12_ORE_ATTORNO_MENSA'],
-        'Sostegno' => ['S5_DISTRIBUZIONE_SOSTEGNO'],
+        'Sostegno' => ['S1_DISCIPLINE_PREFERITE', 'S2_DISCIPLINE_ESCLUSE', 'S5_DISTRIBUZIONE_SOSTEGNO'],
         'Classi e aule' => ['C5_SPOSTAMENTI_PIANO'],
     ];
 

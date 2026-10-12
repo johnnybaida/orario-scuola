@@ -88,6 +88,14 @@
            class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
 </div>
 
+<div data-parametri-per="S1_DISCIPLINE_PREFERITE">
+    @include('vincoli._discipline', ['info' => "Il docente di sostegno sta in compresenza solo nelle lezioni di queste discipline. Con «Preferenziale» ogni ora di sostegno in un'altra disciplina costa il peso. Ambito: tutte le classi, alcune classi o alcuni docenti di sostegno."])
+</div>
+
+<div data-parametri-per="S2_DISCIPLINE_ESCLUSE">
+    @include('vincoli._discipline', ['info' => "Il docente di sostegno non sta in compresenza nelle lezioni di queste discipline. Con «Preferenziale» ogni ora di sostegno in una di esse costa il peso. Ambito: tutte le classi, alcune classi o alcuni docenti di sostegno."])
+</div>
+
 <div data-parametri-per="S5_DISTRIBUZIONE_SOSTEGNO">
     <p class="text-sm text-gray-500">Vale per i docenti di sostegno assegnati alle classi. Compila uno o entrambi i limiti.</p>
     <label class="block text-sm font-medium text-gray-700 mt-2">Docenti di sostegno insieme (al massimo)

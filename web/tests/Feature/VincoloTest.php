@@ -282,8 +282,14 @@ class VincoloTest extends TestCase
     {
         $classe = Classe::factory()->create();
         $docente = \App\Models\Docente::factory()->create();
+        $disciplina = \App\Models\Disciplina::factory()->create();
         $utente = $this->actingAs($this->referente());
 
+        foreach (['S1_DISCIPLINE_PREFERITE', 'S2_DISCIPLINE_ESCLUSE'] as $tipo) {
+            $utente->post('/vincoli', ['tipo' => $tipo, 'ambito_livello' => 'docente', 'ambito_ids' => [$docente->id], 'parametri' => ['disciplina_ids' => [$disciplina->id]], 'severita' => 'preferenziale', 'peso' => 30])->assertSessionHasNoErrors();
+            $utente->post('/vincoli', ['tipo' => $tipo, 'ambito_livello' => 'globale', 'parametri' => ['disciplina_ids' => []], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.disciplina_ids');
+        }
+        $this->assertSame("Il sostegno non sta nelle lezioni di: {$disciplina->nome}.", (new \App\Constraints\Tipi\S2DisciplineEscluse)->descrizione(['disciplina_ids' => [$disciplina->id]]));
         $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'globale', 'parametri' => ['max_insieme' => 1, 'tolleranza_giorno' => 1], 'severita' => 'preferenziale', 'peso' => 40])->assertSessionHasNoErrors();
         $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'classe', 'ambito_ids' => [$classe->id], 'parametri' => ['tolleranza_giorno' => 0], 'severita' => 'rigido'])->assertSessionHasNoErrors();
         $utente->post('/vincoli', ['tipo' => 'S5_DISTRIBUZIONE_SOSTEGNO', 'ambito_livello' => 'globale', 'parametri' => ['max_insieme' => '', 'tolleranza_giorno' => ''], 'severita' => 'rigido'])->assertSessionHasErrors('parametri.max_insieme');

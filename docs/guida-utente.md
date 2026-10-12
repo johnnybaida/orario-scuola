@@ -386,6 +386,7 @@ Tipi disponibili:
   - **Quante volte alla settimana**: con il campo vuoto la regola vale **ogni volta** che c'è una lezione della prima: se le ore della prima sono più di quelle della seconda (per esempio 5 di Italiano e 2 di Storia) è impossibile rispettarla sempre, quindi usa la severità *Preferenziale* oppure indica quante volte alla settimana almeno.
 - **Ore minime di un docente in certe ore (T11)**: i docenti scelti (Ambito *Docente*) devono fare **almeno N ore tra le ore della settimana che spunti** (una riga per giorno, con **Tutte** per l'intera giornata): per esempio «Rossi almeno 1 ora il mercoledì mattina». Contano le ore di lezione in qualunque classe e anche quelle di sostegno. Con la severità *Preferenziale* ogni ora mancante è una penalità; con la severità *Rigido* la generazione è impossibile se il docente non può esserci in quelle ore (indisponibilità).
 - **Ore di chi sorveglia la mensa (T12)**: evita che chi sorveglia la mensa venga a scuola solo per quella, o abbia ore da una parte soltanto. Vale **solo nei giorni in cui il docente ha l'assistenza** a una pausa marcata «mensa» (pagina *Mensa*). Ambito *Globale* (tutti i sorveglianti) o *Docente* (quelli scelti). Scegli **dove** devono stare le ore: *Prima o dopo la mensa (o entrambe)*, *Prima della mensa*, *Dopo la mensa*, oppure *Sia prima sia dopo* (a cavallo); e **quante ore almeno** (con «a cavallo» è il minimo per ciascuna parte). Contano lezioni e sostegno. Con la severità *Rigido* la generazione è impossibile se un sorvegliante non può avere quelle ore (per esempio per le indisponibilità); con *Preferenziale* ogni ora mancante è una penalità.
+- **Discipline preferite / escluse per il sostegno (S1, S2)**: decidi in quali lezioni sta il docente di sostegno (nelle ore di compresenza). Scegli una o più **Discipline**. S1: il sostegno sta solo nelle lezioni di quelle discipline; S2: non sta nelle lezioni di quelle discipline. Ambito *Globale* (tutte le classi), *Classe* o *Docente* (solo quei docenti di sostegno). Con *Rigido* è un divieto (la generazione diventa infattibile se le ore di sostegno non ci stanno); con *Preferenziale* ogni ora di sostegno in violazione costa il peso. Non serve per le ore già decise a mano dal pannello «modifica quest'ora».
 - **Distribuzione del sostegno (S5)**: evita che il sostegno si concentri. Ambito *Globale* o *Classe*. Due limiti, da compilare uno o entrambi: **Docenti di sostegno insieme (al massimo)** (quanti docenti di sostegno al massimo nella stessa classe nella stessa ora, di solito 1) e **Tolleranza giornaliera** (le ore di sostegno della classe si distribuiscono sui giorni: ogni giorno può averne al massimo la media più questa tolleranza; i giorni in cui nessun docente può esserci per le indisponibilità non contano). Consiglio la severità *Preferenziale*: con il *Rigido* la generazione diventa infattibile se le ore di sostegno assegnate non stanno nelle ore libere dei docenti.
 - **Ore al giorno di una disciplina, al massimo (D3)**: limite di ore al giorno della stessa disciplina **in ciascuna classe** (per esempio Matematica al massimo 2 ore al giorno nella 1ª A). **Non limita le ore di un docente su più classi**: un docente che insegna la stessa materia in sei classi può comunque fare sei ore di fila, una per classe. Per limitare un **docente** usa *Ore minime/massime al giorno (T4)* (ore totali al giorno) o *Blocco consecutivo massimo (D12)* con Ambito *Docente* (ore di fila). Campi: discipline, *max ore/giorno*.
 - **Ore vietate o preferite per una disciplina (D6)**: ore in cui una disciplina non va (o è preferibile) collocata. Campi: discipline, *Queste ore sono* (vietate/preferite) e le ore della settimana interessate: una riga per giorno con le sue ore da spuntare, e **Tutte** per scegliere l'intera giornata.
@@ -571,6 +572,20 @@ Ogni ora che manca ai 2 richiesti costa una penalità: il generatore ci arriva q
 | Ore (almeno) | 1 |
 | Severità | Preferenziale |
 | Peso | 40 |
+
+**Discipline preferite per il sostegno (S1)**
+
+*Il sostegno della 2ª B sta solo in Matematica e Scienze.*
+
+| Campo | Valore |
+| --- | --- |
+| Tipo | Discipline preferite per il sostegno (S1) |
+| Ambito | Classe (la 2ª B) |
+| Discipline | Matematica, Scienze |
+| Severità | Preferenziale |
+| Peso | 30 |
+
+Per il caso opposto usa «Discipline escluse per il sostegno (S2)».
 
 **Distribuzione del sostegno (S5)**
 

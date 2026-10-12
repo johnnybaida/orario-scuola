@@ -124,6 +124,12 @@ class GenerazioneCompletaTest extends TestCase
         Slot::query()->where('ordine', 3)->get()->each->update(['ricreazione_minuti' => 10, 'ricreazione_mensa' => true]);
         \App\Models\AssistenzaPausa::query()->create(['docente_id' => $this->d['ITA']->id, 'giorno' => 2, 'ordine' => 3]);
         $vincolo(['tipo' => 'T12_ORE_ATTORNO_MENSA', 'severita' => 'rigido', 'peso' => null, 'parametri' => ['modo' => 'a_cavallo', 'min_ore' => '1']]);
+        // Sostegno della classe A: solo in Matematica, Geografia o Inglese (S1) ed escluso da Geografia e Inglese (S2): quindi solo in Matematica.
+        $discIds = fn (array $codici) => array_map(fn ($c) => (string) $this->disc[$c]->id, $codici);
+        $vincolo(['tipo' => 'S1_DISCIPLINE_PREFERITE', 'severita' => 'rigido', 'peso' => null, 'ambito_livello' => 'classe', 'ambito_ids' => [(string) $this->classeA->id],
+            'parametri' => ['disciplina_ids' => $discIds(['MAT', 'GEO', 'ING'])]]);
+        $vincolo(['tipo' => 'S2_DISCIPLINE_ESCLUSE', 'severita' => 'rigido', 'peso' => null, 'ambito_livello' => 'docente', 'ambito_ids' => [(string) $this->d['SOST']->id],
+            'parametri' => ['disciplina_ids' => $discIds(['GEO', 'ING'])]]);
         $vincolo(['tipo' => 'T3_MAX_ORE_BUCHE', 'severita' => 'preferenziale', 'peso' => 50, 'parametri' => ['max_per_giorno' => 1]]);
     }
 
@@ -214,6 +220,9 @@ class GenerazioneCompletaTest extends TestCase
         $this->assertCount(2, $compresenze);
         $this->assertTrue($compresenze->every(fn ($c) => $c->docente_id === $this->d['SOST']->id && $c->classe_id === $this->classeA->id));
         $this->assertCount(2, $compresenze->pluck('slot_id')->unique());
+        // S1 + S2: ogni compresenza cade in una lezione di Matematica della classe A.
+        $matA = $lezioni->filter(fn ($l) => $l->cattedra->classe_id === $this->classeA->id && $l->cattedra->disciplina->codice === 'MAT')->pluck('slot_id');
+        $this->assertTrue($compresenze->every(fn ($c) => $matA->contains($c->slot_id)), 'Sostegno fuori da Matematica');
     }
 
     public function test_il_laboratorio_occupa_il_docente_e_senza_di_lui_la_generazione_cambia(): void

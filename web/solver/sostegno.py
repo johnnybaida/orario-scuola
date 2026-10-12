@@ -28,7 +28,7 @@ def applica(ctx, sostegno_lista):
     presenze = {}   # (docente, slot) -> presenze in compresenza nelle varie classi
     ctx.sostegno_ore_docente = {}   # docente -> ore di sostegno assegnate (le legge T4)
     ctx.sostegno_docente = presenze   # (docente, slot) -> presenze in sostegno: le legge T11
-    ctx.sostegno_presenze = {}   # classe -> {'slot': {slot: [presente]}, 'ore': ore totali dei docenti}: lo legge S5
+    ctx.sostegno_presenze = {}   # classe -> {'slot': {slot: [presente]}, 'ore': ore totali dei docenti, 'docenti': {docente: {slot: presente}}}: lo leggono S5, S1, S2
 
     for entry in sostegno_lista:
         classe_id = entry['classe']
@@ -54,7 +54,7 @@ def applica(ctx, sostegno_lista):
                 continue
             ctx.model.Add(sum(vars_slot.values()) == assegnazione['ore'])
 
-        per_slot = ctx.sostegno_presenze.setdefault(classe_id, {'slot': {}, 'ore': 0})
+        per_slot = ctx.sostegno_presenze.setdefault(classe_id, {'slot': {}, 'ore': 0, 'docenti': {}})
         per_slot['ore'] += sum(a['ore'] for a in assegnazioni)
         for a in assegnazioni:
             ctx.sostegno_ore_docente[a['id']] = ctx.sostegno_ore_docente.get(a['id'], 0) + a['ore']
@@ -62,6 +62,7 @@ def applica(ctx, sostegno_lista):
             for s, v in vars_slot.items():
                 presenze.setdefault((docente_id, s), []).append(v)
                 per_slot['slot'].setdefault(s, []).append(v)
+                per_slot['docenti'].setdefault(docente_id, {})[s] = v
 
         # H2: un docente non può essere in compresenza e in una lezione curricolare
         # (o in un'altra classe in compresenza) nello stesso slot.
