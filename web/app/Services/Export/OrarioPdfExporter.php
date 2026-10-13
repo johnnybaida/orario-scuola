@@ -47,11 +47,13 @@ class OrarioPdfExporter
                 'slotPerGiorno' => Slot::perGiorno($classe->slotAttivi()->max('ordine')),
                 'lezioni' => $lezioni->keyBy('slot_id'),
                 // L'aula si scrive se non è quella della classe o se è cambiata rispetto all'ora prima (freccia →).
-                'colonna' => function (Lezione $l) use ($cambi) {
+                'colonna' => fn (Lezione $l) => $l->cattedra->disciplina->nome."\n".$this->nomeDocente($l).($l->docenteClilEffettivo() ? "\n+ ".$this->nomeClil($l).' (CLIL)' : ''),
+                // L'aula sta dopo i docenti di sostegno (li stampa il foglio dopo la lezione).
+                'aula' => function (Lezione $l) use ($cambi) {
                     $cambio = $cambi[$l->id] ?? null;
                     $aula = $l->aulaDaMostrare() ?? ($cambio['a'] ?? null);
 
-                    return $l->cattedra->disciplina->nome."\n".$this->nomeDocente($l).($l->docenteClilEffettivo() ? "\n+ ".$this->nomeClil($l).' (CLIL)' : '').($aula ? "\n".($cambio ? '→ ' : '').$aula->nomeConPiano() : '');
+                    return $aula ? ($cambio ? '→ ' : '').$aula->nomeConPiano() : null;
                 },
                 'sostegni' => ($sostegni[$classe->id] ?? collect())->groupBy('slot_id')
                     ->map(fn ($gruppo) => $gruppo->pluck('docente.cognome')->unique()->values()->all())->all(),
@@ -75,16 +77,17 @@ class OrarioPdfExporter
      */
     public function docenti(Orario $orario, ?Collection $docenti = null): PdfDocument
     {
-        $lezioni = Lezione::query()->where('orario_id', $orario->id)
-            ->with('cattedra.classe', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')->get()
-            ->flatMap(fn (Lezione $l) => array_map(fn ($id) => [$id, $l], $l->docentiIds()))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));   // anche il docente CLIL in compresenza
+        $tutte = Lezione::query()->where('orario_id', $orario->id)
+            ->with('cattedra.classe.aulaBase', 'cattedra.disciplina', 'cattedra.docente', 'cattedra.docenteClil', 'aula')->get();
+        $lezioni = $tutte->flatMap(fn (Lezione $l) => array_map(fn ($id) => [$id, $l], $l->docentiIds()))->groupBy(0)->map(fn ($coppie) => $coppie->pluck(1));   // anche il docente CLIL in compresenza
+        $dellaClasse = $tutte->keyBy(fn (Lezione $l) => $l->cattedra->classe_id.'-'.$l->slot_id);   // la lezione a cui partecipa il sostegno
         $compresenze = $orario->compresenzeSostegno()->with('classe')->get()->groupBy('docente_id');
 
         $docenti ??= Docente::query()->whereIn('id', $lezioni->keys()->merge($compresenze->keys())->unique())
             ->orderBy('cognome')->orderBy('nome')->get();
 
         $assistenza = app(AssistenzaPause::class);
-        $fogli = $docenti->map(function (Docente $docente) use ($lezioni, $compresenze, $assistenza) {
+        $fogli = $docenti->map(function (Docente $docente) use ($lezioni, $compresenze, $assistenza, $dellaClasse) {
             $sue = ($lezioni[$docente->id] ?? collect())->keyBy('slot_id');
             $sostegni = ($compresenze[$docente->id] ?? collect());
 
@@ -93,7 +96,13 @@ class OrarioPdfExporter
                 'slotPerGiorno' => Slot::perGiorno(Slot::query()->whereIn('id', $sue->keys()->merge($sostegni->pluck('slot_id')))->max('ordine')),
                 'lezioni' => $sue,
                 'colonna' => fn (Lezione $l) => $l->cattedra->classe->nomeCompleto().' - '.$l->cattedra->disciplina->nome.($l->docenteClilEffettivo()?->id === $docente->id ? ' (CLIL)'.($l->clil_sostituto_id ? ' (per '.$l->cattedra->docenteClil?->cognome.')' : '') : '').($l->docenteEffettivo()->id === $docente->id && $l->docente_sostituto_id ? ' (per '.$l->cattedra->docente->cognome.')' : '').($l->docenteClilEffettivo() && $l->docenteClilEffettivo()->id !== $docente->id ? "\n+ ".$this->nomeClil($l).' (CLIL)' : '').($l->aulaDaMostrare() ? "\n".$l->aulaDaMostrare()->nomeConPiano() : ''),
-                'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->map(fn ($c) => $c->classe->nomeCompleto())->unique()->values()->all())->all(),
+                // Il sostegno: classe, materia e aula della lezione a cui partecipa (l'aula effettiva, anche se è quella base della classe).
+                'sostegni' => $sostegni->groupBy('slot_id')->map(fn ($g) => $g->unique('classe_id')->map(function ($c) use ($dellaClasse) {
+                    $l = $dellaClasse->get($c->classe_id.'-'.$c->slot_id);
+                    $aula = $l ? ($l->aula ?? $l->cattedra->classe->aulaBase) : null;
+
+                    return $c->classe->nomeCompleto().($l ? ' - '.$l->cattedra->disciplina->nome : '').($aula ? "\n".$aula->nomeConPiano() : '');
+                })->values()->all())->all(),
                 'assistenze' => $assistenza->elenco($docente->loadMissing('assistenzePausa')),
                 'docenteId' => $docente->id,
                 'laboratori' => app(Laboratori::class)->elenco($docente),

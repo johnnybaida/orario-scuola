@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 @php($pxAula = max(7, $fontPx - 4))
+@php($pxIcona = max(10, $fontPx))
 <head>
     <meta charset="UTF-8">
     <style>
@@ -16,6 +17,9 @@
         .materia { font-weight: bold; }
         .sostegno { color: #047857; }
         .clil { color: #1d4ed8; }
+        /* Quadratino blu con la «C» in alto a sinistra della cella: c'è un docente CLIL in compresenza. */
+        .icona-clil { position: absolute; top: 1px; left: 2px; width: {{ $pxIcona }}px; height: {{ $pxIcona }}px; line-height: {{ $pxIcona - 3 }}px; background: #1d4ed8; color: #fff; font-size: {{ $pxIcona - 3 }}px; font-weight: bold; text-align: center; }
+        .legenda .icona-clil { position: static; display: inline-block; }
         .aula { color: #555; }
         /* Altezza fissa delle celle (si divide il foglio tra le righe): serve a posizionare in basso il nome dell'aula, che è assoluto. */
         td { position: relative; height: {{ $altezzaCella }}px; }
@@ -75,8 +79,9 @@
                             <td @class(['inizio-giorno' => $loop->first]) @if ($primo) style="{{ \App\Support\ColoriDiscipline::stile($colori[$primo->cattedra->disciplina_id] ?? ['#ffffff', '#000000']) }}{{ $conAula ? ' padding-bottom: '.($fontPx - 1).'px;' : '' }}" @endif>
                                 @foreach ($gruppo as $lezione)
                                     @if ($per === 'docente')
-                                        {{-- Vista per docente: la classe (con «C.» se in quest'ora il docente è in compresenza CLIL) e la materia. --}}
-                                        <div class="materia">{{ $adatta($lezione->cattedra->classe->nomeCompleto(), $lezione->docenteClilEffettivo()?->id === $riga['id'] ? 'C. ' : '', '', true) }}</div>
+                                        {{-- Vista per docente: la classe (con l'icona CLIL se in quest'ora il docente è in compresenza CLIL) e la materia. --}}
+                                        @if ($lezione->docenteClilEffettivo()?->id === $riga['id'])<span class="icona-clil">C</span>@endif
+                                        <div class="materia">{{ $adatta($lezione->cattedra->classe->nomeCompleto(), '', '', true) }}</div>
                                         <div>{{ $adatta($lezione->cattedra->disciplina->nome) }}</div>
                                     @elseif ($per === 'aula')
                                         {{-- Vista per aula: classe, materia e tutti i docenti presenti in quell'ora (titolare, CLIL, sostegno), una riga ciascuno. --}}
@@ -95,7 +100,8 @@
                                     <div>{{ $adatta($lezione->docenteEffettivo()->cognome) }}</div>
                                     @endif
                                     @if ($per !== 'docente' && $lezione->docenteClilEffettivo())
-                                        <div class="clil">{{ $adatta($lezione->docenteClilEffettivo()->cognome, 'C. ') }}</div>
+                                        <span class="icona-clil">C</span>
+                                        <div class="clil">{{ $adatta($lezione->docenteClilEffettivo()->cognome) }}</div>
                                     @endif
                                     @if ($per === 'aula')
                                         @foreach ($sostegni->get($lezione->slot_id.'-'.$lezione->cattedra->classe_id)?->unique('docente_id') ?? [] as $supporto)
@@ -137,7 +143,7 @@
             <span style="{{ \App\Support\ColoriDiscipline::stile($colori[$disciplina->id] ?? ['#ffffff', '#000000']) }} padding: 0 3px;"><strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}</span>@unless ($loop->last) &middot; @endunless
         @endforeach
         &nbsp;|&nbsp; <span class="sostegno"><strong>S.</strong> = docente di sostegno in compresenza</span>
-        &nbsp;|&nbsp; <span class="clil"><strong>C.</strong> = docente CLIL in compresenza</span>
+        &nbsp;|&nbsp; <span class="clil"><span class="icona-clil">C</span> = docente CLIL in compresenza (in blu)</span>
         @if ($per === 'classe')&nbsp;|&nbsp; <span class="aula"><strong>Aula</strong> in piccolo in basso a sinistra, <strong>piano</strong> in alto a destra (PT = piano terra, P1 = 1° piano…); in <strong>grassetto</strong> = la classe cambia aula rispetto all'ora prima</span>@endif
     </p>
 </body>

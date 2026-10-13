@@ -114,7 +114,8 @@ class ExportPdfTest extends TestCase
         $seconda->slotAttivi()->attach($slot->id);
         $orario = Orario::factory()->create();
         $cattedra = Cattedra::factory()->create(['classe_id' => $prima->id]);
-        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot->id]);
+        $palestra = \App\Models\Aula::factory()->create(['nome' => 'Palestra Rossa', 'piano' => null]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot->id, 'aula_id' => $palestra->id]);
         $sostegno = Docente::factory()->create(['cognome' => 'Verdi']);
         \App\Models\CompresenzaSostegno::query()->create([
             'orario_id' => $orario->id, 'docente_id' => $sostegno->id, 'classe_id' => $prima->id, 'slot_id' => $slot->id,
@@ -130,6 +131,7 @@ class ExportPdfTest extends TestCase
         $this->assertSame(1, substr_count($html, 'page-break-after: always')); // 2 classi = 1 interruzione di pagina
         $this->assertStringContainsString('text-align: center', $html);          // titolo centrato
         $this->assertStringContainsString('S. Verdi', $html);                     // sostegno nella classe
+        $this->assertLessThan(strpos($html, 'Palestra Rossa'), strpos($html, 'S. Verdi'));   // il sostegno viene prima dell'aula
 
         $risposta = $this->actingAs(User::factory()->create(['ruolo' => 'ds']))->get("/orari/{$orario->id}/export/classi");
         $risposta->assertOk();
@@ -169,6 +171,11 @@ class ExportPdfTest extends TestCase
         Docente::factory()->create(['cognome' => 'Senzaore']);
         $cattedra = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id]);
         Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $cattedra->id, 'slot_id' => $slot1->id]);
+        // Il sostegno di Verdi alla 2ª ora è nella lezione di Matematica in aula Lab: il suo foglio riporta classe, materia e aula.
+        $mat = \App\Models\Disciplina::factory()->create(['nome' => 'Matematica']);
+        $lab = \App\Models\Aula::factory()->create(['nome' => 'Aula Lab', 'piano' => null]);
+        $catMat = Cattedra::factory()->create(['classe_id' => $classe->id, 'docente_id' => $rossi->id, 'disciplina_id' => $mat->id]);
+        Lezione::factory()->create(['orario_id' => $orario->id, 'cattedra_id' => $catMat->id, 'slot_id' => $slot2->id, 'aula_id' => $lab->id]);
         \App\Models\CompresenzaSostegno::query()->create(['orario_id' => $orario->id, 'docente_id' => $verdi->id, 'classe_id' => $classe->id, 'slot_id' => $slot2->id]);
 
         $html = app(\App\Services\Export\OrarioPdfExporter::class)->docenti($orario)->getDomPDF()->outputHtml();
@@ -178,7 +185,7 @@ class ExportPdfTest extends TestCase
         $this->assertStringContainsString('Orario docente '.$verdi->nomeCompleto(), $html);
         $this->assertStringNotContainsString('Senzaore', $html);                       // nessuna ora: niente foglio
         $this->assertStringContainsString($classe->nomeCompleto().' - '.$cattedra->disciplina->nome, $html);
-        $this->assertStringContainsString('S. '.$classe->nomeCompleto(), $html);        // sostegno in compresenza
+        $this->assertStringContainsString("S. {$classe->nomeCompleto()} - Matematica\nAula Lab", $html);        // sostegno in compresenza: classe, materia e aula
         $this->assertSame(1, substr_count($html, 'page-break-after: always'));         // 2 docenti = 1 interruzione
         $this->assertLessThan(strpos($html, 'Verdi'), strpos($html, 'Rossi'));         // ordine alfabetico
 
@@ -334,12 +341,18 @@ class ExportPdfTest extends TestCase
         foreach (['Rossi Anna', 'Clilli Eva', 'Sostegni Ugo'] as $nome) {
             $this->assertStringContainsString($nome, $html);   // una riga per ognuno
         }
-        $this->assertStringContainsString('2&ordf; B', $html);          // la classe nelle celle (del titolare e, con «C.», del CLIL)
-        $this->assertStringContainsString('C. 2&ordf; B', $html);
+        $this->assertStringContainsString('2&ordf; B', $html);          // la classe nelle celle (del titolare e, con l'icona CLIL, del CLIL)
+        $this->assertSame(2, substr_count($html, '<span class="icona-clil">C</span>'));   // nella cella del docente CLIL e in legenda, non in quella del titolare
+        $this->assertStringNotContainsString('C. 2&ordf; B', $html);
         $this->assertStringContainsString('S. 2&ordf; B', $html);        // il sostegno nella riga del docente di sostegno
         $this->assertStringContainsString('Docente</th>', $html);
 
         $this->actingAs(\App\Models\User::factory()->create(['ruolo' => 'referente_orario']))->get("/orari/{$orario->id}/export/generale?per=docente")->assertOk();
+
+        // Fogli di classe e di docente: l'icona CLIL compare nella cella della lezione con il docente CLIL.
+        $esportatore = app(\App\Services\Export\OrarioPdfExporter::class);
+        $this->assertSame(1, substr_count($esportatore->classe($orario, $classe)->getDomPDF()->outputHtml(), '<span class="icona-clil">C</span>'));
+        $this->assertSame(1, substr_count($esportatore->docente($orario, $clil)->getDomPDF()->outputHtml(), '<span class="icona-clil">C</span>'));
     }
 
     public function test_il_tabellone_web_per_docente_mostra_la_riga_di_ogni_docente(): void

@@ -15,7 +15,10 @@
         .cella { white-space: pre-line; }
         .ricreazione td { background: #fff7e0; color: #7a5b00; font-size: 12px; padding: 2px 4px; }
         .ricreazione .orario { font-size: 11px; }
-        .sostegno { color: #047857; font-size: 13px; }
+        .sostegno { color: #047857; font-size: 13px; white-space: pre-line; }
+        td { position: relative; }
+        /* Lezione con docente CLIL in compresenza: quadratino blu con la «C» nell'angolo in alto a sinistra della cella (line-height = font-size: in dompdf la «C» così è centrata nel quadratino). */
+        .icona-clil { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; line-height: 12px; background: #1d4ed8; color: #fff; font-size: 12px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
@@ -87,11 +90,18 @@
                                         {{-- Una cella può avere più lezioni (aula con capienza > 1): una sotto l'altra. --}}
                                         @foreach (\Illuminate\Support\Collection::wrap($foglio['lezioni']->get($slot->id)) as $lezione)
                                             @if (! $loop->first)<hr style="border: 0; border-top: 1px solid #bbb; margin: 3px 0">@endif
+                                            @if ($lezione->docenteClilEffettivo())<span class="icona-clil">C</span>@endif
                                             <span class="cella">{{ $foglio['colonna']($lezione) }}</span>
                                         @endforeach
                                         @foreach ($foglio['sostegni'][$slot->id] ?? [] as $cognome)
                                             <br><span class="sostegno">S. {{ $cognome }}</span>
                                         @endforeach
+                                        {{-- Foglio di classe: l'aula dopo i docenti di sostegno. --}}
+                                        @if (isset($foglio['aula']))
+                                            @foreach (\Illuminate\Support\Collection::wrap($foglio['lezioni']->get($slot->id)) as $lezione)
+                                                @if ($aulaTesto = $foglio['aula']($lezione))<br><span class="cella">{{ $aulaTesto }}</span>@endif
+                                            @endforeach
+                                        @endif
                                     @endif
                                 </td>
                             @endforeach
