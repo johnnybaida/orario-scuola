@@ -102,7 +102,7 @@ class ListeCsv
         match ($lista) {
             'scansione' => $this->importaScansione($righe, $esito),
             'quadri-orari' => $this->importaQuadri($righe, $esito),
-            'indisponibilita', 'sospensioni', 'assistenze-pausa', 'laboratori', 'impostazioni' => app(ListeCsvAggiuntive::class)->importa($lista, $righe, $esito),
+            'indisponibilita', 'sospensioni', 'assistenze-pausa', 'laboratori', 'impostazioni', 'vincoli' => app(ListeCsvAggiuntive::class)->importa($lista, $righe, $esito),
             default => $this->importaRighe($lista, $righe, $esito),
         };
 

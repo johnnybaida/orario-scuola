@@ -17,7 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
-/** Ogni dato dell'anagrafica (esclusi vincoli e sostegno) deve poter uscire e rientrare con i CSV. */
+/** Ogni dato dell'anagrafica (esclusi sostegno e nello ZIP le utenze; i vincoli hanno il loro CSV) deve poter uscire e rientrare con i CSV. */
 class CsvCompletoTest extends TestCase
 {
     use RefreshDatabase;
@@ -128,5 +128,49 @@ class CsvCompletoTest extends TestCase
         $this->carica('indisponibilita', "docente_cognome;docente_nome;giorno;ora\nRossi;Anna;LUN;9\nNessuno;Mai;LUN;1\n")
             ->assertSee('l\'ora LUN.9 non esiste')->assertSee('docente Nessuno Mai non trovato');
         $this->carica('assistenze-pausa', "docente_cognome;docente_nome;giorno;dopo_ora\nRossi;Anna;LUN;5\n")->assertSee('non esiste una pausa dopo l\'ora');
+    }
+
+    public function test_i_vincoli_escono_e_rientrano_con_riferimenti_per_nome(): void
+    {
+        $this->actingAs(User::factory()->create(['ruolo' => 'amministratore']));
+        $s1 = Slot::factory()->create(['giorno' => 1, 'ordine' => 1]);
+        $rossi = Docente::factory()->create(['cognome' => 'Rossi', 'nome' => 'Anna']);
+        $classe = Classe::factory()->create(['anno_corso' => 2, 'sezione' => 'B']);
+        $mat = Disciplina::factory()->create(['codice' => 'MAT']);
+        // come li salva il form: id e numeri come stringhe
+        \App\Models\Vincolo::factory()->create(['tipo' => 'D3_MAX_ORE_GIORNO', 'ambito_livello' => 'classe', 'ambito_ids' => [(string) $classe->id], 'severita' => 'preferenziale', 'peso' => 30,
+            'parametri' => ['disciplina_ids' => [(string) $mat->id], 'max' => '2'], 'nota' => 'prova']);
+        \App\Models\Vincolo::factory()->create(['tipo' => 'D6_FASCIA_ORARIA', 'ambito_livello' => 'globale', 'ambito_ids' => null, 'severita' => 'rigido', 'peso' => null,
+            'parametri' => ['disciplina_ids' => [$mat->id], 'tipo' => 'vietata', 'slot_ids' => [(string) $s1->id]]]);
+        \App\Models\Vincolo::factory()->create(['tipo' => 'T4_ORE_GIORNO', 'ambito_livello' => 'docente', 'ambito_ids' => [$rossi->id], 'severita' => 'rigido', 'peso' => null, 'attivo' => false,
+            'parametri' => ['max_ore' => 4]]);
+
+        $csv = $this->csv('vincoli');
+        $this->assertStringContainsString('D3_MAX_ORE_GIORNO;classe;2B;preferenziale;30;1;prova;', $csv);
+        $this->assertStringContainsString('"{""disciplina_ids"":[""MAT""],""max"":""2""}"', $csv);
+        $this->assertStringContainsString('LUN.1', $csv);
+        $this->assertStringContainsString('T4_ORE_GIORNO;docente;"Rossi Anna";rigido;;0;', $csv);
+
+        // già presenti: nulla di nuovo
+        $this->carica('vincoli', $csv)->assertSee('3 già presenti');
+        $this->assertSame(3, \App\Models\Vincolo::query()->count());
+
+        \App\Models\Vincolo::query()->get()->each->delete();
+        $this->carica('vincoli', $csv)->assertDontSee('con errori');
+        $this->assertSame(3, \App\Models\Vincolo::query()->count());
+        $d3 = \App\Models\Vincolo::query()->where('tipo', 'D3_MAX_ORE_GIORNO')->first();
+        $this->assertSame([[$classe->id], [$mat->id]], [$d3->ambito_ids, $d3->parametri['disciplina_ids']]);
+        $this->assertSame([$s1->id], \App\Models\Vincolo::query()->where('tipo', 'D6_FASCIA_ORARIA')->first()->parametri['slot_ids']);
+        $this->assertFalse(\App\Models\Vincolo::query()->where('tipo', 'T4_ORE_GIORNO')->first()->attivo);
+    }
+
+    public function test_errori_leggibili_nei_vincoli(): void
+    {
+        $this->actingAs(User::factory()->create(['ruolo' => 'amministratore']));
+        $testa = "tipo;ambito;riferimenti;severita;peso;attivo;nota;parametri\n";
+
+        $this->carica('vincoli', $testa."D3_MAX_ORE_GIORNO;classe;9Z;rigido;;1;;{}\nNESSUNO;globale;;rigido;;1;;{}\nT4_ORE_GIORNO;docente;;rigido;;1;;{\"max_ore\":3}\n")
+            ->assertSee('classe «9Z» non trovato')->assertSee('indica almeno un riferimento');
+        $this->assertSame(0, \App\Models\Vincolo::query()->count());
     }
 }

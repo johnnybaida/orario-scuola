@@ -6,15 +6,19 @@ use App\Enums\TipoAula;
 use App\Models\AssistenzaPausa;
 use App\Models\Aula;
 use App\Models\Classe;
+use App\Models\Disciplina;
 use App\Models\Docente;
 use App\Models\Impostazioni;
 use App\Models\Laboratorio;
 use App\Models\Slot;
 use App\Models\Sospensione;
+use App\Models\Vincolo;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Constraints\Catalogo;
+use App\Http\Requests\VincoloRequest;
 use InvalidArgumentException;
 
 /**
@@ -37,6 +41,9 @@ class ListeCsvAggiuntive
         'laboratori' => ['titolo' => 'Laboratori', 'permesso' => 'gestisci-anagrafica', 'ritorno' => 'laboratori.index',
             'colonne' => ['nome', 'aula', 'n_partecipanti', 'attivo', 'note', 'docenti', 'classi', 'slot'],
             'nota' => 'docenti = «Cognome Nome» separati da «|»; classi = per esempio «1A|2B»; slot = ore del pomeriggio come «LUN.7|MAR.7». Un laboratorio con lo stesso nome è saltato.'],
+        'vincoli' => ['titolo' => 'Vincoli', 'permesso' => 'gestisci-anagrafica', 'ritorno' => 'vincoli.index',
+            'colonne' => ['tipo', 'ambito', 'riferimenti', 'severita', 'peso', 'attivo', 'nota', 'parametri'],
+            'nota' => 'Una riga per vincolo. tipo = codice del tipo (es. D3_MAX_ORE_GIORNO); ambito = globale, classe, docente, disciplina o aula; riferimenti = a chi si applica, separati da «|» (classi come 1A, docenti come «Cognome Nome», discipline per codice, aule per nome); severita = rigido o preferenziale (peso 1-100 solo per i preferenziali); attivo 1/0; parametri = JSON del tipo, con discipline per codice (disciplina_ids, seguite_ids) e ore come «LUN.1» (slot_ids): il modo più facile è esportare e modificare il file. Importa prima discipline, docenti e classi. Un vincolo identico a uno esistente è saltato.'],
         'impostazioni' => ['titolo' => 'Impostazioni', 'permesso' => 'gestisci-anagrafica', 'ritorno' => 'impostazioni.index',
             'colonne' => ['conteggio_sostegno'],
             'nota' => 'Una riga sola con il conteggio predefinito del sostegno (per_alunno o per_classe): a differenza delle altre liste aggiorna il valore della sede.'],
@@ -62,6 +69,8 @@ class ListeCsvAggiuntive
                     $l->classi->map(fn ($c) => $c->anno_corso.$c->sezione)->implode('|'),
                     $l->slot->sortBy(fn ($s) => $s->giorno * 100 + $s->ordine)->map(fn ($s) => $this->giorno($s->giorno).'.'.$s->ordine)->implode('|')]),
             'impostazioni' => [[Impostazioni::correnti()->conteggio_sostegno]],
+            'vincoli' => Vincolo::query()->orderBy('id')->get()->map(fn ($v) => [$v->tipo, $v->ambito_livello, $this->riferimenti($v->ambito_livello, $v->ambito_ids ?? [])->implode('|'),
+                $v->severita, $v->peso, (int) $v->attivo, $v->nota, json_encode($this->parametriPortabili($v->parametri ?? []), JSON_UNESCAPED_UNICODE)]),
         };
     }
 
@@ -171,6 +180,91 @@ class ListeCsvAggiuntive
         Impostazioni::correnti()->update(['conteggio_sostegno' => $r['conteggio_sostegno']]);
 
         return false;
+    }
+
+    private function importaVincoli(array $r): bool
+    {
+        $livello = (string) $r['ambito'];
+        $ids = collect(explode('|', (string) $r['riferimenti']))->map('trim')->filter()->map(fn ($n) => match ($livello) {
+            'classe' => $this->classe($n),
+            'docente' => $this->docenteDaNome($n)->id,
+            'disciplina' => $this->unico(Disciplina::query()->where('codice', $n), "disciplina «{$n}»"),
+            'aula' => $this->unico(Aula::query()->where('nome', $n), "aula «{$n}»"),
+            default => throw new InvalidArgumentException('con ambito globale i riferimenti vanno lasciati vuoti.'),
+        })->sort()->values()->all();
+
+        $parametri = json_decode((string) ($r['parametri'] ?? '{}'), true);
+        if (! is_array($parametri)) {
+            throw new InvalidArgumentException('i parametri non sono un JSON valido.');
+        }
+        foreach (['disciplina_ids', 'seguite_ids'] as $campo) {
+            if (isset($parametri[$campo])) {
+                $parametri[$campo] = array_map(fn ($c) => $this->unico(Disciplina::query()->where('codice', $c), "disciplina «{$c}»"), (array) $parametri[$campo]);
+            }
+        }
+        if (isset($parametri['slot_ids'])) {
+            $parametri['slot_ids'] = $this->slotDaTesto(implode('|', (array) $parametri['slot_ids']));
+        }
+
+        $dati = ['tipo' => $r['tipo'], 'ambito_livello' => $livello, 'ambito_ids' => $ids, 'parametri' => $parametri, 'severita' => $r['severita'],
+            'peso' => $r['severita'] === 'rigido' ? null : $r['peso'], 'attivo' => (bool) ($r['attivo'] ?? 1), 'nota' => $r['nota'] ?? null];
+
+        $richiesta = new VincoloRequest;
+        $richiesta->merge($dati);
+        $validatore = Validator::make($dati, $richiesta->rules());
+        if ($validatore->fails()) {
+            throw new InvalidArgumentException($validatore->errors()->first());
+        }
+        $istanza = Catalogo::istanza($dati['tipo']);
+        if (method_exists($istanza, 'erroriAmbito') && $errori = $istanza->erroriAmbito($livello, $parametri)) {
+            throw new InvalidArgumentException(reset($errori));
+        }
+        if ($livello !== 'globale' && ! $ids) {
+            throw new InvalidArgumentException('indica almeno un riferimento per questo ambito.');
+        }
+
+        // I vincoli salvati dal form hanno numeri come stringhe: si confronta su una forma normalizzata (interi, id in ordine).
+        $norm = function ($x) use (&$norm) {
+            return is_array($x) ? array_map($norm, $x) : (is_string($x) && preg_match('/^-?\d+$/', $x) ? (int) $x : $x);
+        };
+        $firma = fn (array $v) => json_encode($norm([$v['ambito_livello'], collect($v['ambito_ids'] ?? [])->sort()->values()->all(), $v['parametri'] ?? [], $v['severita'], $v['peso']]));
+        $nuova = $firma($dati);
+        if (Vincolo::query()->where('tipo', $dati['tipo'])->get()->contains(fn ($v) => $firma($v->toArray()) === $nuova)) {
+            return true;
+        }
+        Vincolo::query()->create($dati);
+
+        return false;
+    }
+
+    /** @return Collection<int, string> */
+    private function riferimenti(string $livello, array $ids): Collection
+    {
+        $ids = array_map('intval', $ids);
+
+        return match ($livello) {
+            'classe' => Classe::query()->whereIn('id', $ids)->orderBy('anno_corso')->orderBy('sezione')->get()->map(fn ($c) => $c->anno_corso.$c->sezione),
+            'docente' => Docente::query()->whereIn('id', $ids)->orderBy('cognome')->orderBy('nome')->get()->map(fn ($d) => $d->cognome.' '.$d->nome),
+            'disciplina' => Disciplina::query()->whereIn('id', $ids)->orderBy('codice')->pluck('codice'),
+            'aula' => Aula::query()->whereIn('id', $ids)->orderBy('nome')->pluck('nome'),
+            default => collect(),
+        };
+    }
+
+    /** Gli id del database non valgono altrove: discipline per codice e slot come «LUN.1». */
+    private function parametriPortabili(array $parametri): array
+    {
+        foreach (['disciplina_ids', 'seguite_ids'] as $campo) {
+            if (isset($parametri[$campo])) {
+                $parametri[$campo] = Disciplina::query()->whereIn('id', array_map('intval', (array) $parametri[$campo]))->orderBy('codice')->pluck('codice')->all();
+            }
+        }
+        if (isset($parametri['slot_ids'])) {
+            $parametri['slot_ids'] = Slot::query()->whereIn('id', array_map('intval', (array) $parametri['slot_ids']))->orderBy('giorno')->orderBy('ordine')->get()
+                ->map(fn ($s) => $this->giorno($s->giorno).'.'.$s->ordine)->all();
+        }
+
+        return $parametri;
     }
 
     // --------------------------------------------------------------------------------------------------- aiuti
