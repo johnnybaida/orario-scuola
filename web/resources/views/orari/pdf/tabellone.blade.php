@@ -18,8 +18,9 @@
         .sostegno { color: #047857; }
         .clil { color: #1d4ed8; }
         /* Quadratino blu con la «C» in alto a sinistra della cella: c'è un docente CLIL in compresenza. */
-        .icona-clil { position: absolute; top: 1px; left: 2px; width: {{ $pxIcona }}px; height: {{ $pxIcona }}px; line-height: {{ $pxIcona - 3 }}px; background: #1d4ed8; color: #fff; font-size: {{ $pxIcona - 3 }}px; font-weight: bold; text-align: center; }
-        .legenda .icona-clil { position: static; display: inline-block; }
+        .icona-clil, .icona-sost { position: absolute; top: 1px; left: 2px; width: {{ $pxIcona }}px; height: {{ $pxIcona }}px; line-height: {{ $pxIcona - 3 }}px; background: #1d4ed8; color: #fff; font-size: {{ $pxIcona - 3 }}px; font-weight: bold; text-align: center; }
+        .icona-sost { background: #047857; }
+        .legenda .icona-clil, .legenda .icona-sost { position: static; display: inline-block; }
         .aula { color: #555; }
         /* Altezza fissa delle celle (si divide il foglio tra le righe): serve a posizionare in basso il nome dell'aula, che è assoluto. */
         td { position: relative; height: {{ $altezzaCella }}px; }
@@ -105,16 +106,17 @@
                                     @endif
                                     @if ($per === 'aula')
                                         @foreach ($sostegni->get($lezione->slot_id.'-'.$lezione->cattedra->classe_id)?->unique('docente_id') ?? [] as $supporto)
-                                            <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S. ') }}</div>
+                                            <div class="sostegno">{{ $adatta($supporto->docente->cognome) }}</div>
                                         @endforeach
                                     @endif
                                 @endforeach
                                 @foreach ($supporti as $supporto)
-                                    <div class="sostegno">{{ $adatta($supporto->docente->cognome, 'S. ') }}</div>
+                                    <div class="sostegno">{{ $adatta($supporto->docente->cognome) }}</div>
                                 @endforeach
                                 @if ($per === 'docente' && $s)
                                     @foreach ($sostegniDocente->get($s->id.'-'.$riga['id'], collect())->unique('classe_id') as $supporto)
-                                        <div class="sostegno">{{ $adatta($supporto->classe->nomeCompleto(), 'S. ') }}</div>
+                                        <span class="icona-sost">S</span>
+                                        <div class="sostegno">{{ $adatta($supporto->classe->nomeCompleto()) }}</div>
                                     @endforeach
                                 @endif
                             </td>
@@ -142,7 +144,7 @@
         @foreach ($discipline as $disciplina)
             <span style="{{ \App\Support\ColoriDiscipline::stile($colori[$disciplina->id] ?? ['#ffffff', '#000000']) }} padding: 0 3px;"><strong>{{ $disciplina->codice }}</strong> {{ $disciplina->nome }}</span>@unless ($loop->last) &middot; @endunless
         @endforeach
-        &nbsp;|&nbsp; <span class="sostegno"><strong>S.</strong> = docente di sostegno in compresenza</span>
+        &nbsp;|&nbsp; <span class="sostegno">@if ($per === 'docente')<span class="icona-sost">S</span> = @else in verde = @endif docente di sostegno in compresenza</span>
         &nbsp;|&nbsp; <span class="clil"><span class="icona-clil">C</span> = docente CLIL in compresenza (in blu)</span>
         @if ($per === 'classe')&nbsp;|&nbsp; <span class="aula"><strong>Aula</strong> in piccolo in basso a sinistra, <strong>piano</strong> in alto a destra (PT = piano terra, P1 = 1° piano…); in <strong>grassetto</strong> = la classe cambia aula rispetto all'ora prima</span>@endif
     </p>

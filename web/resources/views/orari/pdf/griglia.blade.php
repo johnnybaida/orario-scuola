@@ -18,7 +18,8 @@
         .sostegno { color: #047857; font-size: 13px; white-space: pre-line; }
         td { position: relative; }
         /* Lezione con docente CLIL in compresenza: quadratino blu con la «C» nell'angolo in alto a sinistra della cella (line-height = font-size: in dompdf la «C» così è centrata nel quadratino). */
-        .icona-clil { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; line-height: 12px; background: #1d4ed8; color: #fff; font-size: 12px; font-weight: bold; text-align: center; }
+        .icona-clil, .icona-sost { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; line-height: 12px; background: #1d4ed8; color: #fff; font-size: 12px; font-weight: bold; text-align: center; }
+        .icona-sost { background: #047857; }   /* dopo la regola comune: stesso quadratino, verde per il sostegno */
     </style>
 </head>
 <body>
@@ -93,8 +94,11 @@
                                             @if ($lezione->docenteClilEffettivo())<span class="icona-clil">C</span>@endif
                                             <span class="cella">{{ $foglio['colonna']($lezione) }}</span>
                                         @endforeach
+                                        {{-- Docenti di sostegno in verde, senza prefisso; nel foglio di un docente la cella è di sostegno: quadratino verde con la «S» in alto a sinistra. --}}
+                                        @php($haLezioni = \Illuminate\Support\Collection::wrap($foglio['lezioni']->get($slot->id))->isNotEmpty())
                                         @foreach ($foglio['sostegni'][$slot->id] ?? [] as $cognome)
-                                            <br><span class="sostegno">S. {{ $cognome }}</span>
+                                            @if ($loop->first && isset($foglio['docenteId']))<span class="icona-sost">S</span>@endif
+                                            @if ($haLezioni || ! $loop->first)<br>@endif<span class="sostegno">{{ $cognome }}</span>
                                         @endforeach
                                         {{-- Foglio di classe: l'aula dopo i docenti di sostegno. --}}
                                         @if (isset($foglio['aula']))
