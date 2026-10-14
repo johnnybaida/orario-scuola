@@ -1,6 +1,6 @@
 # 🗓️ Orario Scuola
 
-**Genera e gestisce l'orario settimanale di una scuola secondaria di I grado**: inserisci docenti, classi e regole, e il programma propone l'orario completo, che poi puoi ritoccare a mano e stampare in PDF.
+**Genera e gestisce gli orari di una scuola**: inserisci docenti, classi e regole, e il programma propone l'orario completo, che poi puoi ritoccare a mano e stampare in PDF.
 
 Funziona sul tuo computer, nel browser, **senza account**: internet serve solo per installarlo e per gli aggiornamenti.
 

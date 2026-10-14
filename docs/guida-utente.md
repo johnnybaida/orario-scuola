@@ -9,7 +9,7 @@ In fondo trovi il **Glossario** (cosa significano i termini scolastici usati) e 
 ## Per iniziare
 <!-- sezione: consulta -->
 
-L'applicazione genera e gestisce l'orario settimanale di una scuola secondaria di primo grado. Il percorso tipico è questo, in ordine. Se l'istituto ha più sedi, scegli prima la sede in cui lavorare dal menu **Sede** in alto: ogni sede ha la sua configurazione (e puoi copiarla da un'altra sede quando un'area è vuota).
+L'applicazione genera e gestisce gli orari di una scuola. Il percorso tipico è questo, in ordine. Se l'istituto ha più sedi, scegli prima la sede in cui lavorare dal menu **Sede** in alto: ogni sede ha la sua configurazione (e puoi copiarla da un'altra sede quando un'area è vuota).
 
 1. **Sedi** e **Aule**: i plessi dell'istituto e le loro aule (due voci separate del menu). Poi la **Scansione oraria**: gli orari delle ore e le ricreazioni.
 2. **Discipline**: le materie, con classe di concorso e aula richiesta.
